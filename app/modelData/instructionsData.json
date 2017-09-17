@@ -1,0 +1,25 @@
+{
+  "items":
+  [
+    {
+      "title" : "Add resource",
+      "explanation" : "Double-click on blank space in the canvas."
+    },
+    {
+      "title" : "Add link"
+    },
+    {
+      "title" : "Resize canvas"
+    },
+    {
+      "title" : "Edit resource name",
+      "explanation" : "Double-click on resource name. Enter a new name in the input field and hit Enter."
+    },
+    {
+      "title" : "Edit link label"
+    }
+  ]
+
+}
+
+
