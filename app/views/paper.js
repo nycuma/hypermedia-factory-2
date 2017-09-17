@@ -135,38 +135,17 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         return [maxX+5, maxY+5];
     },
 
-    // TODO: integrate in 'events' property
     setEvents: function () {
         this.on('blank:pointerdblclick', this.addNode);
-        /**
-        this.on('cell:pointerdblclick', function(cellView, event, x, y){
-                if (cellView.model.isLink()) {
-                    console.log('link dblclicked');
-
-                    cellView.model.label(0, {
-                        position: .8,
-                        attrs: {
-                            rect: { fill: 'white' },
-                            text: { text: 'LABEL' }
-                        }
-                    });
-
-                }
-            }
-        );
-         */
         
         this.on('blank:pointerclick', function (evt, x, y) {
             console.log('point [' + x + ', ' + y + ']');
-            //console.log(JSON.stringify(this.model.toJSON()));
         });
-        /*
+
         $('#linkLabelId').dblclick(function () {
            console.log('double click on a label');
 
         });
-        */
-
     },
 
     addNode: function (evt, x, y) {
