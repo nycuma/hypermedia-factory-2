@@ -17,9 +17,9 @@ var SidePanel = require('./views/sidePanel');
 $(document).ready(function() {
     console.log('start application');
 
-    var sidePanel = new SidePanel({});
+    new SidePanel({});
     var graph = new joint.dia.Graph;
-    var paper = new Paper({ model: graph });
+    new Paper({ model: graph });
 
 /**
     var router = new Router();
