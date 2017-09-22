@@ -9,52 +9,41 @@ var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
 var InstructionView = require('./instructionView');
+var PopUpView = require('./popUpView');
 var SingleInstruction = require('../models/singleInstruction');
 var instructionsList;
 instructionsList = require('../collections/instructionsList');
 
 var SidePanelView = Backbone.View.extend({
     el: '#sidePanel',
-    template: '<img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="static/img/logo.png" width="199" height="96"/>\
-                <nav>\
-                    <button id="importBtn">Import</button>\
-                    <button id="exportBtn">Export</button>\
-                    <button id="aboutBtn">About</button>\
-                </nav>\
-                <div id="welcome">\
-                    <span class="headQuickIntro">A Hypermedia Code-Template Factory for RESTful Web APIs</span>\
-                    <br>Hello there! Welcome to the Hypermedia Factory! Some welcome text. This is a \
-                    <a href="#" title="go somewhere">link</a>. Some more welcome text. \
-                    <a href="#" title="go somewhere">Another</a> link.\
-                </div>\
-                <div id="instructions">\
-                    <span class="headQuickIntro">Quick Instructions</span>\
-                </div>',
-
-
+    template: _.template($('#sidePanel-template').html()),
 
     initialize: function(){
+        //_.bindAll(this, 'render');
         this.render();
         this.loadInstructions();
     },
 
     render: function () {
+        //$(this.el).html($("#sidePanel-template").html());
         this.$el.html(this.template);
         return this;
+    },
+
+    events: {
+        'click #importBtn,#exportBtn,#aboutBtn': 'openPopUpView'
     },
 
     loadInstructions: function () {
         $.getJSON('../app/modelData/instructionsData.json', function(data) {
             data.items.forEach(function(item) {
-                console.log('loading instruction item: ' + JSON.stringify(item));
-
                 var newInstrModel = new SingleInstruction(item); // create new model
                 instructionsList.create(newInstrModel); // add model to collection
                 var view = new InstructionView({ model: newInstrModel }); // create new view for model
                 $('#instructions').append(view.render().el); // render view
             });
         });
-    }
+    },
     /**
     addInstrModel: function(item) {
         console.log('loading instruction item: ' + JSON.stringify(item));
@@ -69,6 +58,12 @@ var SidePanelView = Backbone.View.extend({
         $('#instructions').append(view.render().el);
     }
     */
+
+    openPopUpView: function (evt) {
+        var end = evt.target.id.length - 3;
+        console.log('evt:' + evt.target.id.substr(0, end));
+        new PopUpView({ subview : evt.target.id.substr(0, end) });
+    }
 });
 
 module.exports = SidePanelView;
