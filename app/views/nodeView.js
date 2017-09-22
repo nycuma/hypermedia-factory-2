@@ -19,6 +19,7 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
 
     template: [
         '<div class="html-element">',
+        '<button class="newLink">link</button>',
         '<button class="delete">x</button>',
         '<label></label>',
         '<input type="text" class="nodeInput" maxlength="30"/>',
@@ -40,10 +41,21 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
         this.$box.find('input').on('keypress', _.bind(this.checkKeyAndUpdateLabel, this));
         this.$box.find('input').on('blur', _.bind(this.updateLabel, this));
 
-        // Display input field when user double-clicks on label
+        // Display input field on double-clicks on label
         this.$box.find('label').on('dblclick', _.bind(this.displayInputField, this));
 
+        // Delete node
         this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
+
+        // Display 'link' on mouse-over and add link on double-click
+        this.$box.find('.newLink').mouseover(function () {
+           $(this).css('color', '#6a4848');
+        });
+        this.$box.find('.newLink').mouseleave(function () {
+            $(this).css('color', 'transparent');
+        });
+        this.$box.find('.newLink').on('dblclick', _.bind(this.addLink, this));
+
         // Update the box position whenever the underlying model changes.
         this.model.on('change', this.updateBox, this);
         // Remove the box when the model gets removed from the graph.
@@ -97,8 +109,20 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
             this.$box.find('label').show();
         }
     },
-    removeBox: function(evt) {
+    removeBox: function() {
         this.$box.remove();
+    },
+
+    showLinkIncon: function () {
+
+    },
+
+    addLink: function () {
+        var sourceID = this.model.get('id');
+        var posCorner = [ this.model.prop('position/x') + this.model.prop('size/width'),
+                            this.model.prop('position/y') ];
+        console.log('posCorner: ' + posCorner[0] + ' ' + posCorner[1]);
+        this.paper.addLink(sourceID, posCorner);
     }
 });
 
