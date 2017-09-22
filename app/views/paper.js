@@ -3,6 +3,7 @@
  */
 
 var joint = require('jointjs');
+var V = require('jointjs').V;
 var $ = require('jquery');
 var Node = require('../views/nodeView').Node;
 var StartNode = require('../models/startNode').StartNode;
@@ -140,6 +141,7 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         
         this.on('blank:pointerclick', function (evt, x, y) {
             console.log('point [' + x + ', ' + y + ']');
+            //console.log(JSON.stringify(this.model.toJSON()));
         });
 
         $('#linkLabelId').dblclick(function () {
@@ -150,8 +152,20 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
     addNode: function (evt, x, y) {
         var node = new Node({position: {x: x, y: y}});
-        console.log('node added in position ' + x + ', ' + y);
         this.model.addCell(node);
+        console.log('node added in position ' + x + ', ' + y);
+
+        var svgEl = V('<defs id="v-4"></defs>');
+        svgEl.append('<rect width="100" height="100" fill="black" />');
+    },
+
+    addLink: function (source, target) {
+        var link = new Link({
+            source: { id: source },
+            target: { x: target[0]+50, y: target[1]-50 }
+        });
+        this.model.addCell(link);
+        console.log('link added to node ' + source);
     }
 });
 
