@@ -6,7 +6,8 @@
       "explanation" : "Double-click on blank space in the canvas."
     },
     {
-      "title" : "Add link"
+      "title" : "Add link",
+      "explanation" : "Choose the node that is going to be your source. Move mouse to the top right of the node and double-click on 'link'."
     },
     {
       "title" : "Resize canvas"
@@ -17,6 +18,13 @@
     },
     {
       "title" : "Edit link label"
+    },
+    {
+      "title" : "Delete resource",
+      "explanation" : "Click on the X in the top right of the node. Note that this will also delete all links attached to this node."
+    },
+    {
+      "title" : "Clear canvas"
     }
   ]
 
