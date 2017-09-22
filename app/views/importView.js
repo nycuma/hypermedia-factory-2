@@ -10,15 +10,15 @@ var $ = require('jquery');
 Backbone.$ = $;
 
 var ImportView = Backbone.View.extend({
-    el: '#popUpView',
-    template:  _.template($('#about-template').html()),
+    el: '#content',
+    template:  _.template($('#import-template').html()),
 
     initialize: function(){
         this.render();
     },
 
     events: {
-        'click .importSubmitBtn': 'submit'
+        'click .submitBtn': 'submit'
     },
 
     render: function () {
@@ -28,7 +28,6 @@ var ImportView = Backbone.View.extend({
 
     submit: function (evt) {
         evt.preventDefault();
-        this.close();
     }
 });
 
