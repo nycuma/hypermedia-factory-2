@@ -1,3 +1,8 @@
+*.*~
+
+# JS Bundle
+app/static/bundle.min.js
+
 # Playground
 playground/
 
