@@ -18,7 +18,7 @@ var InstructionsList = Backbone.Collection.extend({
 
 module.exports = new InstructionsList();
 
-},{"../models/singleInstruction":5,"backbone":12}],2:[function(require,module,exports){
+},{"../models/singleInstruction":5,"backbone":16}],2:[function(require,module,exports){
 /**
  * Created by Julian Richter on 31 Aug 2017
  */
@@ -38,9 +38,9 @@ var SidePanel = require('./views/sidePanel');
 $(document).ready(function() {
     console.log('start application');
 
-    var sidePanel = new SidePanel({});
+    new SidePanel({});
     var graph = new joint.dia.Graph;
-    var paper = new Paper({ model: graph });
+    new Paper({ model: graph });
 
 /**
     var router = new Router();
@@ -52,7 +52,7 @@ $(document).ready(function() {
 
 });
 
-},{"./views/paper":10,"./views/sidePanel":11,"backbone":12,"jointjs":63,"jquery":65}],3:[function(require,module,exports){
+},{"./views/paper":13,"./views/sidePanel":15,"backbone":16,"jointjs":67,"jquery":69}],3:[function(require,module,exports){
 /**
  * Created by Julian Richter on 03 Sep 2017
  */
@@ -72,11 +72,11 @@ var RelationLink = joint.dia.Link.extend({
 
         labelMarkup: '<g class="label"><rect class="labelRect" /><text /></g>',
         labels: [{
-            position: .5,
+            position: .4,
             attrs: {
                 rect: { fill: '#f5f5ef', 'fill-opacity': .8 },
                 text: {
-                    text: '', 'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
+                    text: 'GET', 'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
                     'font-weight': 'bold', 'font-size': '10px',
                     'transform': 'matrix(1,0,0,1,0,-8)'
                 }
@@ -102,7 +102,7 @@ var RelationLink = joint.dia.Link.extend({
 module.exports = RelationLink;
 
 
-},{"jointjs":63}],4:[function(require,module,exports){
+},{"jointjs":67}],4:[function(require,module,exports){
 /**
  * Created by Julian Richter on 03 Sep 2017
  */
@@ -124,7 +124,7 @@ var Node = joint.shapes.basic.Rect.extend({
 
 module.exports = Node;
 
-},{"jointjs":63}],5:[function(require,module,exports){
+},{"jointjs":67}],5:[function(require,module,exports){
 /**
  * Created by Julian Richter on 13 Sep 2017
  */
@@ -142,12 +142,12 @@ var SingleInstruction = Backbone.Model.extend({
 
 module.exports = SingleInstruction;
 
-},{"backbone":12}],6:[function(require,module,exports){
+},{"backbone":16}],6:[function(require,module,exports){
 /**
  * Created by Julian Richter on 03 Sep 2017
  */
 
-// TODO darf nur einen ausgehenden Link haben
+// TODO darf nur einen ausgehenden Link haben (--> paper validateConnection)
 
 var joint = require('jointjs');
 
@@ -172,7 +172,106 @@ joint.shapes.custom.StartNode = joint.shapes.basic.Rect.extend({
 
 module.exports = joint.shapes.custom;
 
-},{"jointjs":63}],7:[function(require,module,exports){
+},{"jointjs":67}],7:[function(require,module,exports){
+/**
+ * Created by Julian Richter on 22 Sep 2017
+ */
+
+'use strict';
+
+var Backbone = require('backbone');
+var _ = require('underscore');
+var $ = require('jquery');
+Backbone.$ = $;
+
+var AboutView = Backbone.View.extend({
+    el: '#content',
+    template:  _.template($('#about-template').html()),
+
+    initialize: function(){
+        this.render();
+    },
+
+    render: function () {
+        this.$el.html(this.template);
+        return this;
+    }
+});
+
+module.exports = AboutView;
+
+},{"backbone":16,"jquery":69,"underscore":71}],8:[function(require,module,exports){
+/**
+ * Created by Julian Richter on 22 Sep 2017
+ */
+
+'use strict';
+
+var Backbone = require('backbone');
+var _ = require('underscore');
+var $ = require('jquery');
+Backbone.$ = $;
+
+var ExportView = Backbone.View.extend({
+    el: '#content',
+    template:  _.template($('#export-template').html()),
+
+    initialize: function(){
+        this.render();
+    },
+
+    events: {
+        'click .submitBtn': 'submit'
+    },
+
+    render: function () {
+        this.$el.html(this.template);
+        return this;
+    },
+
+    submit: function (evt) {
+        evt.preventDefault();
+    }
+});
+
+module.exports = ExportView;
+},{"backbone":16,"jquery":69,"underscore":71}],9:[function(require,module,exports){
+/**
+ * Created by Julian Richter on 22 Sep 2017
+ */
+
+'use strict';
+
+var Backbone = require('backbone');
+var _ = require('underscore');
+var $ = require('jquery');
+Backbone.$ = $;
+
+var ImportView = Backbone.View.extend({
+    el: '#content',
+    template:  _.template($('#import-template').html()),
+
+    initialize: function(){
+        this.render();
+    },
+
+    events: {
+        'click .submitBtn': 'submit'
+    },
+
+    render: function () {
+        this.$el.html(this.template);
+        return this;
+    },
+
+    submit: function (evt) {
+        evt.preventDefault();
+    }
+});
+
+module.exports = ImportView;
+
+},{"backbone":16,"jquery":69,"underscore":71}],10:[function(require,module,exports){
 /**
  * Created by Julian Richter on 11 Sep 2017
  */
@@ -205,7 +304,7 @@ var InstructionView = Backbone.View.extend({
 
 module.exports = InstructionView;
 
-},{"backbone":12,"jquery":65,"underscore":67}],8:[function(require,module,exports){
+},{"backbone":16,"jquery":69,"underscore":71}],11:[function(require,module,exports){
 /**
  * Created by Julian Richter on 08 Sep 2017
  */
@@ -249,7 +348,7 @@ joint.shapes.link.RelationLinkView = joint.dia.LinkView.extend({
 
 module.exports = joint.shapes.link;
 
-},{"../models/link":3,"jointjs":63}],9:[function(require,module,exports){
+},{"../models/link":3,"jointjs":67}],12:[function(require,module,exports){
 /**
  * Created by Julian Richter on 08 Sep 2017
  */
@@ -271,6 +370,7 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
 
     template: [
         '<div class="html-element">',
+        '<button class="newLink">link</button>',
         '<button class="delete">x</button>',
         '<label></label>',
         '<input type="text" class="nodeInput" maxlength="30"/>',
@@ -292,10 +392,21 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
         this.$box.find('input').on('keypress', _.bind(this.checkKeyAndUpdateLabel, this));
         this.$box.find('input').on('blur', _.bind(this.updateLabel, this));
 
-        // Display input field when user double-clicks on label
+        // Display input field on double-clicks on label
         this.$box.find('label').on('dblclick', _.bind(this.displayInputField, this));
 
+        // Delete node
         this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
+
+        // Display 'link' on mouse-over and add link on double-click
+        this.$box.find('.newLink').mouseover(function () {
+           $(this).css('color', '#6a4848');
+        });
+        this.$box.find('.newLink').mouseleave(function () {
+            $(this).css('color', 'transparent');
+        });
+        this.$box.find('.newLink').on('dblclick', _.bind(this.addLink, this));
+
         // Update the box position whenever the underlying model changes.
         this.model.on('change', this.updateBox, this);
         // Remove the box when the model gets removed from the graph.
@@ -351,17 +462,30 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
     },
     removeBox: function(evt) {
         this.$box.remove();
+    },
+
+    showLinkIncon: function () {
+
+    },
+
+    addLink: function (evt) {
+        var sourceID = this.model.get('id');
+        var posCorner = [ this.model.prop('position/x') + this.model.prop('size/width'),
+                            this.model.prop('position/y') ];
+        console.log('posCorner: ' + posCorner[0] + ' ' + posCorner[1]);
+        this.paper.addLink(sourceID, posCorner);
     }
 });
 
 module.exports = joint.shapes.html;
 
-},{"../models/node":4,"backbone":12,"jointjs":63,"jquery":65,"underscore":67}],10:[function(require,module,exports){
+},{"../models/node":4,"backbone":16,"jointjs":67,"jquery":69,"underscore":71}],13:[function(require,module,exports){
 /**
  * Created by Julian Richter on 03 Sep 2017
  */
 
 var joint = require('jointjs');
+var V = require('jointjs').V;
 var $ = require('jquery');
 var Node = require('../views/nodeView').Node;
 var StartNode = require('../models/startNode').StartNode;
@@ -494,51 +618,107 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         return [maxX+5, maxY+5];
     },
 
-    // TODO: integrate in 'events' property
     setEvents: function () {
         this.on('blank:pointerdblclick', this.addNode);
-        /**
-        this.on('cell:pointerdblclick', function(cellView, event, x, y){
-                if (cellView.model.isLink()) {
-                    console.log('link dblclicked');
-
-                    cellView.model.label(0, {
-                        position: .8,
-                        attrs: {
-                            rect: { fill: 'white' },
-                            text: { text: 'LABEL' }
-                        }
-                    });
-
-                }
-            }
-        );
-         */
         
         this.on('blank:pointerclick', function (evt, x, y) {
             console.log('point [' + x + ', ' + y + ']');
             //console.log(JSON.stringify(this.model.toJSON()));
         });
-        /*
+
         $('#linkLabelId').dblclick(function () {
            console.log('double click on a label');
 
         });
-        */
-
     },
 
     addNode: function (evt, x, y) {
         var node = new Node({position: {x: x, y: y}});
-        console.log('node added in position ' + x + ', ' + y);
         this.model.addCell(node);
+        console.log('node added in position ' + x + ', ' + y);
+
+        var svgEl = V('<defs id="v-4"></defs>');
+        svgEl.append('<rect width="100" height="100" fill="black" />');
+    },
+
+    addLink: function (source, target) {
+        var link = new Link({
+            source: { id: source },
+            target: { x: target[0]+50, y: target[1]-50 }
+        });
+        this.model.addCell(link);
+        console.log('link added to node ' + source);
     }
 });
 
 module.exports = joint.dia.CustomPaper;
 
 
-},{"../models/startNode":6,"../views/linkView":8,"../views/nodeView":9,"jointjs":63,"jquery":65}],11:[function(require,module,exports){
+},{"../models/startNode":6,"../views/linkView":11,"../views/nodeView":12,"jointjs":67,"jquery":69}],14:[function(require,module,exports){
+/**
+ * Created by Julian Richter on 21 Sep 2017
+ */
+
+'use strict';
+
+var Backbone = require('backbone');
+var _ = require('underscore');
+var $ = require('jquery');
+Backbone.$ = $;
+var ImportView = require('./importView');
+var ExportView = require('./exportView');
+var AboutView = require('./aboutView');
+
+var PopUpView = Backbone.View.extend({
+    el: '#popUpView',
+    template:  _.template($('#popUpView-template').html()),
+
+    initialize: function(options){
+        this.options = options;
+        this.render();
+    },
+
+    events: {
+        'click .close' : 'close'
+    },
+
+    render: function () {
+        this.$el.html(this.template());
+
+        if(this.options.subview === 'import') {
+            new ImportView({});
+        } else if(this.options.subview === 'export'){
+            new ExportView({});
+        } else if(this.options.subview === 'about'){
+            new AboutView({});
+        }
+
+
+        $('#sidePanel, #paper').fadeTo(400, 0.4).css('pointer-events', 'none');
+        this.$el.fadeIn(400);
+        return this;
+    },
+
+    assign : function (view, selector) {
+        view.setElement(this.$(selector)).render();
+    },
+
+    submit: function (evt) {
+        evt.preventDefault();
+        this.close();
+    },
+
+    close: function () {
+        this.$el.fadeOut(300);
+        this.$el.empty();
+        $('#sidePanel, #paper').fadeTo(400, 1).css('pointer-events', '');
+    }
+});
+
+module.exports = PopUpView;
+
+
+},{"./aboutView":7,"./exportView":8,"./importView":9,"backbone":16,"jquery":69,"underscore":71}],15:[function(require,module,exports){
 /**
  * Created by Julian Richter on 12 Sep 2017
  */
@@ -550,52 +730,41 @@ var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
 var InstructionView = require('./instructionView');
+var PopUpView = require('./popUpView');
 var SingleInstruction = require('../models/singleInstruction');
 var instructionsList;
 instructionsList = require('../collections/instructionsList');
 
 var SidePanelView = Backbone.View.extend({
     el: '#sidePanel',
-    template: '<img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="static/img/logo.png" width="199" height="96"/>\
-                <nav>\
-                    <button id="importBtn">Import</button>\
-                    <button id="exportBtn">Export</button>\
-                    <button id="aboutBtn">About</button>\
-                </nav>\
-                <div id="welcome">\
-                    <span class="headQuickIntro">A Hypermedia Code-Template Factory for RESTful Web APIs</span>\
-                    <br>Hello there! Welcome to the Hypermedia Factory! Some welcome text. This is a \
-                    <a href="#" title="go somewhere">link</a>. Some more welcome text. \
-                    <a href="#" title="go somewhere">Another</a> link.\
-                </div>\
-                <div id="instructions">\
-                    <span class="headQuickIntro">Quick Instructions</span>\
-                </div>',
-
-
+    template: _.template($('#sidePanel-template').html()),
 
     initialize: function(){
+        //_.bindAll(this, 'render');
         this.render();
         this.loadInstructions();
     },
 
     render: function () {
+        //$(this.el).html($("#sidePanel-template").html());
         this.$el.html(this.template);
         return this;
+    },
+
+    events: {
+        'click #importBtn,#exportBtn,#aboutBtn': 'openPopUpView'
     },
 
     loadInstructions: function () {
         $.getJSON('../app/modelData/instructionsData.json', function(data) {
             data.items.forEach(function(item) {
-                console.log('loading instruction item: ' + JSON.stringify(item));
-
                 var newInstrModel = new SingleInstruction(item); // create new model
                 instructionsList.create(newInstrModel); // add model to collection
                 var view = new InstructionView({ model: newInstrModel }); // create new view for model
                 $('#instructions').append(view.render().el); // render view
             });
         });
-    }
+    },
     /**
     addInstrModel: function(item) {
         console.log('loading instruction item: ' + JSON.stringify(item));
@@ -610,11 +779,17 @@ var SidePanelView = Backbone.View.extend({
         $('#instructions').append(view.render().el);
     }
     */
+
+    openPopUpView: function (evt) {
+        var end = evt.target.id.length - 3;
+        console.log('evt:' + evt.target.id.substr(0, end));
+        new PopUpView({ subview : evt.target.id.substr(0, end) });
+    }
 });
 
 module.exports = SidePanelView;
 
-},{"../collections/instructionsList":1,"../models/singleInstruction":5,"./instructionView":7,"backbone":12,"jquery":65,"underscore":67}],12:[function(require,module,exports){
+},{"../collections/instructionsList":1,"../models/singleInstruction":5,"./instructionView":10,"./popUpView":14,"backbone":16,"jquery":69,"underscore":71}],16:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.3.3
 
@@ -2538,7 +2713,7 @@ module.exports = SidePanelView;
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":65,"underscore":67}],13:[function(require,module,exports){
+},{"jquery":69,"underscore":71}],17:[function(require,module,exports){
 /*
 Copyright (c) 2012-2014 Chris Pettitt
 
@@ -2573,7 +2748,7 @@ module.exports = {
   version: require("./lib/version")
 };
 
-},{"./lib/debug":18,"./lib/graphlib":19,"./lib/layout":21,"./lib/util":41,"./lib/version":42}],14:[function(require,module,exports){
+},{"./lib/debug":22,"./lib/graphlib":23,"./lib/layout":25,"./lib/util":45,"./lib/version":46}],18:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -2642,7 +2817,7 @@ function undo(g) {
   });
 }
 
-},{"./greedy-fas":20,"./lodash":22}],15:[function(require,module,exports){
+},{"./greedy-fas":24,"./lodash":26}],19:[function(require,module,exports){
 var _ = require("./lodash"),
     util = require("./util");
 
@@ -2682,7 +2857,7 @@ function addBorderNode(g, prop, prefix, sg, sgNode, rank) {
   }
 }
 
-},{"./lodash":22,"./util":41}],16:[function(require,module,exports){
+},{"./lodash":26,"./util":45}],20:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash");
@@ -2756,7 +2931,7 @@ function swapXYOne(attrs) {
   attrs.y = x;
 }
 
-},{"./lodash":22}],17:[function(require,module,exports){
+},{"./lodash":26}],21:[function(require,module,exports){
 /*
  * Simple doubly linked list implementation derived from Cormen, et al.,
  * "Introduction to Algorithms".
@@ -2814,7 +2989,7 @@ function filterOutLinks(k, v) {
   }
 }
 
-},{}],18:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 var _ = require("./lodash"),
     util = require("./util"),
     Graph = require("./graphlib").Graph;
@@ -2850,7 +3025,7 @@ function debugOrdering(g) {
   return h;
 }
 
-},{"./graphlib":19,"./lodash":22,"./util":41}],19:[function(require,module,exports){
+},{"./graphlib":23,"./lodash":26,"./util":45}],23:[function(require,module,exports){
 /* global window */
 
 var graphlib;
@@ -2867,7 +3042,7 @@ if (!graphlib) {
 
 module.exports = graphlib;
 
-},{"graphlib":43}],20:[function(require,module,exports){
+},{"graphlib":47}],24:[function(require,module,exports){
 var _ = require("./lodash"),
     Graph = require("./graphlib").Graph,
     List = require("./data/list");
@@ -2987,7 +3162,7 @@ function assignBucket(buckets, zeroIdx, entry) {
   }
 }
 
-},{"./data/list":17,"./graphlib":19,"./lodash":22}],21:[function(require,module,exports){
+},{"./data/list":21,"./graphlib":23,"./lodash":26}],25:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -3381,7 +3556,7 @@ function canonicalize(attrs) {
   return newAttrs;
 }
 
-},{"./acyclic":14,"./add-border-segments":15,"./coordinate-system":16,"./graphlib":19,"./lodash":22,"./nesting-graph":23,"./normalize":24,"./order":29,"./parent-dummy-chains":34,"./position":36,"./rank":38,"./util":41}],22:[function(require,module,exports){
+},{"./acyclic":18,"./add-border-segments":19,"./coordinate-system":20,"./graphlib":23,"./lodash":26,"./nesting-graph":27,"./normalize":28,"./order":33,"./parent-dummy-chains":38,"./position":40,"./rank":42,"./util":45}],26:[function(require,module,exports){
 /* global window */
 
 var lodash;
@@ -3398,7 +3573,7 @@ if (!lodash) {
 
 module.exports = lodash;
 
-},{"lodash":66}],23:[function(require,module,exports){
+},{"lodash":70}],27:[function(require,module,exports){
 var _ = require("./lodash"),
     util = require("./util");
 
@@ -3532,7 +3707,7 @@ function cleanup(g) {
   });
 }
 
-},{"./lodash":22,"./util":41}],24:[function(require,module,exports){
+},{"./lodash":26,"./util":45}],28:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -3624,7 +3799,7 @@ function undo(g) {
   });
 }
 
-},{"./lodash":22,"./util":41}],25:[function(require,module,exports){
+},{"./lodash":26,"./util":45}],29:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = addSubgraphConstraints;
@@ -3679,7 +3854,7 @@ function addSubgraphConstraints(g, cg, vs) {
   */
 }
 
-},{"../lodash":22}],26:[function(require,module,exports){
+},{"../lodash":26}],30:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = barycenter;
@@ -3709,7 +3884,7 @@ function barycenter(g, movable) {
 }
 
 
-},{"../lodash":22}],27:[function(require,module,exports){
+},{"../lodash":26}],31:[function(require,module,exports){
 var _ = require("../lodash"),
     Graph = require("../graphlib").Graph;
 
@@ -3784,7 +3959,7 @@ function createRootNode(g) {
   return v;
 }
 
-},{"../graphlib":19,"../lodash":22}],28:[function(require,module,exports){
+},{"../graphlib":23,"../lodash":26}],32:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -3856,7 +4031,7 @@ function twoLayerCrossCount(g, northLayer, southLayer) {
   return cc;
 }
 
-},{"../lodash":22}],29:[function(require,module,exports){
+},{"../lodash":26}],33:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -3937,7 +4112,7 @@ function assignOrder(g, layering) {
   });
 }
 
-},{"../graphlib":19,"../lodash":22,"../util":41,"./add-subgraph-constraints":25,"./build-layer-graph":27,"./cross-count":28,"./init-order":30,"./sort-subgraph":32}],30:[function(require,module,exports){
+},{"../graphlib":23,"../lodash":26,"../util":45,"./add-subgraph-constraints":29,"./build-layer-graph":31,"./cross-count":32,"./init-order":34,"./sort-subgraph":36}],34:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -3977,7 +4152,7 @@ function initOrder(g) {
   return layers;
 }
 
-},{"../lodash":22}],31:[function(require,module,exports){
+},{"../lodash":26}],35:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -4102,7 +4277,7 @@ function mergeEntries(target, source) {
   source.merged = true;
 }
 
-},{"../lodash":22}],32:[function(require,module,exports){
+},{"../lodash":26}],36:[function(require,module,exports){
 var _ = require("../lodash"),
     barycenter = require("./barycenter"),
     resolveConflicts = require("./resolve-conflicts"),
@@ -4180,7 +4355,7 @@ function mergeBarycenters(target, other) {
   }
 }
 
-},{"../lodash":22,"./barycenter":26,"./resolve-conflicts":31,"./sort":33}],33:[function(require,module,exports){
+},{"../lodash":26,"./barycenter":30,"./resolve-conflicts":35,"./sort":37}],37:[function(require,module,exports){
 var _ = require("../lodash"),
     util = require("../util");
 
@@ -4239,7 +4414,7 @@ function compareWithBias(bias) {
   };
 }
 
-},{"../lodash":22,"../util":41}],34:[function(require,module,exports){
+},{"../lodash":26,"../util":45}],38:[function(require,module,exports){
 var _ = require("./lodash");
 
 module.exports = parentDummyChains;
@@ -4327,7 +4502,7 @@ function postorder(g) {
   return result;
 }
 
-},{"./lodash":22}],35:[function(require,module,exports){
+},{"./lodash":26}],39:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -4727,7 +4902,7 @@ function width(g, v) {
   return g.node(v).width;
 }
 
-},{"../graphlib":19,"../lodash":22,"../util":41}],36:[function(require,module,exports){
+},{"../graphlib":23,"../lodash":26,"../util":45}],40:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -4759,7 +4934,7 @@ function positionY(g) {
 }
 
 
-},{"../lodash":22,"../util":41,"./bk":35}],37:[function(require,module,exports){
+},{"../lodash":26,"../util":45,"./bk":39}],41:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -4850,7 +5025,7 @@ function shiftRanks(t, g, delta) {
   });
 }
 
-},{"../graphlib":19,"../lodash":22,"./util":40}],38:[function(require,module,exports){
+},{"../graphlib":23,"../lodash":26,"./util":44}],42:[function(require,module,exports){
 "use strict";
 
 var rankUtil = require("./util"),
@@ -4900,7 +5075,7 @@ function networkSimplexRanker(g) {
   networkSimplex(g);
 }
 
-},{"./feasible-tree":37,"./network-simplex":39,"./util":40}],39:[function(require,module,exports){
+},{"./feasible-tree":41,"./network-simplex":43,"./util":44}],43:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -5136,7 +5311,7 @@ function isDescendant(tree, vLabel, rootLabel) {
   return rootLabel.low <= vLabel.lim && vLabel.lim <= rootLabel.lim;
 }
 
-},{"../graphlib":19,"../lodash":22,"../util":41,"./feasible-tree":37,"./util":40}],40:[function(require,module,exports){
+},{"../graphlib":23,"../lodash":26,"../util":45,"./feasible-tree":41,"./util":44}],44:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -5199,7 +5374,7 @@ function slack(g, e) {
   return g.node(e.w).rank - g.node(e.v).rank - g.edge(e).minlen;
 }
 
-},{"../lodash":22}],41:[function(require,module,exports){
+},{"../lodash":26}],45:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -5437,10 +5612,10 @@ function notime(name, fn) {
   return fn();
 }
 
-},{"./graphlib":19,"./lodash":22}],42:[function(require,module,exports){
+},{"./graphlib":23,"./lodash":26}],46:[function(require,module,exports){
 module.exports = "0.7.4";
 
-},{}],43:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Chris Pettitt
  * All rights reserved.
@@ -5480,7 +5655,7 @@ module.exports = {
   version: lib.version
 };
 
-},{"./lib":59,"./lib/alg":50,"./lib/json":60}],44:[function(require,module,exports){
+},{"./lib":63,"./lib/alg":54,"./lib/json":64}],48:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = components;
@@ -5509,7 +5684,7 @@ function components(g) {
   return cmpts;
 }
 
-},{"../lodash":61}],45:[function(require,module,exports){
+},{"../lodash":65}],49:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = dfs;
@@ -5550,7 +5725,7 @@ function doDfs(g, v, postorder, visited, acc) {
   }
 }
 
-},{"../lodash":61}],46:[function(require,module,exports){
+},{"../lodash":65}],50:[function(require,module,exports){
 var dijkstra = require("./dijkstra"),
     _ = require("../lodash");
 
@@ -5562,7 +5737,7 @@ function dijkstraAll(g, weightFunc, edgeFunc) {
   }, {});
 }
 
-},{"../lodash":61,"./dijkstra":47}],47:[function(require,module,exports){
+},{"../lodash":65,"./dijkstra":51}],51:[function(require,module,exports){
 var _ = require("../lodash"),
     PriorityQueue = require("../data/priority-queue");
 
@@ -5618,7 +5793,7 @@ function runDijkstra(g, source, weightFn, edgeFn) {
   return results;
 }
 
-},{"../data/priority-queue":57,"../lodash":61}],48:[function(require,module,exports){
+},{"../data/priority-queue":61,"../lodash":65}],52:[function(require,module,exports){
 var _ = require("../lodash"),
     tarjan = require("./tarjan");
 
@@ -5630,7 +5805,7 @@ function findCycles(g) {
   });
 }
 
-},{"../lodash":61,"./tarjan":55}],49:[function(require,module,exports){
+},{"../lodash":65,"./tarjan":59}],53:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = floydWarshall;
@@ -5682,7 +5857,7 @@ function runFloydWarshall(g, weightFn, edgeFn) {
   return results;
 }
 
-},{"../lodash":61}],50:[function(require,module,exports){
+},{"../lodash":65}],54:[function(require,module,exports){
 module.exports = {
   components: require("./components"),
   dijkstra: require("./dijkstra"),
@@ -5697,7 +5872,7 @@ module.exports = {
   topsort: require("./topsort")
 };
 
-},{"./components":44,"./dijkstra":47,"./dijkstra-all":46,"./find-cycles":48,"./floyd-warshall":49,"./is-acyclic":51,"./postorder":52,"./preorder":53,"./prim":54,"./tarjan":55,"./topsort":56}],51:[function(require,module,exports){
+},{"./components":48,"./dijkstra":51,"./dijkstra-all":50,"./find-cycles":52,"./floyd-warshall":53,"./is-acyclic":55,"./postorder":56,"./preorder":57,"./prim":58,"./tarjan":59,"./topsort":60}],55:[function(require,module,exports){
 var topsort = require("./topsort");
 
 module.exports = isAcyclic;
@@ -5714,7 +5889,7 @@ function isAcyclic(g) {
   return true;
 }
 
-},{"./topsort":56}],52:[function(require,module,exports){
+},{"./topsort":60}],56:[function(require,module,exports){
 var dfs = require("./dfs");
 
 module.exports = postorder;
@@ -5723,7 +5898,7 @@ function postorder(g, vs) {
   return dfs(g, vs, "post");
 }
 
-},{"./dfs":45}],53:[function(require,module,exports){
+},{"./dfs":49}],57:[function(require,module,exports){
 var dfs = require("./dfs");
 
 module.exports = preorder;
@@ -5732,7 +5907,7 @@ function preorder(g, vs) {
   return dfs(g, vs, "pre");
 }
 
-},{"./dfs":45}],54:[function(require,module,exports){
+},{"./dfs":49}],58:[function(require,module,exports){
 var _ = require("../lodash"),
     Graph = require("../graph"),
     PriorityQueue = require("../data/priority-queue");
@@ -5786,7 +5961,7 @@ function prim(g, weightFunc) {
   return result;
 }
 
-},{"../data/priority-queue":57,"../graph":58,"../lodash":61}],55:[function(require,module,exports){
+},{"../data/priority-queue":61,"../graph":62,"../lodash":65}],59:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = tarjan;
@@ -5835,7 +6010,7 @@ function tarjan(g) {
   return results;
 }
 
-},{"../lodash":61}],56:[function(require,module,exports){
+},{"../lodash":65}],60:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = topsort;
@@ -5871,7 +6046,7 @@ function topsort(g) {
 
 function CycleException() {}
 
-},{"../lodash":61}],57:[function(require,module,exports){
+},{"../lodash":65}],61:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = PriorityQueue;
@@ -6025,7 +6200,7 @@ PriorityQueue.prototype._swap = function(i, j) {
   keyIndices[origArrI.key] = j;
 };
 
-},{"../lodash":61}],58:[function(require,module,exports){
+},{"../lodash":65}],62:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash");
@@ -6546,14 +6721,14 @@ function edgeObjToId(isDirected, edgeObj) {
   return edgeArgsToId(isDirected, edgeObj.v, edgeObj.w, edgeObj.name);
 }
 
-},{"./lodash":61}],59:[function(require,module,exports){
+},{"./lodash":65}],63:[function(require,module,exports){
 // Includes only the "core" of graphlib
 module.exports = {
   Graph: require("./graph"),
   version: require("./version")
 };
 
-},{"./graph":58,"./version":62}],60:[function(require,module,exports){
+},{"./graph":62,"./version":66}],64:[function(require,module,exports){
 var _ = require("./lodash"),
     Graph = require("./graph");
 
@@ -6621,12 +6796,12 @@ function read(json) {
   return g;
 }
 
-},{"./graph":58,"./lodash":61}],61:[function(require,module,exports){
-arguments[4][22][0].apply(exports,arguments)
-},{"dup":22,"lodash":66}],62:[function(require,module,exports){
+},{"./graph":62,"./lodash":65}],65:[function(require,module,exports){
+arguments[4][26][0].apply(exports,arguments)
+},{"dup":26,"lodash":70}],66:[function(require,module,exports){
 module.exports = '1.0.7';
 
-},{}],63:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 /*! JointJS v1.1.0 (2017-03-31) - JavaScript diagramming library
 
 
@@ -6697,7 +6872,7 @@ if("object"==typeof exports)var graphlib=require("graphlib"),dagre=require("dagr
 
 }));
 
-},{"backbone":12,"dagre":13,"graphlib":43,"jquery":64,"lodash":66}],64:[function(require,module,exports){
+},{"backbone":16,"dagre":17,"graphlib":47,"jquery":68,"lodash":70}],68:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.1.1
  * https://jquery.com/
@@ -16919,7 +17094,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],65:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.2.1
  * https://jquery.com/
@@ -27174,7 +27349,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],66:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -39529,7 +39704,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],67:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
