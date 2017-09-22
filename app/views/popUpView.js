@@ -8,21 +8,16 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
+var ImportView = require('./importView');
+var ExportView = require('./exportView');
+var AboutView = require('./aboutView');
 
-var ImportView = Backbone.View.extend({
+var PopUpView = Backbone.View.extend({
     el: '#popUpView',
-    template: '<div class="close">x</div>\
-               <h2 class ="headline-foregroundBox">Import from API specification</h2>\
-            <form>\
-                <select>\
-                    <option value="spec1">OpenAPI</option>\
-                    <option value="spec2">API Spec 2</option>\
-                </select>\
-                <button class="submit">Submit</button>\
-                <textarea>Paste API specification here...</textarea>\
-            </form>',
+    template:  _.template($('#popUpView-template').html()),
 
-    initialize: function(){
+    initialize: function(options){
+        this.options = options;
         this.render();
     },
 
@@ -31,21 +26,37 @@ var ImportView = Backbone.View.extend({
     },
 
     render: function () {
-        this.$el.addClass('foregroundBox');
-        this.$el.html(this.template);
+        this.$el.html(this.template());
+
+        if(this.options.subview === 'import') {
+            new ImportView({});
+        } else if(this.options.subview === 'export'){
+            new ExportView({});
+        } else if(this.options.subview === 'about'){
+            new AboutView({});
+        }
+
+
+        $('#sidePanel, #paper').fadeTo(400, 0.4).css('pointer-events', 'none');
+        this.$el.fadeIn(400);
         return this;
     },
 
-    submit: function () {
+    assign : function (view, selector) {
+        view.setElement(this.$(selector)).render();
+    },
 
+    submit: function (evt) {
+        evt.preventDefault();
+        this.close();
     },
 
     close: function () {
-        this.$el.removeClass('foregroundBox');
+        this.$el.fadeOut(300);
         this.$el.empty();
-        $('#sidePanel, #paper').css({'pointer-events': '', 'opacity': ''});
+        $('#sidePanel, #paper').fadeTo(400, 1).css('pointer-events', '');
     }
 });
 
-module.exports = ImportView;
+module.exports = PopUpView;
 
