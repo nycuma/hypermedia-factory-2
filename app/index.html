@@ -2,36 +2,122 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
   <title>Hypermedia Factory</title>
   <link rel="stylesheet" type="text/css" href="static/style.css" />
   <link rel="stylesheet" type="text/css" href="static/joint.css" />
 </head>
 <body>
 
-<!-- Side Panel with logo, navigation, intro and instructions-->
-<div id="sidePanel"></div>
+  <!-- Side Panel -->
+  <div id="sidePanel"></div>
 
-<!-- JointJS Diagramm -->
-<div id="paper"></div>
+  <!-- State Diagramm -->
+  <div id="paper"></div>
 
-<!--
-<div id="box">
-  <div class="resizeBox vertical"></div>
-  <div class="resizeBox horizontal"></div>
-</div>
--->
+  <!-- Import / Export / About -->
+  <div id="popUpView" class="foregroundBox"></div>
 
-<!--
-<footer>
-  Licence Info |
-  Credits |
-  Last Updated on xx Sep 2017
-</footer>
--->
+  <!-- Side Panel Template -->
+  <script type="text/template" id="sidePanel-template">
+    <img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="static/img/logo.png" width="198" height="95"/>
+    <nav>
+      <button id="importBtn">Import</button>
+      <button id="exportBtn">Export</button>
+      <button id="aboutBtn">About</button>
+    </nav>
+    <div id="welcome">
+      <span class="headline">A Hypermedia Code-Template Factory for RESTful Web APIs</span>
+      <br>Hello there! Welcome to the Hypermedia Factory! Some welcome text. This is a
+      <a href="#" title="go somewhere">link</a>. Some more welcome text.
+      <a href="#" title="go somewhere">Another</a> link.
+    </div>
+    <div id="instructions">
+      <span class="headline">Quick Instructions</span>
+    </div>
+  </script>
 
-<!-- Browserify Bundle -->
-  <script src="static/bundle.js" type="text/javascript"></script>
+
+  <!-- PopUpView Template -->
+  <script type="text/template" id="popUpView-template">
+    <div class="close">x</div>
+    <div id="content"></div>
+  </script>
+
+
+  <!-- Import Template -->
+  <script type="text/template" id="import-template">
+    <h1 class="headline-foregroundBox">Import from API specification</h1>
+    <form>
+      <select>
+        <option value="spec1">OpenAPI</option>
+        <option value="spec2">API Spec 2</option>
+      </select>
+      <button class="submitBtn" type="submit">Import</button>
+      <textarea>Paste API specification here...</textarea>
+    </form>
+  </script>
+
+
+  <!-- Export Template -->
+  <script type="text/template" id="export-template">
+    <h1 class="headline-foregroundBox">Export code templates</h1>
+    <p>
+      Export your state diagram to Node.js code templates including one
+      of the following hypermedia formats:
+    </p>
+    <form>
+      <table>
+        <tr>
+          <td><input type="radio" name="hmType" id="hydra"></td>
+          <td><label for="hydra">JSON-LD with Hydra</label></td>
+        </tr>
+        <tr>
+          <td><input type="radio" name="hmType" id="hal"></td>
+          <td><label for="hal">HAL (JSON)</label></td>
+        </tr>
+        <tr>
+          <td><input type="radio" name="hmType" id="siren"></td>
+          <td><label for="siren">Siren</label></td>
+        </tr>
+      </table>
+      <button class="submitBtn" type="submit">Export</button>
+    </form>
+  </script>
+
+
+  <!-- About Template -->
+  <script type="text/template" id="about-template">
+    <h1 class="headline-foregroundBox">About this page</h1>
+    <p>
+      This project is part of my bachelor's thesis at the
+      <a href="http://www.snet.tu-berlin.de/" target="_blank" title="Service-centric Networking">SNET</a>
+      research group at
+      <a href="http://www.tu-berlin.de/" target="_blank" title="Technische Universität Berlin">TU Berlin</a>.
+    </p>
+    <p>
+      Some words about the ideas behind this project...
+    </p>
+    <p>
+      Get more info at GitHub:
+      <br><a href="https://github.com/nycuma/hypermedia-factory" target="_blank">https://github.com/nycuma/hypermedia-factory</a>
+    </p>
+    <p>
+      <strong>Credits:</strong>
+      <br>Framework library: <a href="http://backbonejs.org/" target="_blank">Backbone.js</a>
+      <br>Graph library: <a href="https://www.jointjs.com/opensource" target="_blank">Joint.js</a>
+      <br>File Export library: <a href="https://github.com/eligrey/FileSaver.js" target="_blank">FileSaver.js</a>
+      <br>Logo designed by: <a href="#">Credit link</a>
+    </p>
+    <p>
+      <strong>Last updated:</strong>
+      <br>22 September 2017
+    </p>
+  </script>
+
+
+  <!-- Browserify Bundle -->
+  <script type="text/javascript" src="static/bundle.js"></script>
   
 </body>
 </html>
