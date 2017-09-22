@@ -17,11 +17,11 @@ var RelationLink = joint.dia.Link.extend({
 
         labelMarkup: '<g class="label"><rect class="labelRect" /><text /></g>',
         labels: [{
-            position: .5,
+            position: .4,
             attrs: {
                 rect: { fill: '#f5f5ef', 'fill-opacity': .8 },
                 text: {
-                    text: '', 'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
+                    text: 'GET', 'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
                     'font-weight': 'bold', 'font-size': '10px',
                     'transform': 'matrix(1,0,0,1,0,-8)'
                 }
