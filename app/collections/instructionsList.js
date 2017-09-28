@@ -9,7 +9,7 @@ var Instruction = require('../models/singleInstruction');
 
 var InstructionsList = Backbone.Collection.extend({
     model: Instruction,
-    url: '/hypermedia-factory-2/app/modelData/instructionsData.json',
+    url: '/hypermedia-factory/app/modelData/instructionsData.json',
     parse: function (data) {
         return data.items;
     }
