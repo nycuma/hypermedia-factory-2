@@ -31,7 +31,7 @@ var SidePanelView = Backbone.View.extend({
     },
 
     events: {
-        'click #importBtn,#exportBtn,#aboutBtn': 'openPopUpView'
+        'click #helpBtn,#exportBtn,#aboutBtn': 'openPopUpView'
     },
 
     loadInstructions: function () {

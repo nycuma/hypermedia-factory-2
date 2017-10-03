@@ -8,7 +8,7 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
-var ImportView = require('./importView');
+var HelpView = require('./helpView');
 var ExportView = require('./exportView');
 var AboutView = require('./aboutView');
 
@@ -28,8 +28,8 @@ var PopUpView = Backbone.View.extend({
     render: function () {
         this.$el.html(this.template());
 
-        if(this.options.subview === 'import') {
-            new ImportView({});
+        if(this.options.subview === 'help') {
+            new HelpView({});
         } else if(this.options.subview === 'export'){
             new ExportView({});
         } else if(this.options.subview === 'about'){
