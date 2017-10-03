@@ -20,15 +20,15 @@
 
   <!-- Side Panel Template -->
   <script type="text/template" id="sidePanel-template">
-    <img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="static/img/logo.png" width="198" height="95"/>
+    <img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="static/img/hm-logo.png" width="199" height="56"/>
     <nav>
-      <button id="importBtn">Import</button>
       <button id="exportBtn">Export</button>
       <button id="aboutBtn">About</button>
+      <button id="helpBtn">Help</button>
     </nav>
     <div id="welcome">
       <span class="headline">A Hypermedia Code-Template Factory for RESTful Web APIs</span>
-      <br>Hello there! Welcome to the Hypermedia Factory! Some welcome text. This is a
+      <br>Welcome to the Hypermedia Factory! This web site is a work in progress! Some welcome text. This is a
       <a href="#" title="go somewhere">link</a>. Some more welcome text.
       <a href="#" title="go somewhere">Another</a> link.
     </div>
@@ -45,17 +45,12 @@
   </script>
 
 
-  <!-- Import Template -->
-  <script type="text/template" id="import-template">
-    <h1 class="headline-foregroundBox">Import from API specification</h1>
-    <form>
-      <select>
-        <option value="spec1">OpenAPI</option>
-        <option value="spec2">API Spec 2</option>
-      </select>
-      <button class="submitBtn" type="submit">Import</button>
-      <textarea>Paste API specification here...</textarea>
-    </form>
+  <!-- Help Template -->
+  <script type="text/template" id="help-template">
+    <h1 class="headline-foregroundBox">Help</h1>
+    <p>
+      [Some words about hypermedia, links to hypermedia types, etc...]
+    </p>
   </script>
 
 
@@ -63,21 +58,21 @@
   <script type="text/template" id="export-template">
     <h1 class="headline-foregroundBox">Export code templates</h1>
     <p>
-      Export your state diagram to Node.js code templates including one
-      of the following hypermedia formats:
+      Export your state diagram to Node.js code with HTTP response templates
+      including one or more of the following hypermedia formats:
     </p>
     <form>
       <table>
         <tr>
-          <td><input type="radio" name="hmType" id="hydra"></td>
+          <td><input type="checkbox" name="hmType" id="hydra"></td>
           <td><label for="hydra">JSON-LD with Hydra</label></td>
         </tr>
         <tr>
-          <td><input type="radio" name="hmType" id="hal"></td>
+          <td><input type="checkbox" name="hmType" id="hal"></td>
           <td><label for="hal">HAL (JSON)</label></td>
         </tr>
         <tr>
-          <td><input type="radio" name="hmType" id="siren"></td>
+          <td><input type="checkbox" name="hmType" id="siren"></td>
           <td><label for="siren">Siren</label></td>
         </tr>
       </table>
@@ -88,7 +83,7 @@
 
   <!-- About Template -->
   <script type="text/template" id="about-template">
-    <h1 class="headline-foregroundBox">About this page</h1>
+    <h1 class="headline-foregroundBox">About</h1>
     <p>
       This project is part of my bachelor's thesis at the
       <a href="http://www.snet.tu-berlin.de/" target="_blank" title="Service-centric Networking">SNET</a>
@@ -96,19 +91,18 @@
       <a href="http://www.tu-berlin.de/" target="_blank" title="Technische Universität Berlin">TU Berlin</a>.
     </p>
     <p>
-      Some words about the ideas behind this project...
-    </p>
-    <p>
       Get more info at GitHub:
       <br><a href="https://github.com/nycuma/hypermedia-factory" target="_blank">https://github.com/nycuma/hypermedia-factory</a>
     </p>
     <p>
       <strong>Credits:</strong>
+      <br>Logo designed by: <a href="#">Franziska Nebel</a>
+      <br>Font 'Greyscale' from: <a href="https://www.fontsquirrel.com/fonts/Greyscale-Basic?filter[license][0]=web" target="_blank">FontSquirrel</a>
       <br>Framework library: <a href="http://backbonejs.org/" target="_blank">Backbone.js</a>
       <br>Graph library: <a href="https://www.jointjs.com/opensource" target="_blank">Joint.js</a>
+      <br>Zip Export library: <a href="https://stuk.github.io/jszip/" target="_blank">JSZip</a>
       <br>File Export library: <a href="https://github.com/eligrey/FileSaver.js" target="_blank">FileSaver.js</a>
-      <br>Logo designed by: <a href="#">Credit link</a>
-    </p>
+      </p>
   </script>
 
 
