@@ -10,7 +10,7 @@ var Instruction = require('../models/singleInstruction');
 
 var InstructionsList = Backbone.Collection.extend({
     model: Instruction,
-    url: '/jsodra/app/modelData/instructionsData.json',
+    url: '../app/modelData/instructionsData.json',
     parse: function (data) {
         return data.items;
     }
@@ -149,6 +149,8 @@ module.exports = SingleInstruction;
 
 // TODO darf nur einen ausgehenden Link haben (--> paper validateConnection)
 
+'use strict';
+
 var joint = require('jointjs');
 
 joint.shapes.custom = {};
@@ -247,9 +249,9 @@ var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
 
-var ImportView = Backbone.View.extend({
+var HelpView = Backbone.View.extend({
     el: '#content',
-    template:  _.template($('#import-template').html()),
+    template:  _.template($('#help-template').html()),
 
     initialize: function(){
         this.render();
@@ -269,7 +271,7 @@ var ImportView = Backbone.View.extend({
     }
 });
 
-module.exports = ImportView;
+module.exports = HelpView;
 
 },{"backbone":16,"jquery":69,"underscore":71}],10:[function(require,module,exports){
 /**
@@ -460,7 +462,7 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
             this.$box.find('label').show();
         }
     },
-    removeBox: function(evt) {
+    removeBox: function() {
         this.$box.remove();
     },
 
@@ -468,7 +470,7 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
 
     },
 
-    addLink: function (evt) {
+    addLink: function () {
         var sourceID = this.model.get('id');
         var posCorner = [ this.model.prop('position/x') + this.model.prop('size/width'),
                             this.model.prop('position/y') ];
@@ -665,7 +667,7 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
-var ImportView = require('./importView');
+var HelpView = require('./helpView');
 var ExportView = require('./exportView');
 var AboutView = require('./aboutView');
 
@@ -685,8 +687,8 @@ var PopUpView = Backbone.View.extend({
     render: function () {
         this.$el.html(this.template());
 
-        if(this.options.subview === 'import') {
-            new ImportView({});
+        if(this.options.subview === 'help') {
+            new HelpView({});
         } else if(this.options.subview === 'export'){
             new ExportView({});
         } else if(this.options.subview === 'about'){
@@ -718,7 +720,7 @@ var PopUpView = Backbone.View.extend({
 module.exports = PopUpView;
 
 
-},{"./aboutView":7,"./exportView":8,"./importView":9,"backbone":16,"jquery":69,"underscore":71}],15:[function(require,module,exports){
+},{"./aboutView":7,"./exportView":8,"./helpView":9,"backbone":16,"jquery":69,"underscore":71}],15:[function(require,module,exports){
 /**
  * Created by Julian Richter on 12 Sep 2017
  */
@@ -752,7 +754,7 @@ var SidePanelView = Backbone.View.extend({
     },
 
     events: {
-        'click #importBtn,#exportBtn,#aboutBtn': 'openPopUpView'
+        'click #helpBtn,#exportBtn,#aboutBtn': 'openPopUpView'
     },
 
     loadInstructions: function () {
