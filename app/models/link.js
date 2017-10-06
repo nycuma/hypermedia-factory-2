@@ -15,13 +15,13 @@ var RelationLink = joint.dia.Link.extend({
             '.marker-target': { fill: '#6a4848', d: 'M 10 0 L 0 5 L 10 10 z' }
         },
 
-        labelMarkup: '<g class="label"><rect class="labelRect" /><text /></g>',
+        labelMarkup: '<g class="label"><rect/><text /></g>',
         labels: [{
             position: .4,
             attrs: {
                 rect: { fill: '#f5f5ef', 'fill-opacity': .8 },
                 text: {
-                    text: 'GET', 'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
+                    text: '', 'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
                     'font-weight': 'bold', 'font-size': '10px',
                     'transform': 'matrix(1,0,0,1,0,-8)'
                 }
@@ -32,7 +32,7 @@ var RelationLink = joint.dia.Link.extend({
                 attrs: {
                     rect: { fill: '#f5f5ef', 'fill-opacity': .8 },
                     text: {
-                        text: 'relation',
+                        text: '',
                         'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
                         'font-weight': 'normal', 'font-size': '10px',
                         'transform': 'matrix(1,0,0,1,0,7)'
@@ -40,7 +40,43 @@ var RelationLink = joint.dia.Link.extend({
                 }
             }
         ]
-    }, joint.dia.Link.prototype.defaults)
+    }, joint.dia.Link.prototype.defaults),
+
+    addPropersties: function (newMethod, newUrl, newRel) {
+
+        //console.log('adding props: ' + newMethod + ', ' + newUrl + ', ' + newRel);
+
+        var stateTransisions = this.prop('stateTransitions') || [];
+
+        stateTransisions.push({
+            method: newMethod,
+            url: newUrl,
+            relation: newRel
+        });
+
+        this.prop('stateTransitions', stateTransisions);
+        this.renderLinkLabels();
+    },
+
+    renderLinkLabels: function () {
+
+        var stateTransisions = this.prop('stateTransitions');
+
+        var methodLabel = stateTransisions.reduce(function (a,b) {
+            if(a == '') return b.method;
+            if(b.method == '') return a;
+            return a + ', ' + b.method;
+        }, '');
+
+        var relLabel = stateTransisions.reduce(function (a,b) {
+            if(a == '') return b.relation;
+            if(b.relation == '') return a;
+            return a + ', ' + b.relation;
+        }, '');
+
+        this.prop('labels/0/attrs/text/text', methodLabel);
+        this.prop('labels/1/attrs/text/text', relLabel);
+    }
 });
 
 
