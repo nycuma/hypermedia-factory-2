@@ -10,6 +10,7 @@ Backbone.$ = $;
 var joint = require('jointjs');
 var _ = require('underscore');
 var Node = require('../models/node');
+var EditResourceView = require('../views/editResourceView');
 
 joint.shapes.html = {};
 
@@ -22,7 +23,6 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
         '<button class="newLink">link</button>',
         '<button class="delete">x</button>',
         '<label></label>',
-        '<input type="text" class="nodeInput" maxlength="30"/>',
         '</div>'
     ].join(''),
 
@@ -32,17 +32,16 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
 
         this.$box = $(_.template(this.template)());
 
+
+        /**
         // Prevent paper from handling pointerdown.
         this.$box.find('input').on('mousedown click', function(evt) {
             evt.stopPropagation();
         });
+         */
 
-        // update label when user hits Enter on input
-        this.$box.find('input').on('keypress', _.bind(this.checkKeyAndUpdateLabel, this));
-        this.$box.find('input').on('blur', _.bind(this.updateLabel, this));
-
-        // Display input field on double-clicks on label
-        this.$box.find('label').on('dblclick', _.bind(this.displayInputField, this));
+        // Open dialog box to edit properties
+        this.$box.find('label').on('dblclick', _.bind(this.openEditBox, this.model));
 
         // Delete node
         this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
@@ -83,32 +82,11 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
             transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)'
         });
     },
-    displayInputField: function () {
-        var label = this.model.get('label');
-        this.$box.find('input').val(label);
-        this.$box.find('input').show();
-        this.$box.find('label').hide();
-    },
-    checkKeyAndUpdateLabel: function (evt) {
-        if(evt.which == 13){ // Enter key
-            this.updateLabel(evt);
-        }
-    },
-    updateLabel: function (evt) {
-        var newLabel = $(evt.target).val().trim();
 
-        if(newLabel) {
-            if(newLabel.length > 30) {
-                newLabel = newLabel.substring(0, 30);
-            }
-            this.$box.find('input').hide();
-            this.model.set('label', newLabel);
-            this.$box.find('label').show();
-        } else { // display old label if string is empty
-            this.$box.find('input').hide();
-            this.$box.find('label').show();
-        }
+    openEditBox: function () {
+        new EditResourceView({ model: this });
     },
+
     removeBox: function() {
         this.$box.remove();
     },
