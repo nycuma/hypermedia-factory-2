@@ -14,7 +14,14 @@ var Node = joint.shapes.basic.Rect.extend({
         attrs: {
             rect: { stroke: 'none', 'fill-opacity': 0 }
         }
-    }, joint.shapes.basic.Rect.prototype.defaults)
+    }, joint.shapes.basic.Rect.prototype.defaults),
+
+    addAttribute: function (attr) {
+
+        var resourceAttrs = this.prop('resourceAttr') || [];
+        resourceAttrs.push(attr);
+        this.prop('resourceAttr', resourceAttrs);
+    }
 });
 
 module.exports = Node;
