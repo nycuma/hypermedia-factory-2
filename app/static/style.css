@@ -33,8 +33,73 @@ a:visited {
     cursor: context-menu;
 }
 
+hr {
+    height: 1px;
+    width: 60%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    color: #f5f5ef;
+    background: #f5f5ef;
+    font-size: 0;
+    border: 0;
+}
+
+#editResource,
+#editLink,
 #popUpView {
     display: none;
+}
+
+
+.editBox {
+    position: absolute;
+    top: 15vh;
+    left: 20vw;
+    right: 20vw;
+    width: 300px;
+    margin: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: #6a4848;
+    border-radius: 5px;
+    z-index: 11;
+    color: #f5f0f0;
+    font-size: 15px;
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+    overflow: hidden;
+}
+
+.editBox table {
+    margin: auto;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.editBox form input {
+    width: 90%;
+}
+
+.editBox form input[name=cellId] {
+    color: grey;
+}
+
+.editBox .btn {
+    color: #6a4848;
+    background-color: #f5f5ef;
+}
+
+.editBox .cancelBtn {
+    float: left;
+}
+
+.editBox .btn:hover,
+.editBox .btn:focus {
+    color: #f5f5ef;
+    background-color: #6a4848;
+}
+
+.addFieldBtn {
+    float: right;
 }
 
 .foregroundBox {
@@ -71,44 +136,24 @@ a:visited {
     font-size: 24px;
 }
 
-.foregroundBox textarea {
-    width: 95%;
-    height: 63vh;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    resize: none;
-}
-
-.foregroundBox button,
-.foregroundBox select,
-.foregroundBox option {
+.btn {
+    padding: 8px;
     margin-top: 10px;
     color: #f5f0f0;
     font-size: 14px;
     font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
     background-color: #6a4848;
     border: none;
-
 }
 
-.foregroundBox button {
-    float: right;
-    padding: 8px;
-}
-
-.foregroundBox select {
-    float: left;
-    padding: 5px;
-}
-
-.foregroundBox input[type="radio"] {
-
-}
-
-.foregroundBox button:hover,
-.foregroundBox button:focus {
+.btn:hover,
+.btn:focus {
     color: #6a4848;
     background-color: #f5f0f0;
+}
+
+.submitBtn {
+    float: right;
 }
 
 .foregroundBox .close {
@@ -121,7 +166,7 @@ a:visited {
     line-height: 140%;
 }
 
-.foregroundBox table {
+table {
     text-align: left;
     margin: auto;
 }
@@ -323,5 +368,5 @@ CSS for style of nodes
     font-size: 12px;
     font-weight: bold;
     margin: auto;
-    cursor: text;
+    /*cursor: text;*/
 }
