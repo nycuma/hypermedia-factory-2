@@ -18,6 +18,11 @@
   <!-- Import / Export / About -->
   <div id="popUpView" class="foregroundBox"></div>
 
+  <!-- Forms to edit resources / links -->
+  <div id="editResource" class="editBox"></div>
+  <div id="editLink" class="editBox"></div>
+
+
   <!-- Side Panel Template -->
   <script type="text/template" id="sidePanel-template">
     <img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="static/img/hm-logo.png" width="199" height="56"/>
@@ -27,7 +32,7 @@
       <button id="helpBtn">Help</button>
     </nav>
     <div id="welcome">
-      <span class="headline">A Hypermedia Code-Template Factory for RESTful Web APIs</span>
+      <span class="headline">A Node.js code generator for RESTful Web APIs</span>
       <br>Welcome to the Hypermedia Factory! This web site is a work in progress! Some welcome text. This is a
       <a href="#" title="go somewhere">link</a>. Some more welcome text.
       <a href="#" title="go somewhere">Another</a> link.
@@ -76,7 +81,7 @@
           <td><label for="siren">Siren</label></td>
         </tr>
       </table>
-      <button class="submitBtn" type="submit">Export</button>
+      <button class="btn submitBtn" type="submit">Export</button>
     </form>
   </script>
 
@@ -103,6 +108,74 @@
       <br>Zip Export library: <a href="https://stuk.github.io/jszip/" target="_blank">JSZip</a>
       <br>File Export library: <a href="https://github.com/eligrey/FileSaver.js" target="_blank">FileSaver.js</a>
       </p>
+  </script>
+
+
+  <!-- Resource Template -->
+  <script type="text/template" id="edit-resource-template">
+    <form>
+      <table id="editResourceAttributes">
+        <tbody>
+        <tr>
+          <td><label for="inputResourceId">Node ID:</label></td>
+          <td><input type="text" name="cellId" id="inputResourceId" readonly></td>
+        </tr>
+        <tr>
+          <td><label for="resourceName">Name:</label></td>
+          <td><input type="text" id="resourceName" maxlength="25"></td>
+        </tr>
+          <tr>
+            <td><label for="attr0">Attribut:</label></td>
+            <td><input type="text" name="attr" id="attr0"></td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="btn cancelBtn">Cancel</button>
+      <button class="btn submitBtn">Save</button>
+      <button class="btn addFieldBtn" title="Add attribute">+</button>
+    </form>
+  </script>
+
+  <!-- Link Template -->
+  <script type="text/template" id="edit-link-template">
+    <form>
+      <table>
+        <tr>
+          <td><label for="inputLinkId">Link ID:</label></td>
+          <td><input type="text" name="cellId" id="inputLinkId" readonly></td>
+        </tr>
+      </table>
+      <hr>
+        <div id="editLinkFieldSets">
+          <div id="editLinkFieldSet0">
+            <table>
+            <tr>
+              <td><label for="methodDropdown0">Method:</label></td>
+              <td>
+                <select name="methodDropdown" id="methodDropdown0">
+                  <option></option>
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="DELETE">DELETE</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td><label for="url0">URL:</label></td>
+              <td><input type="text" name="url" id="url0"></td>
+            </tr>
+            <tr>
+              <td><label for="relation0">Relation:</label></td>
+              <td><input type="text" name="relation" id="relation0"></td>
+            </tr>
+            </table>
+          </div>
+        </div>
+      <button class="btn cancelBtn">Cancel</button>
+      <button class="btn submitBtn">Save</button>
+      <button class="btn addFieldBtn" title="Add state transition">+</button>
+    </form>
   </script>
 
 
