@@ -118,14 +118,14 @@ var RelationLink = joint.dia.Link.extend({
         var stateTransisions = this.prop('stateTransitions');
 
         var methodLabel = stateTransisions.reduce(function (a,b) {
-            if(a == '') return b.method;
-            if(b.method == '') return a;
+            if(!a) return b.method;
+            if(!b.method) return a;
             return a + ', ' + b.method;
         }, '');
 
         var relLabel = stateTransisions.reduce(function (a,b) {
-            if(a == '') return b.relation;
-            if(b.relation == '') return a;
+            if(!a) return b.relation;
+            if(!b.relation) return a;
             return a + ', ' + b.relation;
         }, '');
 
