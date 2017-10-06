@@ -61,7 +61,6 @@ var SidePanelView = Backbone.View.extend({
 
     openPopUpView: function (evt) {
         var end = evt.target.id.length - 3;
-        console.log('evt:' + evt.target.id.substr(0, end));
         new PopUpView({ subview : evt.target.id.substr(0, end) });
     }
 });
