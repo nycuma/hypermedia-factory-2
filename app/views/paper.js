@@ -8,6 +8,8 @@ var $ = require('jquery');
 var Node = require('../views/nodeView').Node;
 var StartNode = require('../models/startNode').StartNode;
 var Link = require('../views/linkView').RelationLink;
+var EditLinkView = require('../views/editLinkView');
+var EditResourceView = require('../views/editResourceView');
 
 joint.dia.CustomPaper = joint.dia.Paper.extend({
 
@@ -19,77 +21,45 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     initialize: function() {
         joint.dia.Paper.prototype.initialize.apply(this, arguments);
         this.setEvents();
-        this.initializeGraph();
+        this.initializeGraph(); // Demo graph
         this.calculatePaperSize();
     },
 
     initializeGraph: function() {
 
+        // Nodes
         var start = new StartNode();
+        var elCollection = this.createNodeForDemo(15, 90, 'Record Collection');
+        var elAlbum = this.createNodeForDemo(230, 90, 'Album');
+        var elTrack = this.createNodeForDemo(480, 90, 'Track');
+        var elArtist = this.createNodeForDemo(230, 220, 'Artist');
 
-        var elCollection = new Node({
-            position: { x: 15, y: 90 },
-            label: 'CD Collection'
-        });
-        var elAlbum = new Node({
-            position: { x: 230, y: 90 },
-            label: 'Album'
-        });
-        var elTrack = new Node({
-            position: { x: 480, y: 90 },
-            label: 'Track'
-        });
-        var elArtist = new Node({
-            position: { x: 230, y: 220 },
-            label: 'Artist'
-        });
+        // Links
+        var l1 = this.createStartLink(start.id, elCollection.id);
 
-        // Link from START to first resource
-        var l1 = new joint.dia.Link({
-            source: { id: start.id },
-            target: { id: elCollection.id },
-            attrs: { '.connection': { stroke: '#6a4848', 'stroke-width': 2 },
-                '.marker-target': { fill: '#6a4848', d: 'M 10 0 L 0 5 L 10 10 z' }
-            }
-        });
+        var l2 = this.createLinkForDemo(elCollection.id, elAlbum.id);
+        l2.addPropersties('GET', '/test/1', 'relation1');
+        l2.addPropersties('POST', '/test/2', 'relation2');
 
-        var l2 = new Link({
-            source: { id: elCollection.id },
-            target: { id: elAlbum.id }
-        });
-        l2.prop('labels/0/attrs/text/text', 'GET, POST');
-
-        var l3 = new Link({
-            source: { id: elAlbum.id },
-            target: { id: elAlbum.id }
-        });
+        var l3 = this.createLinkForDemo(elAlbum.id, elAlbum.id);
         l3.set('vertices', [{ x: 240, y: 45 }, { x: 315, y: 45 }]);
-        l3.prop('labels/0/attrs/text/text', 'PUT, DELETE');
+        l3.addPropersties('PUT', 'test/1', 'relation1');
+        l3.addPropersties('DELETE', 'test/2', 'relation2');
 
-        var l4 = new Link({
-            source: { id: elAlbum.id },
-            target: { id: elTrack.id }
-        });
-        l4.prop('labels/0/attrs/text/text', 'GET, POST');
+        var l4 = this.createLinkForDemo(elAlbum.id, elTrack.id);
+        l4.addPropersties('GET', '/test/1', 'relation1');
+        l4.addPropersties('POST', '/test/2', 'relation2');
 
-        var l5 = new Link({
-            source: { id: elAlbum.id },
-            target: { id: elArtist.id }
-        });
-        l5.prop('labels/0/attrs/text/text', 'GET');
+        var l5 = this.createLinkForDemo(elAlbum.id, elArtist.id);
+        l5.addPropersties('GET', '/test/1', 'relation1');
 
-        var l6 = new Link({
-            source: { id: elTrack.id },
-            target: { id: elTrack.id }
-        });
+        var l6 = this.createLinkForDemo(elTrack.id, elTrack.id);
         l6.set('vertices', [{ x: 485, y: 45 }, { x: 565, y: 45 }]);
-        l6.prop('labels/0/attrs/text/text', 'PUT, DELETE');
+        l6.addPropersties('PUT', 'test/1', 'relation1');
+        l6.addPropersties('DELETE', 'test/2', 'relation2');
 
-        var l7 = new Link({
-            source: { id: elTrack.id },
-            target: { id: elArtist.id }
-        });
-        l7.prop('labels/0/attrs/text/text', 'GET');
+        var l7 = this.createLinkForDemo(elTrack.id, elArtist.id);
+        l7.addPropersties('GET', '/test/1', 'relation1');
 
         this.model.addCells([start, elCollection, elAlbum, elTrack, elArtist, l1, l2, l3, l4, l5, l6, l7]);
     },
@@ -105,7 +75,6 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
     // calculates minimum size: the size required for all nodes and links to fit onto paper
     // checks position of all nodes and vertices on links
-    // TODO: cache min/max values and update them when new nodes/Links are added (to avoid iterating over all nodes/links)
     getPaperMinSize: function() {
         var maxX = 0, maxY = 0;
         var cells = this.model.getCells();
@@ -144,6 +113,17 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
             //console.log(JSON.stringify(this.model.toJSON()));
         });
 
+        this.on('cell:pointerdblclick',
+            function(cellView, evt, x, y) {
+                if(cellView.model.isLink() /* && cellView.model.id != l1.model.id */) {
+                    new EditLinkView({ model: cellView.model });
+                }
+                if(cellView.model.isElement()) {
+                    new EditResourceView({ model: cellView.model });
+                }
+            }
+        );
+
         $('#linkLabelId').dblclick(function () {
            console.log('double click on a label');
 
@@ -154,9 +134,6 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         var node = new Node({position: {x: x, y: y}});
         this.model.addCell(node);
         console.log('node added in position ' + x + ', ' + y);
-
-        var svgEl = V('<defs id="v-4"></defs>');
-        svgEl.append('<rect width="100" height="100" fill="black" />');
     },
 
     addLink: function (source, target) {
@@ -166,6 +143,31 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         });
         this.model.addCell(link);
         console.log('link added to node ' + source);
+    },
+
+    createStartLink: function (sourceId, targetId) {
+        return new joint.dia.Link({
+            source: { id: sourceId },
+            target: { id: targetId },
+            attrs: { '.connection': { stroke: '#6a4848', 'stroke-width': 2 },
+                '.marker-target': { fill: '#6a4848', d: 'M 10 0 L 0 5 L 10 10 z' }
+            }
+        });
+
+    },
+
+    createNodeForDemo: function (x, y, label) {
+        return new Node({
+            position: { x: x, y: y },
+            label: label
+        });
+    },
+
+    createLinkForDemo: function (sourceId, targetId) {
+       return new Link({
+            source: { id: sourceId },
+            target: { id: targetId }
+        });
     }
 });
 
