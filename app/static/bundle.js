@@ -18,7 +18,7 @@ var InstructionsList = Backbone.Collection.extend({
 
 module.exports = new InstructionsList();
 
-},{"../models/singleInstruction":5,"backbone":16}],2:[function(require,module,exports){
+},{"../models/singleInstruction":5,"backbone":18}],2:[function(require,module,exports){
 /**
  * Created by Julian Richter on 31 Aug 2017
  */
@@ -52,7 +52,7 @@ $(document).ready(function() {
 
 });
 
-},{"./views/paper":13,"./views/sidePanel":15,"backbone":16,"jointjs":67,"jquery":69}],3:[function(require,module,exports){
+},{"./views/paper":15,"./views/sidePanel":17,"backbone":18,"jointjs":69,"jquery":71}],3:[function(require,module,exports){
 /**
  * Created by Julian Richter on 03 Sep 2017
  */
@@ -70,13 +70,13 @@ var RelationLink = joint.dia.Link.extend({
             '.marker-target': { fill: '#6a4848', d: 'M 10 0 L 0 5 L 10 10 z' }
         },
 
-        labelMarkup: '<g class="label"><rect class="labelRect" /><text /></g>',
+        labelMarkup: '<g class="label"><rect/><text /></g>',
         labels: [{
             position: .4,
             attrs: {
                 rect: { fill: '#f5f5ef', 'fill-opacity': .8 },
                 text: {
-                    text: 'GET', 'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
+                    text: '', 'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
                     'font-weight': 'bold', 'font-size': '10px',
                     'transform': 'matrix(1,0,0,1,0,-8)'
                 }
@@ -87,7 +87,7 @@ var RelationLink = joint.dia.Link.extend({
                 attrs: {
                     rect: { fill: '#f5f5ef', 'fill-opacity': .8 },
                     text: {
-                        text: 'relation',
+                        text: '',
                         'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
                         'font-weight': 'normal', 'font-size': '10px',
                         'transform': 'matrix(1,0,0,1,0,7)'
@@ -95,14 +95,50 @@ var RelationLink = joint.dia.Link.extend({
                 }
             }
         ]
-    }, joint.dia.Link.prototype.defaults)
+    }, joint.dia.Link.prototype.defaults),
+
+    addPropersties: function (newMethod, newUrl, newRel) {
+
+        //console.log('adding props: ' + newMethod + ', ' + newUrl + ', ' + newRel);
+
+        var stateTransisions = this.prop('stateTransitions') || [];
+
+        stateTransisions.push({
+            method: newMethod,
+            url: newUrl,
+            relation: newRel
+        });
+
+        this.prop('stateTransitions', stateTransisions);
+        this.renderLinkLabels();
+    },
+
+    renderLinkLabels: function () {
+
+        var stateTransisions = this.prop('stateTransitions');
+
+        var methodLabel = stateTransisions.reduce(function (a,b) {
+            if(a == '') return b.method;
+            if(b.method == '') return a;
+            return a + ', ' + b.method;
+        }, '');
+
+        var relLabel = stateTransisions.reduce(function (a,b) {
+            if(a == '') return b.relation;
+            if(b.relation == '') return a;
+            return a + ', ' + b.relation;
+        }, '');
+
+        this.prop('labels/0/attrs/text/text', methodLabel);
+        this.prop('labels/1/attrs/text/text', relLabel);
+    }
 });
 
 
 module.exports = RelationLink;
 
 
-},{"jointjs":67}],4:[function(require,module,exports){
+},{"jointjs":69}],4:[function(require,module,exports){
 /**
  * Created by Julian Richter on 03 Sep 2017
  */
@@ -119,12 +155,19 @@ var Node = joint.shapes.basic.Rect.extend({
         attrs: {
             rect: { stroke: 'none', 'fill-opacity': 0 }
         }
-    }, joint.shapes.basic.Rect.prototype.defaults)
+    }, joint.shapes.basic.Rect.prototype.defaults),
+
+    addAttribute: function (attr) {
+
+        var resourceAttrs = this.prop('resourceAttr') || [];
+        resourceAttrs.push(attr);
+        this.prop('resourceAttr', resourceAttrs);
+    }
 });
 
 module.exports = Node;
 
-},{"jointjs":67}],5:[function(require,module,exports){
+},{"jointjs":69}],5:[function(require,module,exports){
 /**
  * Created by Julian Richter on 13 Sep 2017
  */
@@ -142,7 +185,7 @@ var SingleInstruction = Backbone.Model.extend({
 
 module.exports = SingleInstruction;
 
-},{"backbone":16}],6:[function(require,module,exports){
+},{"backbone":18}],6:[function(require,module,exports){
 /**
  * Created by Julian Richter on 03 Sep 2017
  */
@@ -174,7 +217,7 @@ joint.shapes.custom.StartNode = joint.shapes.basic.Rect.extend({
 
 module.exports = joint.shapes.custom;
 
-},{"jointjs":67}],7:[function(require,module,exports){
+},{"jointjs":69}],7:[function(require,module,exports){
 /**
  * Created by Julian Richter on 22 Sep 2017
  */
@@ -202,7 +245,204 @@ var AboutView = Backbone.View.extend({
 
 module.exports = AboutView;
 
-},{"backbone":16,"jquery":69,"underscore":71}],8:[function(require,module,exports){
+},{"backbone":18,"jquery":71,"underscore":73}],8:[function(require,module,exports){
+/**
+ * Created by Julian Richter on 04 Oct 2017
+ */
+
+'use strict';
+
+var Backbone = require('backbone');
+var _ = require('underscore');
+var $ = require('jquery');
+Backbone.$ = $;
+
+var EditLinkView = Backbone.View.extend({
+    el: '#editLink',
+    template:  _.template($('#edit-link-template').html()),
+
+    initialize: function(){
+        this.render();
+    },
+
+    events: {
+        'click .submitBtn': 'submit',
+        'click .cancelBtn' : 'close',
+        'click .addFieldBtn' : 'addFields'
+    },
+
+    render: function () {
+        this.$el.html(this.template);
+        this.fillInputFields();
+        this.$el.show();
+        return this;
+    },
+
+    fillInputFields: function () {
+
+        $('#inputLinkId').val(this.model.id);
+        var stateTransisions = this.model.prop('stateTransitions');
+
+        if(!stateTransisions) return;
+        stateTransisions.forEach(_.bind(function(el, i) {
+            if (i !== 0) this.addFields();
+
+            var method = this.model.prop('stateTransitions/' + i + '/method');
+            if(method) $('#methodDropdown' + i + ' option[value=' + method + ']').prop('selected', true);
+            $('#url' + i).val(this.model.prop('stateTransitions/' + i + '/url'));
+            $('#relation' + i).val(this.model.prop('stateTransitions/' + i + '/relation'));
+        }, this));
+    },
+
+
+    addFields: function (evt) {
+        if(evt) evt.preventDefault();
+
+        var fieldSetCount = $('#editLinkFieldSets > div').length;
+
+        $('#editLinkFieldSets')
+            .append('<hr>\
+                    <div id="editLinkFieldSet'+fieldSetCount+'">\
+                        <table>\
+                            <tr>\
+                                <td><label id="methodDropdown'+fieldSetCount+'">Method:</label></td>\
+                                <td>\
+                                    <select name="methodDropdown" id="methodDropdown'+fieldSetCount+'">\
+                                        <option></option>\
+                                        <option value="GET">GET</option>\
+                                        <option value="POST">POST</option>\
+                                        <option value="PUT">PUT</option>\
+                                        <option value="DELETE">DELETE</option>\
+                                    </select>\
+                                </td>\
+                            </tr>\
+                            <tr>\
+                                <td><label for="url'+fieldSetCount+'">URL:</label></td>\
+                                <td><input type="text" name="url" id="url'+fieldSetCount+'"></td>\
+                            </tr>\
+                            <tr>\
+                                <td><label for="relation'+fieldSetCount+'">Relation:</label></td>\
+                            <td><input type="text" name="relation" id="relation'+fieldSetCount+'"></td>\
+                            </tr>\
+                        </table>\
+                    </div>');
+
+    },
+
+    submit: function (evt) {
+        //TODO Button, um einzelne oder alle Fieldsets wieder zu löschen
+        evt.preventDefault();
+
+        this.model.prop('stateTransitions', []);
+        var linkModel = this.model;
+
+        $('#editLinkFieldSets > div').each(function() {
+            var method = $(this).find('select[name=methodDropdown]').val();
+            var url = $(this).find('input[name=url]').val();
+            var rel = $(this).find('input[name=relation]').val();
+
+            if(method || url || rel) linkModel.addPropersties(method, url, rel);
+        });
+
+        this.close();
+    },
+
+    close: function (evt) {
+        if(evt) evt.preventDefault();
+        this.$el.remove();
+        $('body').append('<div id="editLink" class="editBox"></div>');
+    }
+});
+
+module.exports = EditLinkView;
+
+},{"backbone":18,"jquery":71,"underscore":73}],9:[function(require,module,exports){
+/**
+ * Created by Julian Richter on 04 Oct 2017
+ */
+
+
+'use strict';
+
+var Backbone = require('backbone');
+var _ = require('underscore');
+var $ = require('jquery');
+Backbone.$ = $;
+
+var EditResourceView = Backbone.View.extend({
+    el: '#editResource',
+    template:  _.template($('#edit-resource-template').html()),
+
+    initialize: function(){
+        this.render();
+    },
+
+    events: {
+        'click .submitBtn': 'submit',
+        'click .cancelBtn' : 'close',
+        'click .addFieldBtn' : 'addAttrField'
+    },
+
+    render: function () {
+        this.$el.html(this.template);
+        this.fillInputFields();
+        this.$el.show();
+        return this;
+    },
+
+    fillInputFields: function () {
+        $('#inputResourceId').val(this.model.id);
+        $('#resourceName').val(this.model.get('label'));
+
+        var resourceAttrs = this.model.prop('resourceAttr');
+        if(!resourceAttrs) return;
+
+        resourceAttrs.forEach(_.bind(function(el, i) {
+            if (i !== 0) this.addAttrField();
+            $('#attr' + i).val(this.model.prop('resourceAttr/' + i));
+        }, this));
+    },
+
+    addAttrField: function(evt) {
+        if(evt) evt.preventDefault();
+
+        var attrCount = $("#editResourceAttributes tbody > tr").length - 2;
+
+        $('#editResourceAttributes tbody')
+            .append('<tr>\
+                        <td><label for="attr'+attrCount+'">Attribut:</label></td>\
+                        <td><input type="text" name="attr" id="attr'+attrCount+'"></td>\
+                    </tr>');
+
+    },
+
+    submit: function (evt) {
+        //TODO Button, um einzelne oder alle Attribute zu löschen
+        evt.preventDefault();
+
+        var newLabel = $('#resourceName').val().trim();
+        if(newLabel) this.model.set('label', newLabel);
+
+        this.model.prop('resourceAttr', []);
+        var resourceModel = this.model;
+
+        $('#editResourceAttributes input[name=attr]').each(function() {
+            var newAttr = $(this).val();
+            if(newAttr) resourceModel.addAttribute(newAttr);
+        });
+
+        this.close();
+    },
+
+    close: function (evt) {
+        if(evt) evt.preventDefault();
+        this.$el.remove();
+        $('body').append('<div id="editResource" class="editBox"></div>');
+    }
+});
+
+module.exports = EditResourceView;
+},{"backbone":18,"jquery":71,"underscore":73}],10:[function(require,module,exports){
 /**
  * Created by Julian Richter on 22 Sep 2017
  */
@@ -237,7 +477,7 @@ var ExportView = Backbone.View.extend({
 });
 
 module.exports = ExportView;
-},{"backbone":16,"jquery":69,"underscore":71}],9:[function(require,module,exports){
+},{"backbone":18,"jquery":71,"underscore":73}],11:[function(require,module,exports){
 /**
  * Created by Julian Richter on 22 Sep 2017
  */
@@ -273,7 +513,7 @@ var HelpView = Backbone.View.extend({
 
 module.exports = HelpView;
 
-},{"backbone":16,"jquery":69,"underscore":71}],10:[function(require,module,exports){
+},{"backbone":18,"jquery":71,"underscore":73}],12:[function(require,module,exports){
 /**
  * Created by Julian Richter on 11 Sep 2017
  */
@@ -306,7 +546,7 @@ var InstructionView = Backbone.View.extend({
 
 module.exports = InstructionView;
 
-},{"backbone":16,"jquery":69,"underscore":71}],11:[function(require,module,exports){
+},{"backbone":18,"jquery":71,"underscore":73}],13:[function(require,module,exports){
 /**
  * Created by Julian Richter on 08 Sep 2017
  */
@@ -322,35 +562,13 @@ joint.shapes.link = {};
 joint.shapes.link.RelationLink = RelationLink;
 
 joint.shapes.link.RelationLinkView = joint.dia.LinkView.extend({
-    pointerdblclick: function(evt, x, y) {
 
-        if(V(evt.target).hasClass('labelRect')) {
-            console.log(' doubleclick on link label ');
-
-            // get text of the label --> from cellview.model.label
-            // on paper: cell:pointerdblclick: func(cellView, evt, x, y)
-
-            // mimic a prompt and put it on top of current window
-            // opacity: 0.95
-            // with X to close window
-            // on enter: close window
-            // append div child element, remove it after closing
-            // position: fixed
-            // embedd in a BB view
-
-
-
-            //var inputElement = V('<foreignObject width="100" height="50" requiredExtensions="http://www.w3.org/1999/xhtml"><body xmlns="http://www.w3.org/1999/xhtml"><input style="z-index: 20;" type="text" value="a value" /></body></foreignObject>');
-            //V(evt.target).append(inputElement);
-        }
-
-    }
 });
 
 
 module.exports = joint.shapes.link;
 
-},{"../models/link":3,"jointjs":67}],12:[function(require,module,exports){
+},{"../models/link":3,"jointjs":69}],14:[function(require,module,exports){
 /**
  * Created by Julian Richter on 08 Sep 2017
  */
@@ -363,6 +581,7 @@ Backbone.$ = $;
 var joint = require('jointjs');
 var _ = require('underscore');
 var Node = require('../models/node');
+var EditResourceView = require('../views/editResourceView');
 
 joint.shapes.html = {};
 
@@ -375,7 +594,6 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
         '<button class="newLink">link</button>',
         '<button class="delete">x</button>',
         '<label></label>',
-        '<input type="text" class="nodeInput" maxlength="30"/>',
         '</div>'
     ].join(''),
 
@@ -385,17 +603,16 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
 
         this.$box = $(_.template(this.template)());
 
+
+        /**
         // Prevent paper from handling pointerdown.
         this.$box.find('input').on('mousedown click', function(evt) {
             evt.stopPropagation();
         });
+         */
 
-        // update label when user hits Enter on input
-        this.$box.find('input').on('keypress', _.bind(this.checkKeyAndUpdateLabel, this));
-        this.$box.find('input').on('blur', _.bind(this.updateLabel, this));
-
-        // Display input field on double-clicks on label
-        this.$box.find('label').on('dblclick', _.bind(this.displayInputField, this));
+        // Open dialog box to edit properties
+        this.$box.find('label').on('dblclick', _.bind(this.openEditBox, this.model));
 
         // Delete node
         this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
@@ -436,32 +653,11 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
             transform: 'rotate(' + (this.model.get('angle') || 0) + 'deg)'
         });
     },
-    displayInputField: function () {
-        var label = this.model.get('label');
-        this.$box.find('input').val(label);
-        this.$box.find('input').show();
-        this.$box.find('label').hide();
-    },
-    checkKeyAndUpdateLabel: function (evt) {
-        if(evt.which == 13){ // Enter key
-            this.updateLabel(evt);
-        }
-    },
-    updateLabel: function (evt) {
-        var newLabel = $(evt.target).val().trim();
 
-        if(newLabel) {
-            if(newLabel.length > 30) {
-                newLabel = newLabel.substring(0, 30);
-            }
-            this.$box.find('input').hide();
-            this.model.set('label', newLabel);
-            this.$box.find('label').show();
-        } else { // display old label if string is empty
-            this.$box.find('input').hide();
-            this.$box.find('label').show();
-        }
+    openEditBox: function () {
+        new EditResourceView({ model: this });
     },
+
     removeBox: function() {
         this.$box.remove();
     },
@@ -481,7 +677,7 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
 
 module.exports = joint.shapes.html;
 
-},{"../models/node":4,"backbone":16,"jointjs":67,"jquery":69,"underscore":71}],13:[function(require,module,exports){
+},{"../models/node":4,"../views/editResourceView":9,"backbone":18,"jointjs":69,"jquery":71,"underscore":73}],15:[function(require,module,exports){
 /**
  * Created by Julian Richter on 03 Sep 2017
  */
@@ -492,6 +688,8 @@ var $ = require('jquery');
 var Node = require('../views/nodeView').Node;
 var StartNode = require('../models/startNode').StartNode;
 var Link = require('../views/linkView').RelationLink;
+var EditLinkView = require('../views/editLinkView');
+var EditResourceView = require('../views/editResourceView');
 
 joint.dia.CustomPaper = joint.dia.Paper.extend({
 
@@ -503,77 +701,45 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     initialize: function() {
         joint.dia.Paper.prototype.initialize.apply(this, arguments);
         this.setEvents();
-        this.initializeGraph();
+        this.initializeGraph(); // Demo graph
         this.calculatePaperSize();
     },
 
     initializeGraph: function() {
 
+        // Nodes
         var start = new StartNode();
+        var elCollection = this.createNodeForDemo(15, 90, 'Record Collection');
+        var elAlbum = this.createNodeForDemo(230, 90, 'Album');
+        var elTrack = this.createNodeForDemo(480, 90, 'Track');
+        var elArtist = this.createNodeForDemo(230, 220, 'Artist');
 
-        var elCollection = new Node({
-            position: { x: 15, y: 90 },
-            label: 'CD Collection'
-        });
-        var elAlbum = new Node({
-            position: { x: 230, y: 90 },
-            label: 'Album'
-        });
-        var elTrack = new Node({
-            position: { x: 480, y: 90 },
-            label: 'Track'
-        });
-        var elArtist = new Node({
-            position: { x: 230, y: 220 },
-            label: 'Artist'
-        });
+        // Links
+        var l1 = this.createStartLink(start.id, elCollection.id);
 
-        // Link from START to first resource
-        var l1 = new joint.dia.Link({
-            source: { id: start.id },
-            target: { id: elCollection.id },
-            attrs: { '.connection': { stroke: '#6a4848', 'stroke-width': 2 },
-                '.marker-target': { fill: '#6a4848', d: 'M 10 0 L 0 5 L 10 10 z' }
-            }
-        });
+        var l2 = this.createLinkForDemo(elCollection.id, elAlbum.id);
+        l2.addPropersties('GET', '/test/1', 'relation1');
+        l2.addPropersties('POST', '/test/2', 'relation2');
 
-        var l2 = new Link({
-            source: { id: elCollection.id },
-            target: { id: elAlbum.id }
-        });
-        l2.prop('labels/0/attrs/text/text', 'GET, POST');
-
-        var l3 = new Link({
-            source: { id: elAlbum.id },
-            target: { id: elAlbum.id }
-        });
+        var l3 = this.createLinkForDemo(elAlbum.id, elAlbum.id);
         l3.set('vertices', [{ x: 240, y: 45 }, { x: 315, y: 45 }]);
-        l3.prop('labels/0/attrs/text/text', 'PUT, DELETE');
+        l3.addPropersties('PUT', 'test/1', 'relation1');
+        l3.addPropersties('DELETE', 'test/2', 'relation2');
 
-        var l4 = new Link({
-            source: { id: elAlbum.id },
-            target: { id: elTrack.id }
-        });
-        l4.prop('labels/0/attrs/text/text', 'GET, POST');
+        var l4 = this.createLinkForDemo(elAlbum.id, elTrack.id);
+        l4.addPropersties('GET', '/test/1', 'relation1');
+        l4.addPropersties('POST', '/test/2', 'relation2');
 
-        var l5 = new Link({
-            source: { id: elAlbum.id },
-            target: { id: elArtist.id }
-        });
-        l5.prop('labels/0/attrs/text/text', 'GET');
+        var l5 = this.createLinkForDemo(elAlbum.id, elArtist.id);
+        l5.addPropersties('GET', '/test/1', 'relation1');
 
-        var l6 = new Link({
-            source: { id: elTrack.id },
-            target: { id: elTrack.id }
-        });
+        var l6 = this.createLinkForDemo(elTrack.id, elTrack.id);
         l6.set('vertices', [{ x: 485, y: 45 }, { x: 565, y: 45 }]);
-        l6.prop('labels/0/attrs/text/text', 'PUT, DELETE');
+        l6.addPropersties('PUT', 'test/1', 'relation1');
+        l6.addPropersties('DELETE', 'test/2', 'relation2');
 
-        var l7 = new Link({
-            source: { id: elTrack.id },
-            target: { id: elArtist.id }
-        });
-        l7.prop('labels/0/attrs/text/text', 'GET');
+        var l7 = this.createLinkForDemo(elTrack.id, elArtist.id);
+        l7.addPropersties('GET', '/test/1', 'relation1');
 
         this.model.addCells([start, elCollection, elAlbum, elTrack, elArtist, l1, l2, l3, l4, l5, l6, l7]);
     },
@@ -589,7 +755,6 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
     // calculates minimum size: the size required for all nodes and links to fit onto paper
     // checks position of all nodes and vertices on links
-    // TODO: cache min/max values and update them when new nodes/Links are added (to avoid iterating over all nodes/links)
     getPaperMinSize: function() {
         var maxX = 0, maxY = 0;
         var cells = this.model.getCells();
@@ -628,6 +793,17 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
             //console.log(JSON.stringify(this.model.toJSON()));
         });
 
+        this.on('cell:pointerdblclick',
+            function(cellView, evt, x, y) {
+                if(cellView.model.isLink() /* && cellView.model.id != l1.model.id */) {
+                    new EditLinkView({ model: cellView.model });
+                }
+                if(cellView.model.isElement()) {
+                    new EditResourceView({ model: cellView.model });
+                }
+            }
+        );
+
         $('#linkLabelId').dblclick(function () {
            console.log('double click on a label');
 
@@ -638,9 +814,6 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         var node = new Node({position: {x: x, y: y}});
         this.model.addCell(node);
         console.log('node added in position ' + x + ', ' + y);
-
-        var svgEl = V('<defs id="v-4"></defs>');
-        svgEl.append('<rect width="100" height="100" fill="black" />');
     },
 
     addLink: function (source, target) {
@@ -650,13 +823,38 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         });
         this.model.addCell(link);
         console.log('link added to node ' + source);
+    },
+
+    createStartLink: function (sourceId, targetId) {
+        return new joint.dia.Link({
+            source: { id: sourceId },
+            target: { id: targetId },
+            attrs: { '.connection': { stroke: '#6a4848', 'stroke-width': 2 },
+                '.marker-target': { fill: '#6a4848', d: 'M 10 0 L 0 5 L 10 10 z' }
+            }
+        });
+
+    },
+
+    createNodeForDemo: function (x, y, label) {
+        return new Node({
+            position: { x: x, y: y },
+            label: label
+        });
+    },
+
+    createLinkForDemo: function (sourceId, targetId) {
+       return new Link({
+            source: { id: sourceId },
+            target: { id: targetId }
+        });
     }
 });
 
 module.exports = joint.dia.CustomPaper;
 
 
-},{"../models/startNode":6,"../views/linkView":11,"../views/nodeView":12,"jointjs":67,"jquery":69}],14:[function(require,module,exports){
+},{"../models/startNode":6,"../views/editLinkView":8,"../views/editResourceView":9,"../views/linkView":13,"../views/nodeView":14,"jointjs":69,"jquery":71}],16:[function(require,module,exports){
 /**
  * Created by Julian Richter on 21 Sep 2017
  */
@@ -720,7 +918,7 @@ var PopUpView = Backbone.View.extend({
 module.exports = PopUpView;
 
 
-},{"./aboutView":7,"./exportView":8,"./helpView":9,"backbone":16,"jquery":69,"underscore":71}],15:[function(require,module,exports){
+},{"./aboutView":7,"./exportView":10,"./helpView":11,"backbone":18,"jquery":71,"underscore":73}],17:[function(require,module,exports){
 /**
  * Created by Julian Richter on 12 Sep 2017
  */
@@ -784,14 +982,13 @@ var SidePanelView = Backbone.View.extend({
 
     openPopUpView: function (evt) {
         var end = evt.target.id.length - 3;
-        console.log('evt:' + evt.target.id.substr(0, end));
         new PopUpView({ subview : evt.target.id.substr(0, end) });
     }
 });
 
 module.exports = SidePanelView;
 
-},{"../collections/instructionsList":1,"../models/singleInstruction":5,"./instructionView":10,"./popUpView":14,"backbone":16,"jquery":69,"underscore":71}],16:[function(require,module,exports){
+},{"../collections/instructionsList":1,"../models/singleInstruction":5,"./instructionView":12,"./popUpView":16,"backbone":18,"jquery":71,"underscore":73}],18:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.3.3
 
@@ -2715,7 +2912,7 @@ module.exports = SidePanelView;
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":69,"underscore":71}],17:[function(require,module,exports){
+},{"jquery":71,"underscore":73}],19:[function(require,module,exports){
 /*
 Copyright (c) 2012-2014 Chris Pettitt
 
@@ -2750,7 +2947,7 @@ module.exports = {
   version: require("./lib/version")
 };
 
-},{"./lib/debug":22,"./lib/graphlib":23,"./lib/layout":25,"./lib/util":45,"./lib/version":46}],18:[function(require,module,exports){
+},{"./lib/debug":24,"./lib/graphlib":25,"./lib/layout":27,"./lib/util":47,"./lib/version":48}],20:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -2819,7 +3016,7 @@ function undo(g) {
   });
 }
 
-},{"./greedy-fas":24,"./lodash":26}],19:[function(require,module,exports){
+},{"./greedy-fas":26,"./lodash":28}],21:[function(require,module,exports){
 var _ = require("./lodash"),
     util = require("./util");
 
@@ -2859,7 +3056,7 @@ function addBorderNode(g, prop, prefix, sg, sgNode, rank) {
   }
 }
 
-},{"./lodash":26,"./util":45}],20:[function(require,module,exports){
+},{"./lodash":28,"./util":47}],22:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash");
@@ -2933,7 +3130,7 @@ function swapXYOne(attrs) {
   attrs.y = x;
 }
 
-},{"./lodash":26}],21:[function(require,module,exports){
+},{"./lodash":28}],23:[function(require,module,exports){
 /*
  * Simple doubly linked list implementation derived from Cormen, et al.,
  * "Introduction to Algorithms".
@@ -2991,7 +3188,7 @@ function filterOutLinks(k, v) {
   }
 }
 
-},{}],22:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 var _ = require("./lodash"),
     util = require("./util"),
     Graph = require("./graphlib").Graph;
@@ -3027,7 +3224,7 @@ function debugOrdering(g) {
   return h;
 }
 
-},{"./graphlib":23,"./lodash":26,"./util":45}],23:[function(require,module,exports){
+},{"./graphlib":25,"./lodash":28,"./util":47}],25:[function(require,module,exports){
 /* global window */
 
 var graphlib;
@@ -3044,7 +3241,7 @@ if (!graphlib) {
 
 module.exports = graphlib;
 
-},{"graphlib":47}],24:[function(require,module,exports){
+},{"graphlib":49}],26:[function(require,module,exports){
 var _ = require("./lodash"),
     Graph = require("./graphlib").Graph,
     List = require("./data/list");
@@ -3164,7 +3361,7 @@ function assignBucket(buckets, zeroIdx, entry) {
   }
 }
 
-},{"./data/list":21,"./graphlib":23,"./lodash":26}],25:[function(require,module,exports){
+},{"./data/list":23,"./graphlib":25,"./lodash":28}],27:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -3558,7 +3755,7 @@ function canonicalize(attrs) {
   return newAttrs;
 }
 
-},{"./acyclic":18,"./add-border-segments":19,"./coordinate-system":20,"./graphlib":23,"./lodash":26,"./nesting-graph":27,"./normalize":28,"./order":33,"./parent-dummy-chains":38,"./position":40,"./rank":42,"./util":45}],26:[function(require,module,exports){
+},{"./acyclic":20,"./add-border-segments":21,"./coordinate-system":22,"./graphlib":25,"./lodash":28,"./nesting-graph":29,"./normalize":30,"./order":35,"./parent-dummy-chains":40,"./position":42,"./rank":44,"./util":47}],28:[function(require,module,exports){
 /* global window */
 
 var lodash;
@@ -3575,7 +3772,7 @@ if (!lodash) {
 
 module.exports = lodash;
 
-},{"lodash":70}],27:[function(require,module,exports){
+},{"lodash":72}],29:[function(require,module,exports){
 var _ = require("./lodash"),
     util = require("./util");
 
@@ -3709,7 +3906,7 @@ function cleanup(g) {
   });
 }
 
-},{"./lodash":26,"./util":45}],28:[function(require,module,exports){
+},{"./lodash":28,"./util":47}],30:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -3801,7 +3998,7 @@ function undo(g) {
   });
 }
 
-},{"./lodash":26,"./util":45}],29:[function(require,module,exports){
+},{"./lodash":28,"./util":47}],31:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = addSubgraphConstraints;
@@ -3856,7 +4053,7 @@ function addSubgraphConstraints(g, cg, vs) {
   */
 }
 
-},{"../lodash":26}],30:[function(require,module,exports){
+},{"../lodash":28}],32:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = barycenter;
@@ -3886,7 +4083,7 @@ function barycenter(g, movable) {
 }
 
 
-},{"../lodash":26}],31:[function(require,module,exports){
+},{"../lodash":28}],33:[function(require,module,exports){
 var _ = require("../lodash"),
     Graph = require("../graphlib").Graph;
 
@@ -3961,7 +4158,7 @@ function createRootNode(g) {
   return v;
 }
 
-},{"../graphlib":23,"../lodash":26}],32:[function(require,module,exports){
+},{"../graphlib":25,"../lodash":28}],34:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -4033,7 +4230,7 @@ function twoLayerCrossCount(g, northLayer, southLayer) {
   return cc;
 }
 
-},{"../lodash":26}],33:[function(require,module,exports){
+},{"../lodash":28}],35:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -4114,7 +4311,7 @@ function assignOrder(g, layering) {
   });
 }
 
-},{"../graphlib":23,"../lodash":26,"../util":45,"./add-subgraph-constraints":29,"./build-layer-graph":31,"./cross-count":32,"./init-order":34,"./sort-subgraph":36}],34:[function(require,module,exports){
+},{"../graphlib":25,"../lodash":28,"../util":47,"./add-subgraph-constraints":31,"./build-layer-graph":33,"./cross-count":34,"./init-order":36,"./sort-subgraph":38}],36:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -4154,7 +4351,7 @@ function initOrder(g) {
   return layers;
 }
 
-},{"../lodash":26}],35:[function(require,module,exports){
+},{"../lodash":28}],37:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -4279,7 +4476,7 @@ function mergeEntries(target, source) {
   source.merged = true;
 }
 
-},{"../lodash":26}],36:[function(require,module,exports){
+},{"../lodash":28}],38:[function(require,module,exports){
 var _ = require("../lodash"),
     barycenter = require("./barycenter"),
     resolveConflicts = require("./resolve-conflicts"),
@@ -4357,7 +4554,7 @@ function mergeBarycenters(target, other) {
   }
 }
 
-},{"../lodash":26,"./barycenter":30,"./resolve-conflicts":35,"./sort":37}],37:[function(require,module,exports){
+},{"../lodash":28,"./barycenter":32,"./resolve-conflicts":37,"./sort":39}],39:[function(require,module,exports){
 var _ = require("../lodash"),
     util = require("../util");
 
@@ -4416,7 +4613,7 @@ function compareWithBias(bias) {
   };
 }
 
-},{"../lodash":26,"../util":45}],38:[function(require,module,exports){
+},{"../lodash":28,"../util":47}],40:[function(require,module,exports){
 var _ = require("./lodash");
 
 module.exports = parentDummyChains;
@@ -4504,7 +4701,7 @@ function postorder(g) {
   return result;
 }
 
-},{"./lodash":26}],39:[function(require,module,exports){
+},{"./lodash":28}],41:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -4904,7 +5101,7 @@ function width(g, v) {
   return g.node(v).width;
 }
 
-},{"../graphlib":23,"../lodash":26,"../util":45}],40:[function(require,module,exports){
+},{"../graphlib":25,"../lodash":28,"../util":47}],42:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -4936,7 +5133,7 @@ function positionY(g) {
 }
 
 
-},{"../lodash":26,"../util":45,"./bk":39}],41:[function(require,module,exports){
+},{"../lodash":28,"../util":47,"./bk":41}],43:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -5027,7 +5224,7 @@ function shiftRanks(t, g, delta) {
   });
 }
 
-},{"../graphlib":23,"../lodash":26,"./util":44}],42:[function(require,module,exports){
+},{"../graphlib":25,"../lodash":28,"./util":46}],44:[function(require,module,exports){
 "use strict";
 
 var rankUtil = require("./util"),
@@ -5077,7 +5274,7 @@ function networkSimplexRanker(g) {
   networkSimplex(g);
 }
 
-},{"./feasible-tree":41,"./network-simplex":43,"./util":44}],43:[function(require,module,exports){
+},{"./feasible-tree":43,"./network-simplex":45,"./util":46}],45:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -5313,7 +5510,7 @@ function isDescendant(tree, vLabel, rootLabel) {
   return rootLabel.low <= vLabel.lim && vLabel.lim <= rootLabel.lim;
 }
 
-},{"../graphlib":23,"../lodash":26,"../util":45,"./feasible-tree":41,"./util":44}],44:[function(require,module,exports){
+},{"../graphlib":25,"../lodash":28,"../util":47,"./feasible-tree":43,"./util":46}],46:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -5376,7 +5573,7 @@ function slack(g, e) {
   return g.node(e.w).rank - g.node(e.v).rank - g.edge(e).minlen;
 }
 
-},{"../lodash":26}],45:[function(require,module,exports){
+},{"../lodash":28}],47:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -5614,10 +5811,10 @@ function notime(name, fn) {
   return fn();
 }
 
-},{"./graphlib":23,"./lodash":26}],46:[function(require,module,exports){
+},{"./graphlib":25,"./lodash":28}],48:[function(require,module,exports){
 module.exports = "0.7.4";
 
-},{}],47:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Chris Pettitt
  * All rights reserved.
@@ -5657,7 +5854,7 @@ module.exports = {
   version: lib.version
 };
 
-},{"./lib":63,"./lib/alg":54,"./lib/json":64}],48:[function(require,module,exports){
+},{"./lib":65,"./lib/alg":56,"./lib/json":66}],50:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = components;
@@ -5686,7 +5883,7 @@ function components(g) {
   return cmpts;
 }
 
-},{"../lodash":65}],49:[function(require,module,exports){
+},{"../lodash":67}],51:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = dfs;
@@ -5727,7 +5924,7 @@ function doDfs(g, v, postorder, visited, acc) {
   }
 }
 
-},{"../lodash":65}],50:[function(require,module,exports){
+},{"../lodash":67}],52:[function(require,module,exports){
 var dijkstra = require("./dijkstra"),
     _ = require("../lodash");
 
@@ -5739,7 +5936,7 @@ function dijkstraAll(g, weightFunc, edgeFunc) {
   }, {});
 }
 
-},{"../lodash":65,"./dijkstra":51}],51:[function(require,module,exports){
+},{"../lodash":67,"./dijkstra":53}],53:[function(require,module,exports){
 var _ = require("../lodash"),
     PriorityQueue = require("../data/priority-queue");
 
@@ -5795,7 +5992,7 @@ function runDijkstra(g, source, weightFn, edgeFn) {
   return results;
 }
 
-},{"../data/priority-queue":61,"../lodash":65}],52:[function(require,module,exports){
+},{"../data/priority-queue":63,"../lodash":67}],54:[function(require,module,exports){
 var _ = require("../lodash"),
     tarjan = require("./tarjan");
 
@@ -5807,7 +6004,7 @@ function findCycles(g) {
   });
 }
 
-},{"../lodash":65,"./tarjan":59}],53:[function(require,module,exports){
+},{"../lodash":67,"./tarjan":61}],55:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = floydWarshall;
@@ -5859,7 +6056,7 @@ function runFloydWarshall(g, weightFn, edgeFn) {
   return results;
 }
 
-},{"../lodash":65}],54:[function(require,module,exports){
+},{"../lodash":67}],56:[function(require,module,exports){
 module.exports = {
   components: require("./components"),
   dijkstra: require("./dijkstra"),
@@ -5874,7 +6071,7 @@ module.exports = {
   topsort: require("./topsort")
 };
 
-},{"./components":48,"./dijkstra":51,"./dijkstra-all":50,"./find-cycles":52,"./floyd-warshall":53,"./is-acyclic":55,"./postorder":56,"./preorder":57,"./prim":58,"./tarjan":59,"./topsort":60}],55:[function(require,module,exports){
+},{"./components":50,"./dijkstra":53,"./dijkstra-all":52,"./find-cycles":54,"./floyd-warshall":55,"./is-acyclic":57,"./postorder":58,"./preorder":59,"./prim":60,"./tarjan":61,"./topsort":62}],57:[function(require,module,exports){
 var topsort = require("./topsort");
 
 module.exports = isAcyclic;
@@ -5891,7 +6088,7 @@ function isAcyclic(g) {
   return true;
 }
 
-},{"./topsort":60}],56:[function(require,module,exports){
+},{"./topsort":62}],58:[function(require,module,exports){
 var dfs = require("./dfs");
 
 module.exports = postorder;
@@ -5900,7 +6097,7 @@ function postorder(g, vs) {
   return dfs(g, vs, "post");
 }
 
-},{"./dfs":49}],57:[function(require,module,exports){
+},{"./dfs":51}],59:[function(require,module,exports){
 var dfs = require("./dfs");
 
 module.exports = preorder;
@@ -5909,7 +6106,7 @@ function preorder(g, vs) {
   return dfs(g, vs, "pre");
 }
 
-},{"./dfs":49}],58:[function(require,module,exports){
+},{"./dfs":51}],60:[function(require,module,exports){
 var _ = require("../lodash"),
     Graph = require("../graph"),
     PriorityQueue = require("../data/priority-queue");
@@ -5963,7 +6160,7 @@ function prim(g, weightFunc) {
   return result;
 }
 
-},{"../data/priority-queue":61,"../graph":62,"../lodash":65}],59:[function(require,module,exports){
+},{"../data/priority-queue":63,"../graph":64,"../lodash":67}],61:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = tarjan;
@@ -6012,7 +6209,7 @@ function tarjan(g) {
   return results;
 }
 
-},{"../lodash":65}],60:[function(require,module,exports){
+},{"../lodash":67}],62:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = topsort;
@@ -6048,7 +6245,7 @@ function topsort(g) {
 
 function CycleException() {}
 
-},{"../lodash":65}],61:[function(require,module,exports){
+},{"../lodash":67}],63:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = PriorityQueue;
@@ -6202,7 +6399,7 @@ PriorityQueue.prototype._swap = function(i, j) {
   keyIndices[origArrI.key] = j;
 };
 
-},{"../lodash":65}],62:[function(require,module,exports){
+},{"../lodash":67}],64:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash");
@@ -6723,14 +6920,14 @@ function edgeObjToId(isDirected, edgeObj) {
   return edgeArgsToId(isDirected, edgeObj.v, edgeObj.w, edgeObj.name);
 }
 
-},{"./lodash":65}],63:[function(require,module,exports){
+},{"./lodash":67}],65:[function(require,module,exports){
 // Includes only the "core" of graphlib
 module.exports = {
   Graph: require("./graph"),
   version: require("./version")
 };
 
-},{"./graph":62,"./version":66}],64:[function(require,module,exports){
+},{"./graph":64,"./version":68}],66:[function(require,module,exports){
 var _ = require("./lodash"),
     Graph = require("./graph");
 
@@ -6798,12 +6995,12 @@ function read(json) {
   return g;
 }
 
-},{"./graph":62,"./lodash":65}],65:[function(require,module,exports){
-arguments[4][26][0].apply(exports,arguments)
-},{"dup":26,"lodash":70}],66:[function(require,module,exports){
+},{"./graph":64,"./lodash":67}],67:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"dup":28,"lodash":72}],68:[function(require,module,exports){
 module.exports = '1.0.7';
 
-},{}],67:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 /*! JointJS v1.1.0 (2017-03-31) - JavaScript diagramming library
 
 
@@ -6874,7 +7071,7 @@ if("object"==typeof exports)var graphlib=require("graphlib"),dagre=require("dagr
 
 }));
 
-},{"backbone":16,"dagre":17,"graphlib":47,"jquery":68,"lodash":70}],68:[function(require,module,exports){
+},{"backbone":18,"dagre":19,"graphlib":49,"jquery":70,"lodash":72}],70:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.1.1
  * https://jquery.com/
@@ -17096,7 +17293,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],69:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.2.1
  * https://jquery.com/
@@ -27351,7 +27548,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],70:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -39706,7 +39903,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],71:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
