@@ -13,11 +13,12 @@
       "title" : "Resize canvas"
     },
     {
-      "title" : "Edit resource name",
-      "explanation" : "Double-click on resource name. Enter a new name in the input field and hit Enter."
+      "title" : "Edit resource props",
+      "explanation" : "Double-click on resource."
     },
     {
-      "title" : "Edit link label"
+      "title" : "Edit link props",
+      "explanation" : "Double-click on a link label or on the link."
     },
     {
       "title" : "Delete resource",
