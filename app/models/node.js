@@ -16,11 +16,23 @@ var Node = joint.shapes.basic.Rect.extend({
         }
     }, joint.shapes.basic.Rect.prototype.defaults),
 
+    // adds new resource attribute to the array
     addAttribute: function (attr) {
-
         var resourceAttrs = this.prop('resourceAttr') || [];
         resourceAttrs.push(attr);
         this.prop('resourceAttr', resourceAttrs);
+    },
+
+    getStructuralType: function () {
+        return this.prop('structuralType');
+    },
+
+    // the structural type is either 'collection', 'item' or null/undefined
+    setStructuralType: function (structuralType) {
+        this.prop('structuralType', structuralType);
+        console.log('structural type set to: ' + this.prop('structuralType'));
+
+        this.trigger('strucTypeChanged', {type: structuralType});
     }
 });
 
