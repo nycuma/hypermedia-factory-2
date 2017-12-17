@@ -2,6 +2,7 @@
 
 # JS Bundle
 app/static/bundle.js
+webpack.config.js
 
 # external CSS libraries
 app/static/joint.css
@@ -13,9 +14,10 @@ app/static/vocabs/
 # Playground
 playground/
 
-
 # IntelliJ
 .idea/
+
+
 
 # Logs
 logs
