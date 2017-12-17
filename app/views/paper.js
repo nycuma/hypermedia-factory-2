@@ -66,8 +66,8 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
     calculatePaperSize: function () {
         // default: paper is as large as the viewport next to side panel
-        var viewportX = $(window).width() - 235;
-        var viewportY = $(window).height() - 20;
+        var viewportX = $(window).width() - 15;
+        var viewportY = $(window).height() - 70;
 
         var minSize = this.getPaperMinSize();
         this.setDimensions(Math.max(minSize[0], viewportX), Math.max(minSize[1], viewportY));
@@ -149,8 +149,8 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         return new joint.dia.Link({
             source: { id: sourceId },
             target: { id: targetId },
-            attrs: { '.connection': { stroke: '#6a4848', 'stroke-width': 2 },
-                '.marker-target': { fill: '#6a4848', d: 'M 10 0 L 0 5 L 10 10 z' }
+            attrs: { '.connection': { stroke: '#404040', 'stroke-width': 2 },
+                '.marker-target': { fill: '#404040', d: 'M 10 0 L 0 5 L 10 10 z' }
             }
         });
 
