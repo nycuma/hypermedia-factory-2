@@ -14,6 +14,9 @@ var SingleInstruction = require('../models/singleInstruction');
 var instructionsList;
 instructionsList = require('../collections/instructionsList');
 
+var IanaLinkRelParser = require('../parser/ianaLinkRels');
+var SchemaOrgParser = require('../parser/schemaOrg');
+
 var SidePanelView = Backbone.View.extend({
     el: '#sidePanel',
     template: _.template($('#sidePanel-template').html()),
@@ -21,19 +24,23 @@ var SidePanelView = Backbone.View.extend({
     initialize: function(){
         //_.bindAll(this, 'render');
         this.render();
-        this.loadInstructions();
+        //this.loadInstructions();
     },
 
     render: function () {
         //$(this.el).html($("#sidePanel-template").html());
         this.$el.html(this.template);
-        return this;
+        this.$el.fadeIn(400);
     },
 
     events: {
-        'click #helpBtn,#exportBtn,#aboutBtn': 'openPopUpView'
-    },
+        'click #parseXmlBtn': 'parseXML',
+        'click #parseJsonldBtn': 'parseRDF',
+        'click #getSuggestionsBtn': 'getSuggestions'
 
+
+    },
+/*
     loadInstructions: function () {
         $.getJSON('../app/modelData/instructionsData.json', function(data) {
             data.items.forEach(function(item) {
@@ -44,6 +51,7 @@ var SidePanelView = Backbone.View.extend({
             });
         });
     },
+    */
     /**
     addInstrModel: function(item) {
         console.log('loading instruction item: ' + JSON.stringify(item));
@@ -63,6 +71,24 @@ var SidePanelView = Backbone.View.extend({
         var end = evt.target.id.length - 3;
         new PopUpView({ subview : evt.target.id.substr(0, end) });
     }
+
+    /*
+
+    //testing parser
+    parseXML: function () {
+
+        IanaLinkRelParser.getIanaLinkRelations();
+        
+    },
+    
+    parseRDF: function () {
+        SchemaOrgParser.getRDFTriples();
+    },
+
+    getSuggestions: function () {
+        
+    }
+    */
 });
 
 module.exports = SidePanelView;
