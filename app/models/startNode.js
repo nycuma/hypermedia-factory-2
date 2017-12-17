@@ -18,7 +18,7 @@ joint.shapes.custom.StartNode = joint.shapes.basic.Rect.extend({
         attrs: {
             rect: { fill: '#6a4848', 'stroke-width': 0 },
             text: {
-                text: 'START', fill: '#dbcaca',
+                text: 'START', fill: '#f5f5ef',
                 'font-size': 12,
                 'font-weight': 'bold',
                 'font-family': 'Menlo, Monaco, Consolas, "Courier New", monospace'
