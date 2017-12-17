@@ -20,8 +20,108 @@ CSS for layout
 body {
     margin: 0;
     padding: 0;
-    background: white;
+    background: #f5f5ef;
 
+}
+
+#editResource,
+#editLink,
+#sidePanel {
+    display: none;
+}
+
+#navigationBar {
+    float: left;
+    background-color: #6a4848;
+    width: 100%;
+}
+
+img {
+    float: left;
+    margin: 10px;
+}
+
+nav {
+    float: left;
+    margin: 13px 20vw 13px 10px;
+}
+
+#paper {
+    clear: both;
+    margin: 0;
+    overflow: hidden; /* ? */
+}
+
+.joint-paper-background {
+    background-color: #f5f5ef;
+}
+
+
+#sidePanel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 20vw;
+    background-color: #f5f5ef;
+    border-left: 2px dashed #6a4848;
+    z-index: 10;
+    box-shadow: -4px 4px 10px 4px rgba(0,0,0,0.1);
+}
+
+#sidePanelCloseBtn {
+    color: #6a4848;
+    text-align: right;
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 5px;
+}
+
+#instructions,
+#welcome {
+    position: relative;
+    margin-left: 10px;
+    margin-bottom: 8px;
+    color: #6a4848;
+    font-family: greyscalebasic-regular, sans-serif;
+    padding: 5px;
+}
+
+
+nav button {
+    color: #6a4848;
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+    font-size: 15px;
+    font-weight: normal;
+    background-color: #f5f5ef;
+    border: none;
+    border-radius: 3px;
+    padding: 7px;
+    margin: 3px;
+}
+
+nav button:hover,
+nav button:focus {
+    color: #f5f5ef;
+    background-color: #6a4848;
+}
+
+.headline {
+    font-weight: bold;
+    font-size: large;
+}
+
+.instruction-title {
+    font-variant: small-caps;
+    cursor: context-menu;
+}
+
+.instruction-detail {
+    display: none;
+    font-family: "Lucida Console", Monaco, monospace;
+    /*border: 1px solid #4d4d4d;*/
+    font-size: small;
 }
 
 a,
@@ -44,14 +144,8 @@ hr {
     border: 0;
 }
 
-#editResource,
-#editLink,
-#popUpView {
-    display: none;
-}
 
-
-.editBox {
+.editGraphElement {
     position: absolute;
     top: 15vh;
     left: 20vw;
@@ -67,33 +161,34 @@ hr {
     font-size: 15px;
     font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
     overflow: hidden;
+    text-align: center;
 }
 
-.editBox table {
+.editGraphElement table {
     margin: auto;
     padding-left: 5px;
     padding-right: 5px;
 }
 
-.editBox form input {
+.editGraphElement form input {
     width: 90%;
 }
 
-.editBox form input[name=cellId] {
+.editGraphElement form input[name=cellId] {
     color: grey;
 }
 
-.editBox .btn {
+.editGraphElement .btn {
     color: #6a4848;
     background-color: #f5f5ef;
 }
 
-.editBox .cancelBtn {
+.editGraphElement .cancelBtn {
     float: left;
 }
 
-.editBox .btn:hover,
-.editBox .btn:focus {
+.editGraphElement .btn:hover,
+.editGraphElement .btn:focus {
     color: #f5f5ef;
     background-color: #6a4848;
 }
@@ -199,83 +294,7 @@ footer {
 }
 */
 
-#paper {
-    float: left;
-    margin: 10px;
-    overflow: hidden; /* ? */
-    /*opacity: 0.4;*/
-}
 
-#sidePanel {
-    float: left;
-    width: 215px;
-    /*opacity: 0.4;*/
-}
-
-img {
-    margin-top: 10px;
-}
-
-img,
-nav,
-#instructions,
-#welcome {
-    position: relative;
-    margin-left: 10px;
-    margin-bottom: 8px;
-    text-align: center;
-}
-
-
-nav button {
-    color: #6a4848;
-    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
-    font-size: 15px;
-    font-weight: normal;
-    background-color: #f5f5ef;
-    border: none;
-    padding: 5px;
-    margin: 2px;
-}
-
-nav button:hover,
-nav button:focus {
-    color: #f5f5ef;
-    background-color: #6a4848;
-}
-
-.joint-paper-background {
-    background-color: #f5f5ef;
-    border: 2px dashed #dbcaca;
-}
-
-#welcome {
-    border: 2px dashed #dbcaca;
-}
-
-#welcome,
-#instructions {
-    color: #4d4d4d;
-    font-family: greyscalebasic-regular, sans-serif;
-    padding: 5px;
-}
-
-.headline {
-    font-weight: bold;
-    font-size: large;
-}
-
-.instruction-title {
-    font-variant: small-caps;
-    cursor: context-menu;
-}
-
-.instruction-detail {
-    display: none;
-    font-family: "Lucida Console", Monaco, monospace;
-    /*border: 1px solid #4d4d4d;*/
-    font-size: small;
-}
 
 
 /**
@@ -300,17 +319,30 @@ CSS for style of nodes
 
 .html-element {
     position: absolute;
-    background: #dbcaca;
+    background-color: #f5f5ef;
+    /*background-color: #b6b6c9; blau*/
+    /*background-color: #e9b796;  orange*/
+    /*background: #e2e2d0; hellgrau*/
     /* Make sure events are propagated to the JointJS element so, e.g. dragging works.*/
     pointer-events: none;
     -webkit-user-select: none;
-    border: 1px solid #6a4848;
+    border: 1px solid #262626;
     text-align: center;
     vertical-align: middle;
     padding: 4px;
     box-sizing: border-box;
     z-index: 2;
 }
+
+.html-element.collection {
+    background-color: #e9b796;
+    /*background-color: #a46313;*/
+}
+
+.html-element.item {
+    background-color: #b6b6c9;
+}
+
 .html-element label,
 .html-element input,
 .html-element button {
@@ -332,7 +364,7 @@ CSS for style of nodes
     font-weight: bold;
 }
 .html-element button.delete {
-    color: #6a4848;
+    color: #262626;
     border: none;
     background-color: transparent;
     width: 15px;
@@ -363,7 +395,7 @@ CSS for style of nodes
     height: 16px; */
 }
 .html-element label {
-    color: #6a4848;
+    color: #262626;
     font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
     font-size: 12px;
     font-weight: bold;
