@@ -11,8 +11,8 @@ var RelationLink = joint.dia.Link.extend({
     defaults: joint.util.deepSupplement({
         type: 'link.RelationLink',
         attrs: {
-            '.connection': { stroke: '#6a4848', 'stroke-width': 2 },
-            '.marker-target': { fill: '#6a4848', d: 'M 10 0 L 0 5 L 10 10 z' }
+            '.connection': { stroke: '#404040', 'stroke-width': 2 },
+            '.marker-target': { fill: '#404040', d: 'M 10 0 L 0 5 L 10 10 z' }
         },
 
         labelMarkup: '<g class="label"><rect/><text /></g>',
@@ -21,7 +21,7 @@ var RelationLink = joint.dia.Link.extend({
             attrs: {
                 rect: { fill: '#f5f5ef', 'fill-opacity': .8 },
                 text: {
-                    text: '', 'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
+                    text: '', 'color': '#404040', 'font-family': 'Verdana, Geneva, sans-serif',
                     'font-weight': 'bold', 'font-size': '10px',
                     'transform': 'matrix(1,0,0,1,0,-8)'
                 }
@@ -33,7 +33,7 @@ var RelationLink = joint.dia.Link.extend({
                     rect: { fill: '#f5f5ef', 'fill-opacity': .8 },
                     text: {
                         text: '',
-                        'color': '#6a4848', 'font-family': 'Verdana, Geneva, sans-serif',
+                        'color': '#404040', 'font-family': 'Verdana, Geneva, sans-serif',
                         'font-weight': 'normal', 'font-size': '10px',
                         'transform': 'matrix(1,0,0,1,0,7)'
                     }
@@ -76,6 +76,28 @@ var RelationLink = joint.dia.Link.extend({
 
         this.prop('labels/0/attrs/text/text', methodLabel);
         this.prop('labels/1/attrs/text/text', relLabel);
+    },
+
+    setStructuralTypeAtNodes: function() {
+
+        var sourceNode = this.graph.getCell(this.get('source').id);
+        sourceNode.setStructuralType('collection');
+
+        var targetNode = this.graph.getCell(this.get('target').id);
+        if(targetNode.getStructuralType() !== 'collection') {
+            targetNode.setStructuralType('item');
+        }
+
+
+    },
+    unsetStructuralTypeAtNodes: function() {
+
+        var sourceNode = this.graph.getCell(this.get('source').id);
+        sourceNode.setStructuralType(null);
+
+        var targetNode = this.graph.getCell(this.get('target').id);
+        targetNode.setStructuralType(null);
+
     }
 });
 
