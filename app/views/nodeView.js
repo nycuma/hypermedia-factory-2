@@ -27,6 +27,8 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
     ].join(''),
 
     initialize: function() {
+        this.startListeners();
+        
         _.bindAll(this, 'updateBox');
         joint.dia.ElementView.prototype.initialize.apply(this, arguments);
 
@@ -48,7 +50,7 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
 
         // Display 'link' on mouse-over and add link on double-click
         this.$box.find('.newLink').mouseover(function () {
-           $(this).css('color', '#6a4848');
+           $(this).css('color', '#265959');
         });
         this.$box.find('.newLink').mouseleave(function () {
             $(this).css('color', 'transparent');
@@ -96,11 +98,35 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
     },
 
     addLink: function () {
-        var sourceID = this.model.get('id');
+        this.setColorStructuralType('collection');
+
+        var sourceID = this.model.get('id'); // ID of this node
         var posCorner = [ this.model.prop('position/x') + this.model.prop('size/width'),
                             this.model.prop('position/y') ];
         console.log('posCorner: ' + posCorner[0] + ' ' + posCorner[1]);
         this.paper.addLink(sourceID, posCorner);
+    },
+
+    // sets the background color of the node according to its
+    // structural type ('collection' or 'item')
+    setColorStructuralType: function(data) {
+        console.log('entered node view setColorStructuralType');
+
+        if(data.type == null) {
+            $(this.$box).removeClass('item');
+            $(this.$box).removeClass('collection');
+        } else {
+            $(this.$box).addClass(data.type); // add CSS class
+        }
+
+    },
+
+    startListeners: function () {
+        console.log('start listening');
+        var model = this.model;
+        //this.listenTo(model, 'change:position', this.onPositionCanged);
+        this.listenTo(model, 'strucTypeChanged', this.setColorStructuralType);
+
     }
 });
 
