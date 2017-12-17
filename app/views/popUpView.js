@@ -8,9 +8,9 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
-var HelpView = require('./helpView');
-var ExportView = require('./exportView');
-var AboutView = require('./aboutView');
+var HelpView = require('./navItems/helpView');
+var ExportView = require('./navItems/exportView');
+var AboutView = require('./navItems/aboutView');
 
 var PopUpView = Backbone.View.extend({
     el: '#popUpView',
