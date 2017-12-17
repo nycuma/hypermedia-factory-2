@@ -20,7 +20,8 @@ var EditLinkView = Backbone.View.extend({
     events: {
         'click .submitBtn': 'submit',
         'click .cancelBtn' : 'close',
-        'click .addFieldBtn' : 'addFields'
+        'click .addFieldBtn' : 'addFields',
+        'keypress input[name=relation]': 'showRelSuggestions'
     },
 
     render: function () {
@@ -32,7 +33,11 @@ var EditLinkView = Backbone.View.extend({
 
     fillInputFields: function () {
 
-        $('#inputLinkId').val(this.model.id);
+        if(this.model.prop('isCollItemLink') === true) {
+            // set check mark
+            $('#editLink [name=collItemLinkCheckBox]').prop('checked', true);
+        }
+
         var stateTransisions = this.model.prop('stateTransitions');
 
         if(!stateTransisions) return;
@@ -86,7 +91,19 @@ var EditLinkView = Backbone.View.extend({
         evt.preventDefault();
 
         this.model.prop('stateTransitions', []);
+
         var linkModel = this.model;
+
+        if($('#editLink [name=collItemLinkCheckBox]').prop('checked')) {
+            console.log('collItemLinkCheckBox was checked');
+            linkModel.setStructuralTypeAtNodes();
+            linkModel.prop('isCollItemLink', true);
+
+        } else {
+            linkModel.unsetStructuralTypeAtNodes();
+            linkModel.prop('isCollItemLink', false);
+        }
+
 
         $('#editLinkFieldSets > div').each(function() {
             var method = $(this).find('select[name=methodDropdown]').val();
@@ -102,7 +119,7 @@ var EditLinkView = Backbone.View.extend({
     close: function (evt) {
         if(evt) evt.preventDefault();
         this.$el.remove();
-        $('body').append('<div id="editLink" class="editBox"></div>');
+        $('body').append('<div id="editLink" class="editGraphElement"></div>');
     }
 });
 
