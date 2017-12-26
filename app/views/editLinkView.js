@@ -87,7 +87,6 @@ var EditLinkView = Backbone.View.extend({
     },
 
     submit: function (evt) {
-        //TODO Button, um einzelne oder alle Fieldsets wieder zu löschen
         evt.preventDefault();
 
         this.model.prop('stateTransitions', []);
@@ -118,7 +117,7 @@ var EditLinkView = Backbone.View.extend({
 
     close: function (evt) {
         if(evt) evt.preventDefault();
-        this.$el.remove();
+        this.remove();
         $('body').append('<div id="editLink" class="editGraphElement"></div>');
     }
 });
