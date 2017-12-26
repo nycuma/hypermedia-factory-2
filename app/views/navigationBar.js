@@ -2,10 +2,6 @@
  * Created by Julian Richter on 09 Dec 2017
  */
 
-/**
- * Created by Julian Richter on 12 Sep 2017
- */
-
 'use strict';
 
 var Backbone = require('backbone');
