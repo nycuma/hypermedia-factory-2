@@ -8,8 +8,11 @@
 var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
-var autocomplete = require('jquery-ui/ui/widgets/autocomplete');
 Backbone.$ = $;
+var autocomplete = require('jquery-ui/ui/widgets/autocomplete');
+var SuggestionItemView = require('./suggestionInputView');
+
+
 
 var EditResourceView = Backbone.View.extend({
     el: '#editResource',
@@ -29,17 +32,22 @@ var EditResourceView = Backbone.View.extend({
 
     render: function () {
 
-        console.log('called render function');
-
         this.$el.html(this.template());
-        this.createInputFieldName();
-        this.createInputFieldAttribute();
+
+        new SuggestionItemView({el: '#resourceNameInputWrapper',
+                                id: 'resourceName',
+                                label: 'Name'});
+        new SuggestionItemView({el: '#resourceAttrInputWrapper',
+                                id: 'resourceAttr0',
+                                label: 'Attributes'});
+
+
         this.fillInputFields();
         this.$el.show();
         return this;
     },
 
-    fillInputFields: function () {
+    fillInputFields: function (idAttrField) {
         $('#resourceName').val(this.model.get('label'));
 
         var resourceAttrs = this.model.prop('resourceAttr');
@@ -47,25 +55,26 @@ var EditResourceView = Backbone.View.extend({
 
         resourceAttrs.forEach(_.bind(function(el, i) {
             if (i !== 0) this.addAttrField();
-            $('#attr' + i).val(this.model.prop('resourceAttr/' + i));
+            $('#resourceAttr' + i).val(this.model.prop('resourceAttr/' + i));
         }, this));
+
     },
 
     addAttrField: function(evt) {
         if(evt) evt.preventDefault();
 
-        var attrCount = $("#editResourceAttributes tbody > tr").length - 2;
+        var attrID = this.getNextAttrID();
 
-        $('#editResourceAttributes tbody')
-            .append('<tr>\
-                        <td><label for="attr'+attrCount+'">Attribut:</label></td>\
-                        <td><input type="text" name="attr" id="attr'+attrCount+'"></td>\
-                    </tr>');
+        new SuggestionItemView({el: '#resourceAttrInputWrapper',
+                                id: 'resourceAttr' + attrID,
+                                label: ''});
+    },
 
+    getNextAttrID: function() {
+        return this.$('#resourceAttrInputWrapper').children().length;
     },
 
     submit: function (evt) {
-        //TODO Button, um einzelne oder alle Attribute zu löschen
         evt.preventDefault();
 
         var newLabel = $('#resourceName').val().trim();
@@ -74,7 +83,8 @@ var EditResourceView = Backbone.View.extend({
         this.model.prop('resourceAttr', []);
         var resourceModel = this.model;
 
-        $('#editResourceAttributes input[name=attr]').each(function() {
+        $('#resourceAttrInputWrapper .autocompleteInputField input').each(function() {
+            console.log('found input field: ' + $(this).val());
             var newAttr = $(this).val();
             if(newAttr) resourceModel.addAttribute(newAttr);
         });
@@ -82,44 +92,11 @@ var EditResourceView = Backbone.View.extend({
         this.close();
     },
 
+
     close: function (evt) {
         if(evt) evt.preventDefault();
-        this.$el.remove();
+        this.remove();
         $('body').append('<div id="editResource" class="editGraphElement"></div>');
-    },
-
-    /*
-    getReourceNameInputField: function() {
-
-        return '<input type="text" id="resourceName" maxlength="20">';
-
-    },
-
-    getResourceAttrInputField: function(id) {
-
-        return '<input type="text" name="attr" id="attr0">';
-
-    },
-    */
-
-    // create new input fields that support autocomplete feature
-    createInputFieldName: function () {
-
-        var inputSuggestions = ['javascript', 'css', 'c', 'objectivec'];
-
-        new autocomplete({
-            source: inputSuggestions
-        }).element.attr({ type: 'text', id: 'resourceName', maxlength: '20'})
-            .appendTo('#tdResourceName').focus();
-
-    },
-    createInputFieldAttribute: function () {
-        var inputSuggestions = ['javascript', 'css', 'c', 'objectivec'];
-
-        new autocomplete({
-            source: inputSuggestions
-        }).element.attr({ type: 'text', id: 'attr0', name: 'attr'})
-            .appendTo('#tdResourceAttr0').focus();
     }
 });
 
