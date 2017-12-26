@@ -8,7 +8,7 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
-var Term = require('../models/terms/term');
+var Term = require('../models/term');
 
 // Import vocabularies to load
 var SchemaOrgSource = require('./vocabSources/schemaOrgSource');
