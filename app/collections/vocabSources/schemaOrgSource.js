@@ -8,7 +8,7 @@ var Backbone = require('backbone');
 var $ = require('jquery');
 Backbone.$ = $;
 var N3 = require('n3');
-var Term = require('../../models/terms/term');
+var Term = require('../../models/term');
 
 var SchemaOrgSource = Backbone.Collection.extend({
 
