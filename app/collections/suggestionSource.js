@@ -5,60 +5,61 @@
 'use strict';
 
 var Backbone = require('backbone');
-var Suggestion = require('../models/suggestion');
+var _ = require('underscore');
+var $ = require('jquery');
+Backbone.$ = $;
+var Term = require('../models/terms/term');
 
-var SuggestionList = Backbone.Collection.extend({
+// Import vocabularies to load
+var SchemaOrgSource = require('./vocabSources/schemaOrgSource');
+var IanaLinkRelsSource = require('./vocabSources/ianaLinkRelsSource');
 
-    model: Suggestion,
-    url: '../app/static/vocabs/link-relations.xml',
+var SuggestionSource = Backbone.Collection.extend({
 
-    sync: function (method, model, options) {
-        if(method == 'read') {
+    model: Term,
 
-            var ajaxParams = {
-                url: '../app/static/vocabs/link-relations.xml',
-                method: 'GET',
-                dataType: 'xml',
-                success: function (data, textStatus, jqXHR) {
-                    console.log('sucessfully received IANA XML file');
-
-                    this.parse(jqXHR.responseXML);
-                },
-                error: function () {
-                    console.log('error while requesting IANA XML file');
-
-                }
-
-            };
+    // TODO Superclass RDFSource which defines basic parse methods
+    initialize: function () {
+        var self = this;
+        var schemaOrgSource = new SchemaOrgSource();
+        $.when(schemaOrgSource.fetch({parse: true})).then(function() {
+            self.add(schemaOrgSource.models);
+            //schemaOrgSource.reset();
+        });
 
 
-            return $.ajax(ajaxParams);
-
-        }
+        var ianaLinkRelsSource = new IanaLinkRelsSource();
+        $.when(ianaLinkRelsSource.fetch({parse: true})).then(function() {
+            self.add(ianaLinkRelsSource.models);
+            //ianaLinkRelsSource.reset()
+        });
 
     },
 
 
 
-    parse: function (data) {
-        this.parseLinkRelsFromXML(data);
+    getRDFClasses: function() {
+        // term = instance of BB.Model
+        /*
+        var result = this.filter(function (term) {
+            return term.get('isAction');
+        });
+        */
+
+        return this.where({isAction: true});
     },
 
+    getRDFProps: function() {
+        return this.where({isRdfProperty: true});
+    },
 
-    parseLinkRelsFromXML: function (xml) {
-    var linkRelsArr = [];
-    var linkRelNodes = xml.getElementsByTagName('value');
-    for (var i = 0; i < linkRelNodes.length; i++) {
-        console.log('IANA rel ' + i + ': '+ linkRelNodes[i].childNodes[0].nodeValue);
-        linkRelsArr.push(linkRelNodes[i].childNodes[0].nodeValue);
+    getActions: function () {
+        return this.where({isAction: true});
+    },
+
+    getAllTermsFromVocab: function (prefix) {
+        return this.where({prefix: prefix});
     }
-    return linkRelsArr;
-
-    // TODO: set model props with data (name, vocab, comment, etc.)
-    // var item = {name: .., :vocab: 'IANA Link Relations', ... }
-    //this.push(term);
-        // return this.models
-}
 });
 
-module.exports = SuggestionList;
+module.exports = new SuggestionSource();
