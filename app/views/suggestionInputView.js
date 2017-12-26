@@ -8,7 +8,8 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
-var SuggestionSource = require('../collections/suggestionSource');
+var suggestionSource;
+suggestionSource = require('../collections/suggestionSource');
 var autocomplete = require('jquery-ui/ui/widgets/autocomplete');
 
 var SuggestionItemView = Backbone.View.extend({
@@ -17,19 +18,29 @@ var SuggestionItemView = Backbone.View.extend({
     initialize: function(options){
         //_.bindAll(this, 'render');
 
-
-
         this.options = options;
         this.render();
     },
 
     render: function () {
-        console.log('suggestionItemView: render called');
-
         this.$el.append(this.template({label: this.options.label}));
 
         this.setInputFieldID();
-        this.createInputField(this.getSuggestionSource());
+        this.createInputField(suggestionSource.toJSON());
+
+
+        /*
+        if(this.id === 'resourceName') {
+            // TODO solution https://stackoverflow.com/questions/7728746/how-do-i-convert-a-filtered-collection-to-json-with-backbone-js
+            console.log('called resourceName: ' + JSON.stringify(suggestionSource.getRDFClasses()));
+            console.log('typeof: ' + typeof suggestionSource.getRDFClasses());
+            this.createInputField(suggestionSource.getRDFClasses());
+        } else if (this.id.startsWith('resourceAttr')) {
+            console.log('called resourceAttr: ' + this.id);
+            //this.createInputField(suggestionSource.getRDFProps());
+        }
+        */
+
 
         return this;
     },
@@ -38,24 +49,19 @@ var SuggestionItemView = Backbone.View.extend({
         this.$('.autocompleteInputField').last().attr('id', this.id+'InputField');
     },
 
-    getSuggestionSource: function () {
-        var suggestionSource = new SuggestionSource();
-        suggestionSource.fetch({async: false, parse: true});
-        console.log('suggestions I: ' + JSON.stringify(suggestionSource));
-        return suggestionSource.pluck('name');
-    },
-
-
-
-    createInputField: function (suggestionSource) {
-        // TODO set source later? (on keypress / keydown)
-        // acInput.source = newSource;
-        var acInput = new autocomplete({
-            source: suggestionSource,
+    // TODO: wenn nicht alle Terms geladen werden sollen: source ist eine function, die das rdf store parsed
+    // TODO CSS font of suggestions
+    createInputField: function (source) {
+        new autocomplete({
+            minLength: 3,
+            source: function(request, response) {
+                var results = $.ui.autocomplete.filter(source, request.term);
+                response(results.slice(0, 40)); // limit suggestions to 40 terms
+            },
             focus: function( event, ui ) {
                 //$('#termDesc').empty();
-                console.log('focus called on ' + JSON.stringify(ui.item));
-                console.log(event.pageX + ', ' + event.pageY);
+                //console.log('focus called on ' + JSON.stringify(ui.item));
+                //console.log(event.pageX + ', ' + event.pageY);
                 // get term
                 // serch in term in suggestioNSource
                 // display term description
