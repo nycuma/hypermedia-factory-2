@@ -8,25 +8,14 @@ var $ = require('jquery');
 Backbone.$ = $;
 var joint = require('jointjs');
 
-//var Router = require('./routers/router');
-var Paper;
-Paper = require('./views/paper');
-var SidePanel = require('./views/sidePanel');
+var Paper = require('./views/paper');
+var NavigationBar = require('./views/navigationBar');
 
 
 $(document).ready(function() {
     console.log('start application');
 
-    new SidePanel({});
+    new NavigationBar({});
     var graph = new joint.dia.Graph;
     new Paper({ model: graph });
-
-/**
-    var router = new Router();
-    Backbone.history.start({
-        pushState: true,
-        root: '/'
-    });
- */
-
 });
