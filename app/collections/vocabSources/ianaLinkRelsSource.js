@@ -7,7 +7,7 @@
 var Backbone = require('backbone');
 var $ = require('jquery');
 Backbone.$ = $;
-var Term = require('../../models/terms/term');
+var Term = require('../../models/term');
 
 var IanaLinkRelsSource = Backbone.Collection.extend({
 
