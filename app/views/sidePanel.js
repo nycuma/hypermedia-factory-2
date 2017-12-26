@@ -34,9 +34,7 @@ var SidePanelView = Backbone.View.extend({
     },
 
     events: {
-        'click #parseXmlBtn': 'parseXML',
-        'click #parseJsonldBtn': 'parseRDF',
-        'click #getSuggestionsBtn': 'getSuggestions'
+        'click #parseRDFBtn': 'parseXML'
 
 
     },
@@ -70,9 +68,9 @@ var SidePanelView = Backbone.View.extend({
     openPopUpView: function (evt) {
         var end = evt.target.id.length - 3;
         new PopUpView({ subview : evt.target.id.substr(0, end) });
-    }
+    },
 
-    /*
+
 
     //testing parser
     parseXML: function () {
@@ -83,12 +81,8 @@ var SidePanelView = Backbone.View.extend({
     
     parseRDF: function () {
         SchemaOrgParser.getRDFTriples();
-    },
-
-    getSuggestions: function () {
-        
     }
-    */
+
 });
 
 module.exports = SidePanelView;
