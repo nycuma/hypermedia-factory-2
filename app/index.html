@@ -6,48 +6,96 @@
   <title>Hypermedia Factory</title>
   <link rel="stylesheet" type="text/css" href="static/style.css" />
   <link rel="stylesheet" type="text/css" href="static/joint.css" />
+  <link rel="stylesheet" type="text/css" href="static/jquery-ui-theme-humanity.css" />
   <link rel="icon" href="static/img/favicon.png" type="image/x-icon">
 </head>
 <body>
 
+  <!-- Navigation Bar -->
+  <div id="navigationBar"></div>
+
+
+  <!-- Graph -->
+  <div id="paper"></div>
+
   <!-- Side Panel -->
   <div id="sidePanel"></div>
 
-  <!-- State Diagramm -->
-  <div id="paper"></div>
+  <!-- Term Description -->
+  <div id="termDesc"></div>
 
-  <!-- Import / Export / About -->
-  <div id="popUpView" class="foregroundBox"></div>
 
   <!-- Forms to edit resources / links -->
-  <div id="editResource" class="editBox"></div>
-  <div id="editLink" class="editBox"></div>
+  <div id="editResource" class="editGraphElement"></div>
+  <div id="editLink" class="editGraphElement"></div>
+
+  <!-- Navigation Bar Template -->
+  <script type="text/template" id="navigationBar-template">
+    <!-- <img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="static/img/hm-logo-small.png" width="130" height="37"/> -->
+    <nav>
+      <button class="navItem" id="aboutBtn">About</button>
+      <button class="navItem" id="openBtn">Open</button>
+      <button class="navItem" id="saveBtn">Save</button>
+      <button class="navItem" id="downloadBtn">Download Profiles</button>
+      <button class="navItem" id="optionsBtn">Options</button>
+      <button class="navItem" id="helpBtn">Help</button>
+    </nav>
+  </script>
 
 
   <!-- Side Panel Template -->
   <script type="text/template" id="sidePanel-template">
-    <img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="static/img/hm-logo.png" width="199" height="56"/>
-    <nav>
-      <button id="exportBtn">Export</button>
-      <button id="aboutBtn">About</button>
-      <button id="helpBtn">Help</button>
-    </nav>
+    <div id="sidePanelCloseBtn">X</div>
     <div id="welcome">
       <span class="headline">A Node.js code generator for RESTful Web APIs</span>
       <br>Welcome to the Hypermedia Factory! This web site is a work in progress! Some welcome text. This is a
       <a href="#" title="go somewhere">link</a>. Some more welcome text.
       <a href="#" title="go somewhere">Another</a> link.
+
+      <br>
+      <br><button id="parseRDFBtn">Parse RDF</button>
+      <br>
+      <br>
+      <div class="ui-widget">
+        <label for="autocompleteWidget">Tags: </label>
+        <br><input id="autocompleteWidget" type="text">
+      </div>
     </div>
+
     <div id="instructions">
       <span class="headline">Quick Instructions</span>
     </div>
   </script>
 
-
   <!-- PopUpView Template -->
   <script type="text/template" id="popUpView-template">
     <div class="close">x</div>
     <div id="content"></div>
+  </script>
+
+
+  <!-- About Template -->
+  <script type="text/template" id="about-template">
+    <h1 class="headline-foregroundBox">About</h1>
+    <p>
+      This project is part of my bachelor's thesis at the
+      <a href="http://www.snet.tu-berlin.de/" target="_blank" title="Service-centric Networking">SNET</a>
+      research group at
+      <a href="http://www.tu-berlin.de/" target="_blank" title="Technische Universität Berlin">TU Berlin</a>.
+    </p>
+    <p>
+      Get more info at GitHub:
+      <br><a href="https://github.com/nycuma/hypermedia-factory" target="_blank">https://github.com/nycuma/hypermedia-factory</a>
+    </p>
+    <p>
+      <strong>Credits:</strong>
+      <br>Logo designed by: <a href="#">Franziska Nebel</a>
+      <br>Font 'Greyscale' from: <a href="https://www.fontsquirrel.com/fonts/Greyscale-Basic?filter[license][0]=web" target="_blank">FontSquirrel</a>
+      <br>Framework library: <a href="http://backbonejs.org/" target="_blank">Backbone.js</a>
+      <br>Graph library: <a href="https://www.jointjs.com/opensource" target="_blank">Joint.js</a>
+      <br>Zip Export library: <a href="https://stuk.github.io/jszip/" target="_blank">JSZip</a>
+      <br>File Export library: <a href="https://github.com/eligrey/FileSaver.js" target="_blank">FileSaver.js</a>
+    </p>
   </script>
 
 
@@ -87,48 +135,22 @@
   </script>
 
 
-  <!-- About Template -->
-  <script type="text/template" id="about-template">
-    <h1 class="headline-foregroundBox">About</h1>
-    <p>
-      This project is part of my bachelor's thesis at the
-      <a href="http://www.snet.tu-berlin.de/" target="_blank" title="Service-centric Networking">SNET</a>
-      research group at
-      <a href="http://www.tu-berlin.de/" target="_blank" title="Technische Universität Berlin">TU Berlin</a>.
-    </p>
-    <p>
-      Get more info at GitHub:
-      <br><a href="https://github.com/nycuma/hypermedia-factory" target="_blank">https://github.com/nycuma/hypermedia-factory</a>
-    </p>
-    <p>
-      <strong>Credits:</strong>
-      <br>Logo designed by: <a href="#">Franziska Nebel</a>
-      <br>Font 'Greyscale' from: <a href="https://www.fontsquirrel.com/fonts/Greyscale-Basic?filter[license][0]=web" target="_blank">FontSquirrel</a>
-      <br>Framework library: <a href="http://backbonejs.org/" target="_blank">Backbone.js</a>
-      <br>Graph library: <a href="https://www.jointjs.com/opensource" target="_blank">Joint.js</a>
-      <br>Zip Export library: <a href="https://stuk.github.io/jszip/" target="_blank">JSZip</a>
-      <br>File Export library: <a href="https://github.com/eligrey/FileSaver.js" target="_blank">FileSaver.js</a>
-      </p>
+  <!-- Autocomplete Input Field Template -->
+  <script type="text/template" id="autocomplete-input-template">
+    <tr>
+      <td><%= label %></td>
+      <td class="autocompleteInputField"></td>
+    </tr>
   </script>
 
 
-  <!-- Resource Template -->
+  <!-- Edit Resource Template -->
   <script type="text/template" id="edit-resource-template">
     <form>
       <table id="editResourceAttributes">
-        <tbody>
-        <tr>
-          <td><label for="inputResourceId">Node ID:</label></td>
-          <td><input type="text" name="cellId" id="inputResourceId" readonly></td>
-        </tr>
-        <tr>
-          <td><label for="resourceName">Name:</label></td>
-          <td><input type="text" id="resourceName" maxlength="25"></td>
-        </tr>
-          <tr>
-            <td><label for="attr0">Attribut:</label></td>
-            <td><input type="text" name="attr" id="attr0"></td>
-          </tr>
+        <tbody id="resourceNameInputWrapper">
+        </tbody>
+        <tbody id="resourceAttrInputWrapper">
         </tbody>
       </table>
       <button class="btn cancelBtn">Cancel</button>
@@ -137,17 +159,19 @@
     </form>
   </script>
 
-  <!-- Link Template -->
+  <!-- Edit Link Template -->
   <script type="text/template" id="edit-link-template">
-    <form>
       <table>
         <tr>
-          <td><label for="inputLinkId">Link ID:</label></td>
-          <td><input type="text" name="cellId" id="inputLinkId" readonly></td>
+          <td><input type="checkbox" name="collItemLinkCheckBox"/></td>
+          <td>This link connects a collection to an item.</td>
         </tr>
       </table>
       <hr>
-        <div id="editLinkFieldSets">
+        <strong>Operations</strong>
+      <hr>
+      <form>
+       <div id="editLinkFieldSets">
           <div id="editLinkFieldSet0">
             <table>
             <tr>
@@ -180,8 +204,7 @@
   </script>
 
 
-  <!-- Browserify Bundle -->
+  <!-- Webpack Bundle -->
   <script type="text/javascript" src="static/bundle.js"></script>
-  
 </body>
 </html>
