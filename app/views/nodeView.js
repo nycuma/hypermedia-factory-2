@@ -122,10 +122,7 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
     },
 
     startListeners: function () {
-        console.log('start listening');
-        var model = this.model;
-        //this.listenTo(model, 'change:position', this.onPositionCanged);
-        this.listenTo(model, 'strucTypeChanged', this.setColorStructuralType);
+        this.listenTo(this.model, 'strucTypeChanged', this.setColorStructuralType);
 
     }
 });
