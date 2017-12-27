@@ -26,7 +26,7 @@ var SuggestionItemView = Backbone.View.extend({
         this.$el.append(this.template({label: this.options.label}));
 
         this.setInputFieldID();
-        this.createInputField(suggestionSource.toJSON());
+        this.createInputField(suggestionSource);
 
 
         /*
@@ -55,18 +55,11 @@ var SuggestionItemView = Backbone.View.extend({
         new autocomplete({
             minLength: 3,
             source: function(request, response) {
-                var results = $.ui.autocomplete.filter(source, request.term);
+                var results = $.ui.autocomplete.filter(source.toJSON(), request.term);
                 response(results.slice(0, 40)); // limit suggestions to 40 terms
             },
             focus: function( event, ui ) {
-                //$('#termDesc').empty();
-                //console.log('focus called on ' + JSON.stringify(ui.item));
-                //console.log(event.pageX + ', ' + event.pageY);
-                // get term
-                // serch in term in suggestioNSource
-                // display term description
-
-                $('#termDesc').css({top: event.pageY, left: event.pageX}).show();
+                $('#termDesc').html(ui.item.descr).css({top: event.pageY, left: event.pageX}).show();
                 $(document).click(function () {
                     $('#termDesc').hide().empty();
                 });
