@@ -68,7 +68,7 @@ var SchemaOrgSource = Backbone.Collection.extend({
             }
             term.label = term.prefix + ': ' + term.value;
             var rdfComment = store.getObjectsByIRI(subject, 'http://www.w3.org/2000/01/rdf-schema#comment')[0];
-            term.desc = rdfComment.substr(1, rdfComment.length-2);
+            term.descr = rdfComment.substr(1, rdfComment.length-2);
             self.push(term);
         }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
 
@@ -78,7 +78,7 @@ var SchemaOrgSource = Backbone.Collection.extend({
             term.prefix = 'schema';
             term.isRdfProperty = true;
             term.label = term.prefix + ': ' + term.value; // TODO: set label automatically on model
-            term.desc = store.getObjectsByIRI(subject, 'http://www.w3.org/2000/01/rdf-schema#comment');
+            term.descr = store.getObjectsByIRI(subject, 'http://www.w3.org/2000/01/rdf-schema#comment');
             self.push(term);
         }, null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#:Property');
 
