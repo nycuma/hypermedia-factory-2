@@ -150,11 +150,13 @@ hr {
 #termDesc {
     position: absolute;
     display: none;
-    width: 100px;
-    height: 40px;
-    background-color: #1ABC9C;
+    color: #262626;
+    border: 1px solid #262626;
+    font-size: 13px;
+    padding: 2px;
+    font-family: Helvetica, Arial, sans-serif;
+    background-color: #ffffff;
     z-index: 120;
-
 }
 
 
