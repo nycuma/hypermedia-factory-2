@@ -7,6 +7,7 @@
 var Backbone = require('backbone');
 var $ = require('jquery');
 Backbone.$ = $;
+var _ = require('underscore');
 var N3 = require('n3');
 var Term = require('../../models/term');
 
@@ -14,6 +15,8 @@ var SchemaOrgSource = Backbone.Collection.extend({
 
     model: Term,
     url: '../app/static/vocabs/schema.ttl',
+
+    store: N3.Store(null, {prefixes : {schema : 'http://schema.org'}}),
 
     sync: function (method, model, options) {
         if(method == 'read') {
@@ -23,86 +26,73 @@ var SchemaOrgSource = Backbone.Collection.extend({
                 url: this.url,
                 method: 'GET',
                 dataType: 'text',
-                success: function (data, textStatus, jqXHR) {
+                success: function() {
                     console.log('sucessfully received Schema.org turtle file');
                 },
-                error: function () {
+                error: function() {
                     console.log('error while requesting Schema.org turtle file');
 
                 }
 
             }, options);
 
-
             return $.ajax(ajaxParams);
-
         }
-
     },
 
     parse: function (turtle) {
         console.log('Schema.org parser called');
 
-        var store = N3.Store();
         var parser = N3.Parser({ format: 'Turtle' });
-        var term = {};
         var self = this;
 
-        // synchron
-        var triples = parser.parse(turtle);
-        triples.forEach(function (triple) {
-            store.addTriple(triple.subject, triple.predicate, triple.object);
+        parser.parse(turtle, function(error, triple) {
+            if (triple) {
+                self.store.addTriple(triple.subject, triple.predicate, triple.object);
+            } else {
+                console.log('finished parsing Schema.org file');
+            }
+            if(error) {
+                console.log('error while parsing Schema.org turtle file');
+            }
+
         });
 
-        // filter all unique Schema.org classes
-        store.forSubjectsByIRI(function (subject) {
-            term.value = subject.substr(18);
-            term.prefix = 'schema';
-            term.isRdfClass = true;
-            if(term.value.startsWith('Action') || term.value.endsWith('Action')) {
-                // TODO bug: other terms are also marked as actions
-                //console.log('isAction: ' + term.value);
-                term.isAction = true;
-            } else {
-                term.isAction = false;
-            }
-            term.label = term.prefix + ': ' + term.value;
-            var rdfComment = store.getObjectsByIRI(subject, 'http://www.w3.org/2000/01/rdf-schema#comment')[0];
-            term.descr = rdfComment.substr(1, rdfComment.length-2);
-            self.push(term);
-        }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
 
-        // filter unique Schema.org properties
-        store.forSubjectsByIRI(function (subject) {
-            term.value = subject.substr(18);
-            term.prefix = 'schema';
-            term.isRdfProperty = true;
-            term.label = term.prefix + ': ' + term.value; // TODO: set label automatically on model
-            term.descr = store.getObjectsByIRI(subject, 'http://www.w3.org/2000/01/rdf-schema#comment');
-            self.push(term);
-        }, null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#:Property');
-
-
-        // asynchron
+        // synchron
         /*
-        parser.parse(data,
-            function (error, triple, prefixes) {
-                if (triple) {
+        triples.forEach(_.bind(function (triple) {
+            this.store.addTriple(triple.subject, triple.predicate, triple.object);
+        }, this));
+        */
 
-                    store.addTriple(triple.subject, triple.predicate, triple.object);
+        /*
+        // filter unique Schema.org properties
+        this.store.forSubjectsByIRI(_.bind(function (subject) {
+            var rdfComment = this.store.getObjectsByIRI(subject, 'http://www.w3.org/2000/01/rdf-schema#comment')[0];
+            self.add(new Term({ value: subject.substr(18),
+                                prefix: 'schema',
+                                isRdfProperty: true,
+                                descr : rdfComment.substr(1, rdfComment.length-2)
+            }));
+        }, this), null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property');
 
 
-                    if (triple.subject == 'http://schema.org/Person' &&
-                        triple.predicate == 'http://www.w3.org/2000/01/rdf-schema#subClassOf') {
+        // filter all unique Schema.org classes
+        this.store.forSubjectsByIRI(_.bind(function (subject) {
 
-                        console.log(triple.subject, triple.predicate, triple.object, '.');
-                        countInCB++;
-                        console.log('current count: ' + countInCB);
-                    }
-                }
-            });
-            */
-        return this.models;
+            // TODO test if no comment available
+            var rdfComment = this.store.getObjectsByIRI(subject, 'http://www.w3.org/2000/01/rdf-schema#comment')[0];
+            self.add(new Term({ value: subject.substr(18),
+                                prefix: 'schema',
+                                isRdfClass: true,
+                                isAction: subject.substr(18).includes('Action'),
+                                descr : rdfComment.substr(1, rdfComment.length-2)
+            }));
+        }, this), null, 'http://www.w3.org/2000/01/rdf-schema#Class');
+        */
+
+        //return this.models;
     }
 });
 
