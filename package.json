@@ -2,9 +2,9 @@
   "name": "Hypermedia Factory",
   "version": "1.0.0",
   "description": "A Hypermedia Code-Template Factory for RESTful Web APIs",
-  "main": "index.js",
+  "main": "./app/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack"
   },
   "author": "Julian Richter",
   "license": "ISC",
@@ -13,6 +13,12 @@
     "backbone.localstorage": "^2.0.2",
     "jointjs": "^1.1.0",
     "jquery": "^3.2.1",
-    "pushstate-server": "^3.0.1"
+    "jquery-ui": "^1.12.1",
+    "n3": "^0.11.2"
+  },
+  "devDependencies": {
+    "extract-text-webpack-plugin": "^3.0.2",
+    "uglifyjs-webpack-plugin": "^1.1.4",
+    "webpack": "^3.10.0"
   }
 }
