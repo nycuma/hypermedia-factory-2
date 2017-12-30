@@ -34,9 +34,11 @@ var EditResourceView = Backbone.View.extend({
 
         this.$el.html(this.template());
 
-        new SuggestionItemView({el: '#resourceNameInputWrapper',
-                                id: 'resourceName',
-                                label: 'Name'});
+        var sivResName = new SuggestionItemView({el: '#resourceNameInputWrapper',
+                                                id: 'resourceName',
+                                                label: 'Name'});
+        this.listenTo(sivResName, 'resourceNameSelected', this.refreshAttrField);
+
         new SuggestionItemView({el: '#resourceAttrInputWrapper',
                                 id: 'resourceAttr0',
                                 label: 'Attributes'});
@@ -47,7 +49,7 @@ var EditResourceView = Backbone.View.extend({
         return this;
     },
 
-    fillInputFields: function (idAttrField) {
+    fillInputFields: function () {
         $('#resourceName').val(this.model.get('label'));
 
         var resourceAttrs = this.model.prop('resourceAttr');
@@ -63,15 +65,42 @@ var EditResourceView = Backbone.View.extend({
     addAttrField: function(evt) {
         if(evt) evt.preventDefault();
 
+        var resourceNameValue = $(evt.target).attr('term-value');
+        var resourceNamePrefix = $(evt.target).attr('term-prefix');
+
+        console.log('data-value: ' + resourceNameValue);
+        console.log('data-prefix: ' + resourceNamePrefix);
+
         var attrID = this.getNextAttrID();
 
         new SuggestionItemView({el: '#resourceAttrInputWrapper',
                                 id: 'resourceAttr' + attrID,
-                                label: ''});
+                                label: attrID == 0 ? 'Attributes':'',
+                                resourceNameValue: resourceNameValue,
+                                resourceNamePrefix: resourceNamePrefix });
     },
 
     getNextAttrID: function() {
         return this.$('#resourceAttrInputWrapper').children().length;
+    },
+
+    refreshAttrField: function(data) {
+        console.log('refresh attr fields');
+        // remove all existing input fields for resource attributes
+        $('#resourceAttrInputWrapper').empty();
+
+        // add input field that suggests only properties for entered resource name
+
+        new SuggestionItemView({el: '#resourceAttrInputWrapper',
+                                id: 'resourceAttr0',
+                                label: 'Attributes',
+                                resourceNameValue: data.value,
+                                resourceNamePrefix: data.prefix});
+
+
+        // refresh PLUS button
+        // TODO change from CSS class to ID
+        $('.addFieldBtn').attr({'term-value': data.value, 'term-prefix': data.prefix});
     },
 
     submit: function (evt) {
