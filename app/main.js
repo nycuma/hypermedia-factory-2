@@ -18,4 +18,6 @@ $(document).ready(function() {
     new NavigationBar({});
     var graph = new joint.dia.Graph;
     new Paper({ model: graph });
+
+    //console.log(JSON.stringify(graph.toJSON()));
 });
