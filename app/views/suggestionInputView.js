@@ -28,21 +28,20 @@ var SuggestionItemView = Backbone.View.extend({
         this.setInputFieldID();
 
         if(this.id === 'resourceName') {
-            //this.createInputField(JSON.parse(JSON.stringify(sugSource.getRDFClasses())));
-            //this.createInputField(sugSource.getRDFClasses());
-            this.createInputField();
-        } else if (this.id.startsWith('resourceAttr')) {
+            this.createInputFieldResName();
+
+        } else if (this.id.match(/resourceAttr/)) {
 
             if(this.options.resourceNameValue && this.options.resourceNamePrefix) {
 
                 console.log('SIV attr: shipped with resource name val & prefix: '
                     + this.options.resourceNameValue + ', ' + this.options.resourceNamePrefix);
 
-                this.createAttrInputFieldWithPropsForResourceName(this.options.resourceNameValue, this.options.resourceNamePrefix);
+                this.createAttrInputFielResAttr(this.options.resourceNameValue, this.options.resourceNamePrefix);
 
             } else {
-                console.log('SIV attr: shipped w/o');
-                this.createInputField(sugSource.getRDFProps());
+                console.log('SIV attr: shipped w/o val & prefix');
+                this.createAttrInputFielResAttr();
 
             }
 
@@ -56,35 +55,52 @@ var SuggestionItemView = Backbone.View.extend({
         this.$('.autocompleteInputField').last().attr('id', this.id+'InputField');
     },
 
-    // TODO: wenn nicht alle Terms geladen werden sollen: source ist eine function, die das rdf store parsed
-    // TODO smaller font-seize for prefix, font for suggestions
-    createInputField: function (source) {
+    createInputFieldResName: function (propValue, propPrefix) {
         var self = this;
         new autocomplete({
             minLength: 2,
             source: function(request, response) {
 
                 var results = [];
+                var regEx = new RegExp(request.term, 'i');
 
-                if(source) {
-                    results = $.ui.autocomplete.filter(source, request.term);
-                    response(results.slice(0, 15)); // limit suggestions to 15 terms
 
-                } else {
-                    //get all RDF classes
-                    var regEx = new RegExp(request.term, "i");
-                    sugSource.rdfStore.forSubjectsByIRI(function (subject) {
-                        var label = 'schema: ' + subject.substr(18);
+
+                if(propValue && propPrefix) {
+                    // get RDF classes in the range of this property
+                    // TODO BUG !!! get all props from superclasses, too !!!
+
+                    var prefixIRI = sugSource.getPrefixIRIFromPrefix(propPrefix);
+
+                    sugSource.rdfStore.forObjectsByIRI(function(object) {
+
+                        var val = sugSource.getTermFromIRI(object);
+                        var label = propPrefix+': ' + val;
+
                         if(label.match(regEx)) {
                             results.push({
-                                value: subject.substr(18),
-                                label: label
+                                value: val,
+                                label: label // TODO get class hierachy
+                            });
+                        }
+
+                    }, prefixIRI+propValue,'http://schema.org/rangeIncludes'); //TODO RDF IRI for rangeIncludes?
+                    response(results);
+
+                } else {
+                    //get all RDF classes matching entered characters
+                    sugSource.rdfStore.forSubjectsByIRI(function (subject) {
+
+                        var label = sugSource.getLabelFromIRI(subject);
+                        if(label.match(regEx)) {
+                            results.push({
+                                value: sugSource.getTermFromIRI(subject),
+                                label: label // TODO get class hierachy
                             });
                         }
                     }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
 
-                    //results = $.ui.autocomplete.filter(source, request.term);
-                    response(results.slice(0, 15));
+                    response(results.slice(0, 15)); // max. 15 results
 
 
                 }
@@ -95,9 +111,16 @@ var SuggestionItemView = Backbone.View.extend({
             },
 
             select: function (event, ui) {
-                if(this.id === 'resourceName') {
-                    self.trigger('resourceNameSelected', {value: ui.item.value, prefix: ui.item.prefix});
-                }
+                var prefix = sugSource.getPrefixFromLabel(ui.item.label);
+                // refresh input fields for resources attributes
+                self.trigger('resourceNameSelected', {value: ui.item.value, prefix: prefix});
+                // save prefix in hidden input field
+                self.writePrefixToHiddenInputField(prefix);
+
+            },
+
+            close: function() {
+                $('#termDesc').hide().empty();
             }
             /*
             open: function(event,ui) {
@@ -115,11 +138,13 @@ var SuggestionItemView = Backbone.View.extend({
 
         }).element.attr({ type: 'text', id: this.id})
             .appendTo('#'+this.id+'InputField');
+
+        this.createHiddenFieldForPrefix('#'+this.id+'InputField');
     },
 
-    createAttrInputFieldWithPropsForResourceName: function(value, prefix) {
+    createAttrInputFielResAttr: function(value, prefix) {
 
-        console.log('createAttrInputFieldWithPropsForResourceName: ' + value + ', ' + prefix);
+        console.log('createAttrInputFielResAttr: ' + value + ', ' + prefix);
 
         var self = this;
         new autocomplete({
@@ -127,46 +152,88 @@ var SuggestionItemView = Backbone.View.extend({
 
             source: function(request, response) {
 
-                // need schemaorg store
-                // getURLFromPrefix
-                var url = 'http://schema.org/Person';
-                var predicatesForSubject = sugSource.rdfStore.getSubjects('http://schema.org/domainIncludes', url);
+                var results = [];
+                var regEx = new RegExp(request.term, 'i');
 
-                var results = $.ui.autocomplete.filter(predicatesForSubject, request.term);
-                results = results.map(function(prop) {
-                    return { value: prop.substr(18),
-                        prefix: 'schema',
-                        label: 'schema: ' + prop.substr(18) };
-                });
 
-                console.log('results: ' + JSON.stringify(results));
+                if(value && prefix) { // get only RDF properties for entered resource name
 
-                response(results.slice(0, 15)); // limit suggestions to 15 terms
+                    var prefixIRI = sugSource.getPrefixIRIFromPrefix(prefix);
+
+
+                    sugSource.rdfStore.forSubjectsByIRI(function (subject) {
+                        var val = sugSource.getTermFromIRI(subject);
+                        var label = prefix + ': ' + val;
+                        if(label.match(regEx)) {
+                            results.push({
+                                value: val,
+                                label: label // TODO get class hierachy
+                            });
+                        }
+                    }, 'http://schema.org/domainIncludes', prefixIRI+value);
+
+                    response(results);
+
+
+                } else { // get all RDF properties that match entered characters
+
+                    sugSource.rdfStore.forSubjectsByIRI(function (subject) {
+                        var label = sugSource.getLabelFromIRI(subject);
+                        if(label.match(regEx)) {
+                            results.push({
+                                value: sugSource.getTermFromIRI(subject),
+                                label: label // TODO get class hierachy
+                            });
+                        }
+                    }, null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property');
+
+                    response(results.slice(0, 15)); // max. 15 results
+                }
             },
 
             focus: function(event, ui) {
                 self.displayTermDescription(event, ui);
+            },
+
+            select: function(event, ui) {
+                var prefix = sugSource.getPrefixFromLabel(ui.item.label);
+                // save prefix in hidden input field
+                self.writePrefixToHiddenInputField(prefix);
+            },
+
+            close: function () {
+                $('#termDesc').hide().empty();
             }
 
         }).element.attr({ type: 'text', id: this.id})
             .appendTo('#'+this.id+'InputField');
 
+        this.createHiddenFieldForPrefix('#'+this.id+'InputField');
+
     },
-    // TODO: do not save rdf comments while parsing
-    // TODO: do not save RDF in BB models, only parse triples and save them in RDF store
+
+
     displayTermDescription: function(event, ui) {
+        var position = {top: event.pageY + 15, left: event.pageX + 25};
+
         if(ui.item.descr) {
-            $('#termDesc').html(ui.item.descr).css({top: event.pageY + 10, left: event.pageX + 25}).show();
+            $('#termDesc').html(ui.item.descr).css(position).show();
         } else {
-            var prefixUrl = 'http://schema.org/'; // TODO save prefixes and URLs somewhere centrally
-            var rdfComment = sugSource.rdfStore.getObjectsByIRI(prefixUrl+ui.item.value, 'http://www.w3.org/2000/01/rdf-schema#comment')[0];
+            var prefixIRI = sugSource.getPrefixIRIFromLabel(ui.item.label);
+            var rdfComment = sugSource.rdfStore.getObjectsByIRI(prefixIRI+ui.item.value, 'http://www.w3.org/2000/01/rdf-schema#comment');
 
-            $('#termDesc').html(rdfComment.substr(1, rdfComment.length-2)).css({top: event.pageY + 10, left: event.pageX + 25}).show();
+            if(rdfComment) { //TODO what if no RDF comment available?
+                $('#termDesc').html(rdfComment[0].substr(1, rdfComment[0].length-2)).css(position).show();
+            }
         }
+    },
 
-        $(document).click(function () {
-            $('#termDesc').hide().empty();
-        });
+    createHiddenFieldForPrefix: function(appendToEl) {
+        $(appendToEl).append('<input type="hidden" id="'+this.id+'Prefix'+'" class="prefixInput" value="">');
+    },
+
+    writePrefixToHiddenInputField: function(prefix) {
+        $('#'+this.id+'Prefix').val(prefix);
     }
 
 
