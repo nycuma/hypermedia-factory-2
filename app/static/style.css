@@ -147,6 +147,11 @@ hr {
 }
 
 
+.acInput {
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+
 #termDesc {
     position: absolute;
     display: none;
@@ -158,6 +163,12 @@ hr {
     background-color: #ffffff;
     z-index: 120;
 }
+
+.termDescHighlight {
+    font-weight: bold;
+}
+
+
 
 
 .editGraphElement {
