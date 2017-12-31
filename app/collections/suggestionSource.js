@@ -22,13 +22,16 @@ var SuggestionSource = Backbone.Collection.extend({
     // RDF store contains terms from all RDF vocabularies
     rdfStore: N3.Store(),
 
+    // TODO maybe getIRIFromPrefixAndTerm, getPrefixAndTermFromIRI, getLabelFromIRI
+    prefixes: {},
+
     initialize: function () {
         var self = this;
 
         var schemaOrgSource = new SchemaOrgSource();
         $.when(schemaOrgSource.fetch({parse: true})).then(function() {
             self.rdfStore.addTriples(schemaOrgSource.store.getTriples());
-            self.rdfStore.addPrefix('schema', 'http://schema.org/');
+            self.prefixes.schema = 'http://schema.org/';
         });
 
         // non-RDF vocabulary is saved in local model
@@ -40,16 +43,67 @@ var SuggestionSource = Backbone.Collection.extend({
 
     },
 
+    getPrefixIRIFromPrefix: function(prefix) {
+        return this.prefixes[prefix];
+    },
+
+    // label = <prefix>: <term>
+    getPrefixIRIFromLabel: function(label) {
+        var prefix = label.substr(0, label.indexOf(':'));
+        return this.prefixes[prefix];
+    },
+
+    getPrefixFromLabel: function(label) {
+        return label.substr(0, label.indexOf(':'));
+    },
+
+    getPrefixFromPrefixIRI: function(prefixIRI) {
+        for (var key in this.prefixes) {
+            if (this.prefixes.hasOwnProperty(key)) {
+
+                if(prefixIRI === this.prefixes[key]) {  //.match(new RegExp(iri)))
+                    return key;
+                }
+            }
+        }
+    },
+
+    getPrefixFromIRI: function(iri) {
+        for (var key in this.prefixes) {
+            if (this.prefixes.hasOwnProperty(key)) {
+
+                if(iri.indexOf(this.prefixes[key]) === 0) { //check with which prefixIRI the IRI starts with
+                    //console.log('getPrefixFromIRI ' + iri + ': ' + key);
+                    return key;
+                }
+            }
+        }
+
+    },
+
+    getTermFromIRI: function(iri) {
+
+        var prefix = this.getPrefixFromIRI(iri);
+        var prefixIRILength = this.prefixes[prefix].length;
+
+        return iri.substr(prefixIRILength);
+    },
+
+    getLabelFromIRI: function(iri) {
+        return this.getPrefixFromIRI(iri) + ': ' + this.getTermFromIRI(iri);
+    },
 
 
+
+    /*
     getRDFClasses: function() {
-        /*
-        var result = this.filter(function (term) {
-            return term.get('isRdfClass');
-        });
-        var result = this.where({isRdfClass: true, isAction: false});
-        return result;
-        */
+
+        //var result = this.filter(function (term) {
+        //    return term.get('isRdfClass');
+        //});
+        //var result = this.where({isRdfClass: true, isAction: false});
+        //return result;
+
 
 
         return this.reduce(function (filteredColl, term) {
@@ -69,6 +123,7 @@ var SuggestionSource = Backbone.Collection.extend({
             return filteredColl;
         }, []);
     },
+*/
 
     getActions: function () {
         return this.reduce(function (filteredColl, term) {
@@ -87,6 +142,7 @@ var SuggestionSource = Backbone.Collection.extend({
             return filteredColl;
         }, []);
     }
+
 });
 
 module.exports = new SuggestionSource();
