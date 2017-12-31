@@ -44,35 +44,57 @@ var EditResourceView = Backbone.View.extend({
                                 label: 'Attributes'});
 
 
-        this.fillInputFields();
+        if(this.model.get('label') !== 'new resource') {
+            this.fillInputFields();
+        }
+
         this.$el.show();
         return this;
     },
 
     fillInputFields: function () {
-        $('#resourceName').val(this.model.get('label'));
+        console.log('fillInputFields: resourceName: ' + this.model.prop('resourceName').value + ', ' + this.model.prop('resourceName').prefix);
 
-        var resourceAttrs = this.model.prop('resourceAttr');
-        if(!resourceAttrs) return;
+        $('#resourceName').val(this.model.get('resourceName').value);
+        $('#resourceNamePrefix').val(this.model.get('resourceName').prefix);
+
+        var resourceAttrs = this.model.prop('resourceAttrs');
+        if(!resourceAttrs) { return; }
 
         resourceAttrs.forEach(_.bind(function(el, i) {
-            if (i !== 0) this.addAttrField();
-            $('#resourceAttr' + i).val(this.model.prop('resourceAttr/' + i));
+            if (i !== 0) { this.addAttrField(); }
+
+            console.log('fillInputFields: resourceAttr: ' + this.model.prop('resourceAttrs/' + i).value + ', ' + this.model.prop('resourceAttrs/' + i).prefix);
+
+            $('#resourceAttr' + i).val(this.model.prop('resourceAttrs/' + i).value);
+            $('#resourceAttr' + i + 'Prefix').val(this.model.prop('resourceAttrs/' + i).prefix);
         }, this));
 
     },
 
     addAttrField: function(evt) {
-        if(evt) evt.preventDefault();
 
-        var resourceNameValue = $(evt.target).attr('term-value');
-        var resourceNamePrefix = $(evt.target).attr('term-prefix');
+        var resourceNameValue, resourceNamePrefix;
 
-        console.log('data-value: ' + resourceNameValue);
-        console.log('data-prefix: ' + resourceNamePrefix);
+        if(evt) { // case if PLUS button is clicked by user
+            evt.preventDefault();
+
+            resourceNameValue = $(evt.target).attr('term-value');
+            resourceNamePrefix = $(evt.target).attr('term-prefix');
+
+            console.log('addAttrField term-value: ' + resourceNameValue);
+            console.log('addAttrField term-prefix: ' + resourceNamePrefix);
+
+        } else { // case if editResourceView is initialised for the > 1 time and attributes might be retrieved from node model
+            var termVal = this.model.get('resourceName').value;
+            var termPrefix = this.model.get('resourceName').prefix;
+            if(termVal && termPrefix) {
+                $('.addFieldBtn').attr({'term-value': termVal, 'term-prefix': termPrefix});
+            }
+
+        }
 
         var attrID = this.getNextAttrID();
-
         new SuggestionItemView({el: '#resourceAttrInputWrapper',
                                 id: 'resourceAttr' + attrID,
                                 label: attrID == 0 ? 'Attributes':'',
@@ -90,7 +112,6 @@ var EditResourceView = Backbone.View.extend({
         $('#resourceAttrInputWrapper').empty();
 
         // add input field that suggests only properties for entered resource name
-
         new SuggestionItemView({el: '#resourceAttrInputWrapper',
                                 id: 'resourceAttr0',
                                 label: 'Attributes',
@@ -98,24 +119,30 @@ var EditResourceView = Backbone.View.extend({
                                 resourceNamePrefix: data.prefix});
 
 
-        // refresh PLUS button
-        // TODO change from CSS class to ID
+        // refresh PLUS button that adds new attr fields
         $('.addFieldBtn').attr({'term-value': data.value, 'term-prefix': data.prefix});
     },
 
     submit: function (evt) {
         evt.preventDefault();
 
-        var newLabel = $('#resourceName').val().trim();
-        if(newLabel) this.model.set('label', newLabel);
+        var nameVal = $('#resourceName').val().trim();
+        var namePrefix = $('#resourceNamePrefix').val().trim();
+        if(nameVal && namePrefix) {
+            this.model.set('label', nameVal);
+            this.model.saveName(nameVal, namePrefix);
+        }
 
         this.model.prop('resourceAttr', []);
-        var resourceModel = this.model;
+        var model = this.model;
 
-        $('#resourceAttrInputWrapper .autocompleteInputField input').each(function() {
-            console.log('found input field: ' + $(this).val());
-            var newAttr = $(this).val();
-            if(newAttr) resourceModel.addAttribute(newAttr);
+        $('#resourceAttrInputWrapper .autocompleteInputField').each(function() {
+
+            var attrVal = $(this).children('.ui-autocomplete-input').val().trim();
+            var attrPrefix = $(this).children('.prefixInput').val().trim();
+
+            console.log('found input fields: ' + attrVal + ', ' + attrPrefix);
+            if(attrVal && attrPrefix) { model.saveAttribute(attrVal, attrPrefix); }
         });
 
         this.close();
