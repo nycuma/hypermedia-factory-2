@@ -81,7 +81,6 @@ var SchemaOrgSource = Backbone.Collection.extend({
         // filter all unique Schema.org classes
         this.store.forSubjectsByIRI(_.bind(function (subject) {
 
-            // TODO test if no comment available
             var rdfComment = this.store.getObjectsByIRI(subject, 'http://www.w3.org/2000/01/rdf-schema#comment')[0];
             self.add(new Term({ value: subject.substr(18),
                                 prefix: 'schema',
