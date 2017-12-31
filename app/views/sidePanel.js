@@ -14,8 +14,7 @@ var SingleInstruction = require('../models/singleInstruction');
 var instructionsList;
 instructionsList = require('../collections/instructionsList');
 
-var IanaLinkRelParser = require('../parser/ianaLinkRels');
-var SchemaOrgParser = require('../parser/schemaOrg');
+var N3 = require('n3');
 
 var SidePanelView = Backbone.View.extend({
     el: '#sidePanel',
@@ -34,7 +33,7 @@ var SidePanelView = Backbone.View.extend({
     },
 
     events: {
-        'click #parseRDFBtn': 'parseXML'
+        'click #parseRDFBtn': 'parseRDF'
 
 
     },
@@ -70,17 +69,17 @@ var SidePanelView = Backbone.View.extend({
         new PopUpView({ subview : evt.target.id.substr(0, end) });
     },
 
-
-
-    //testing parser
-    parseXML: function () {
-
-        IanaLinkRelParser.getIanaLinkRelations();
-        
-    },
-    
+    // testint parser
     parseRDF: function () {
-        SchemaOrgParser.getRDFTriples();
+        //SchemaOrgParser.getRDFTriples();
+
+        var prefixes = {schema: 'http://schema.org/', foaf: 'http://foaf.org/'};
+
+        //get prefixIRIFromPrefix
+
+
+        console.log(N3.Util.expandPrefixedName('schema:Person', prefixes));
+        console.log(prefixes['schema']);
     }
 
 });
