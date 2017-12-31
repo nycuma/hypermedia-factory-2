@@ -16,11 +16,17 @@ var Node = joint.shapes.basic.Rect.extend({
         }
     }, joint.shapes.basic.Rect.prototype.defaults),
 
-    // adds new resource attribute to the array
-    addAttribute: function (attr) {
-        var resourceAttrs = this.prop('resourceAttr') || [];
-        resourceAttrs.push(attr);
-        this.prop('resourceAttr', resourceAttrs);
+    saveName: function(nameVal, namePrefix) {
+        this.prop('resourceName', {value: nameVal, prefix: namePrefix});
+    },
+
+    saveAttribute: function(attrVal, attrPrefix) {
+        var resourceAttrs = this.prop('resourceAttrs') || [];
+        resourceAttrs.push({
+            value: attrVal,
+            prefix: attrPrefix
+        });
+        this.prop('resourceAttrs', resourceAttrs);
     },
 
     getStructuralType: function () {
