@@ -157,10 +157,12 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     },
 
     createNodeForDemo: function (x, y, label) {
-        return new Node({
+        var node = new Node({
             position: { x: x, y: y },
             label: label
         });
+        node.saveName(label, 'schema');
+        return node;
     },
 
     createLinkForDemo: function (sourceId, targetId) {
