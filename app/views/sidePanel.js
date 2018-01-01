@@ -8,79 +8,47 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
-var InstructionView = require('./instructionView');
-var PopUpView = require('./popUpView');
-var SingleInstruction = require('../models/singleInstruction');
-var instructionsList;
-instructionsList = require('../collections/instructionsList');
 
-var N3 = require('n3');
+var WelcomeView = require('./navItems/welcomeView');
+var AboutView = require('./navItems/aboutView');
+var DownloadView = require('./navItems/downloadView');
+var OptionsView = require('./navItems/optionsView');
+var HelpView = require('./navItems/helpView');
 
 var SidePanelView = Backbone.View.extend({
     el: '#sidePanel',
     template: _.template($('#sidePanel-template').html()),
 
-    initialize: function(){
+    initialize: function(options){
         //_.bindAll(this, 'render');
+        this.options = options;
         this.render();
-        //this.loadInstructions();
     },
 
     render: function () {
-        //$(this.el).html($("#sidePanel-template").html());
         this.$el.html(this.template);
-        this.$el.fadeIn(400);
+
+        switch (this.options.page) {
+            case 'welcome' : new WelcomeView({}); break;
+            case 'aboutBtn' : new AboutView({}); break;
+            //case 'openBtn' : new OpenView({}); break;
+            //case 'saveBtn' : new SaveView({}); break;
+            case 'downloadBtn' : new DownloadView({}); break;
+            case 'optionsBtn' : new OptionsView({}); break;
+            case 'helpBtn' : new HelpView({}); break;
+        }
+        this.$el.fadeIn(200);
     },
 
     events: {
-        'click #parseRDFBtn': 'parseRDF'
-
-
-    },
-/*
-    loadInstructions: function () {
-        $.getJSON('../app/modelData/instructionsData.json', function(data) {
-            data.items.forEach(function(item) {
-                var newInstrModel = new SingleInstruction(item); // create new model
-                instructionsList.create(newInstrModel); // add model to collection
-                var view = new InstructionView({ model: newInstrModel }); // create new view for model
-                $('#instructions').append(view.render().el); // render view
-            });
-        });
-    },
-    */
-    /**
-    addInstrModel: function(item) {
-        console.log('loading instruction item: ' + JSON.stringify(item));
-
-        var newInstrModel = new SingleInstruction(item);
-        instructionsList.create(newInstrModel);
-        this.renderInstrView(newInstrModel);
+        'click #sidePanelCloseBtn': 'close'
     },
 
-    renderInstrView: function(instr){
-        var view = new InstructionView({ model: instr });
-        $('#instructions').append(view.render().el);
+    close: function () {
+        this.$el.fadeOut(200);
+        this.$el.empty();
     }
-    */
 
-    openPopUpView: function (evt) {
-        var end = evt.target.id.length - 3;
-        new PopUpView({ subview : evt.target.id.substr(0, end) });
-    },
-
-    // testint parser
-    parseRDF: function () {
-        //SchemaOrgParser.getRDFTriples();
-
-        var prefixes = {schema: 'http://schema.org/', foaf: 'http://foaf.org/'};
-
-        //get prefixIRIFromPrefix
-
-
-        console.log(N3.Util.expandPrefixedName('schema:Person', prefixes));
-        console.log(prefixes['schema']);
-    }
 
 });
 
