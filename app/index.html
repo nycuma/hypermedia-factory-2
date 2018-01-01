@@ -33,12 +33,12 @@
   <script type="text/template" id="navigationBar-template">
     <!-- <img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="static/img/hm-logo-small.png" width="130" height="37"/> -->
     <nav>
-      <button class="navItem" id="aboutBtn">About</button>
+      <button class="navItem opensSidePanel" id="aboutBtn">About</button>
       <button class="navItem" id="openBtn">Open</button>
       <button class="navItem" id="saveBtn">Save</button>
-      <button class="navItem" id="downloadBtn">Download Profiles</button>
-      <button class="navItem" id="optionsBtn">Options</button>
-      <button class="navItem" id="helpBtn">Help</button>
+      <button class="navItem opensSidePanel" id="downloadBtn">Download Profiles</button>
+      <button class="navItem opensSidePanel" id="optionsBtn">Options</button>
+      <button class="navItem opensSidePanel" id="helpBtn">Help</button>
     </nav>
   </script>
 
@@ -46,37 +46,24 @@
   <!-- Side Panel Template -->
   <script type="text/template" id="sidePanel-template">
     <div id="sidePanelCloseBtn">X</div>
-    <div id="welcome">
-      <span class="headline">A Node.js code generator for RESTful Web APIs</span>
-      <br>Welcome to the Hypermedia Factory! This web site is a work in progress! Some welcome text. This is a
-      <a href="#" title="go somewhere">link</a>. Some more welcome text.
-      <a href="#" title="go somewhere">Another</a> link.
+    <div id="sidePanelContent"></div>
 
-      <br>
-      <br><button id="parseRDFBtn">Parse RDF</button>
-      <br>
-      <br>
-      <div class="ui-widget">
-        <label for="autocompleteWidget">Tags: </label>
-        <br><input id="autocompleteWidget" type="text">
-      </div>
-    </div>
 
-    <div id="instructions">
-      <span class="headline">Quick Instructions</span>
-    </div>
+
   </script>
 
-  <!-- PopUpView Template -->
-  <script type="text/template" id="popUpView-template">
-    <div class="close">x</div>
-    <div id="content"></div>
-  </script>
+  <!-- Welcome Template -->
+  <script type="text/template" id="welcome-template">
+    <h1>Welcome</h1>
+    <br>This web site is a work in progress! Some welcome text. This is a
+    <a href="#" title="go somewhere">link</a>. Some more welcome text.
+    <a href="#" title="go somewhere">Another</a> link.
 
+  </script>
 
   <!-- About Template -->
   <script type="text/template" id="about-template">
-    <h1 class="headline-foregroundBox">About</h1>
+    <h1>About</h1>
     <p>
       This project is part of my bachelor's thesis at the
       <a href="http://www.snet.tu-berlin.de/" target="_blank" title="Service-centric Networking">SNET</a>
@@ -84,12 +71,14 @@
       <a href="http://www.tu-berlin.de/" target="_blank" title="Technische Universität Berlin">TU Berlin</a>.
     </p>
     <p>
-      Get more info at GitHub:
-      <br><a href="https://github.com/nycuma/hypermedia-factory" target="_blank">https://github.com/nycuma/hypermedia-factory</a>
+      [Some words about REST and hypermedia....]
+    </p>
+    <p>
+      --> <a href="https://github.com/nycuma/hypermedia-factory" target="_blank">GitHub repository</a>
     </p>
     <p>
       <strong>Credits:</strong>
-      <br>Logo designed by: <a href="#">Franziska Nebel</a>
+      <br>Logo designed by: Franziska Nebel
       <br>Font 'Greyscale' from: <a href="https://www.fontsquirrel.com/fonts/Greyscale-Basic?filter[license][0]=web" target="_blank">FontSquirrel</a>
       <br>Framework library: <a href="http://backbonejs.org/" target="_blank">Backbone.js</a>
       <br>Graph library: <a href="https://www.jointjs.com/opensource" target="_blank">Joint.js</a>
@@ -99,39 +88,40 @@
   </script>
 
 
-  <!-- Help Template -->
-  <script type="text/template" id="help-template">
-    <h1 class="headline-foregroundBox">Help</h1>
+  <!-- Download Profiles Template -->
+  <script type="text/template" id="download-template">
+    <h1>Download profiles</h1>
     <p>
-      [Some words about hypermedia, links to hypermedia types, etc...]
-    </p>
-  </script>
-
-
-  <!-- Export Template -->
-  <script type="text/template" id="export-template">
-    <h1 class="headline-foregroundBox">Export code templates</h1>
-    <p>
-      Export your state diagram to Node.js code with HTTP response templates
-      including one or more of the following hypermedia formats:
+      [text text text ... ]
     </p>
     <form>
       <table>
         <tr>
-          <td><input type="checkbox" name="hmType" id="hydra"></td>
-          <td><label for="hydra">JSON-LD with Hydra</label></td>
+          <td><input type="radio" name="profileFormat" id="jsonld"></td>
+          <td><label for="jsonld">JSON-LD with Hydra</label></td>
         </tr>
         <tr>
-          <td><input type="checkbox" name="hmType" id="hal"></td>
-          <td><label for="hal">HAL (JSON)</label></td>
-        </tr>
-        <tr>
-          <td><input type="checkbox" name="hmType" id="siren"></td>
-          <td><label for="siren">Siren</label></td>
+          <td><input type="radio" name="profileFormat" id="alps"></td>
+          <td><label for="alps">ALPS</label></td>
         </tr>
       </table>
-      <button class="btn submitBtn" type="submit">Export</button>
+      <button class="btn submitBtn" type="submit">Download</button>
     </form>
+  </script>
+
+  <!-- Options Template -->
+  <script type="text/template" id="options-template">
+    <h1>Options</h1>
+    <p>
+      [options...]
+    </p>
+  </script>
+
+  <!-- Help Template -->
+  <script type="text/template" id="help-template">
+    <h1>Help</h1>
+    <h2>Quick Instructions</h2>
+    <div id="instructions"></div>
   </script>
 
 
