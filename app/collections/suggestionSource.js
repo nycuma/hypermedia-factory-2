@@ -21,8 +21,6 @@ var SuggestionSource = Backbone.Collection.extend({
 
     // RDF store contains terms from all RDF vocabularies
     rdfStore: N3.Store(),
-
-    // TODO maybe getIRIFromPrefixAndTerm, getPrefixAndTermFromIRI, getLabelFromIRI
     prefixes: {},
 
     initialize: function () {
