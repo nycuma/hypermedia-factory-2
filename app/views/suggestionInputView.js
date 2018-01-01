@@ -28,24 +28,22 @@ var SuggestionItemView = Backbone.View.extend({
         this.setInputFieldID();
 
         if(this.id === 'resourceName') {
+            console.log('new suggestionInputView name');
             this.createInputFieldResName();
 
         } else if (this.id.match(/resourceAttr/)) {
 
             if(this.options.resourceNameValue && this.options.resourceNamePrefix) {
 
-                console.log('SIV attr: shipped with resource name val & prefix: '
+                console.log('new suggestionInputView attr, value and prefix: '
                     + this.options.resourceNameValue + ', ' + this.options.resourceNamePrefix);
 
-                this.createAttrInputFielResAttr(this.options.resourceNameValue, this.options.resourceNamePrefix);
+                this.createInputFielResAttr(this.options.resourceNameValue, this.options.resourceNamePrefix);
 
             } else {
-                console.log('SIV attr: shipped w/o val & prefix');
-                this.createAttrInputFielResAttr();
-
+                console.log('new suggestionInputView attr: without value and prefix');
+                this.createInputFielResAttr();
             }
-
-
         }
 
         return this;
@@ -68,19 +66,17 @@ var SuggestionItemView = Backbone.View.extend({
 
                 if(propValue && propPrefix) {
                     // get RDF classes in the range of this property
-                    // TODO BUG !!! get all props from superclasses, too !!!
 
                     var prefixIRI = sugSource.getPrefixIRIFromPrefix(propPrefix);
 
                     sugSource.rdfStore.forObjectsByIRI(function(object) {
 
                         var val = sugSource.getTermFromIRI(object);
-                        var label = propPrefix+': ' + val;
 
-                        if(label.match(regEx)) {
+                        if(val.match(regEx)) {
                             results.push({
                                 value: val,
-                                label: label // TODO get class hierachy
+                                label: propPrefix+': '+self.getRDFTypeHierarchyAsString(object, 'http://schema.org/Thing')
                             });
                         }
 
@@ -91,11 +87,11 @@ var SuggestionItemView = Backbone.View.extend({
                     //get all RDF classes matching entered characters
                     sugSource.rdfStore.forSubjectsByIRI(function (subject) {
 
-                        var label = sugSource.getLabelFromIRI(subject);
-                        if(label.match(regEx)) {
+                        var val = sugSource.getTermFromIRI(subject);
+                        if(val.match(regEx)) {
                             results.push({
-                                value: sugSource.getTermFromIRI(subject),
-                                label: label // TODO get class hierachy
+                                value: val,
+                                label: sugSource.getPrefixFromIRI(subject)+': '+self.getRDFTypeHierarchyAsString(subject, 'http://schema.org/Thing') // TODO get class hierachy
                             });
                         }
                     }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
@@ -122,19 +118,6 @@ var SuggestionItemView = Backbone.View.extend({
             close: function() {
                 $('#termDesc').hide().empty();
             }
-            /*
-            open: function(event,ui) {
-                var acData = $(this).data('ui-autocomplete');
-                acData
-                    .menu
-                    .element
-                    .find('li')
-                    .each(function () {
-                        var keywords = acData.term.split(' ').join('|');
-                        $(this).html($(this).text().replace(new RegExp('(' + keywords + ')', 'gi'), '<span class="termDescHighlight">$1</span>'));
-                    });
-            }
-            */
 
         }).element.attr({ type: 'text', id: this.id})
             .appendTo('#'+this.id+'InputField');
@@ -142,9 +125,9 @@ var SuggestionItemView = Backbone.View.extend({
         this.createHiddenFieldForPrefix('#'+this.id+'InputField');
     },
 
-    createAttrInputFielResAttr: function(value, prefix) {
+    createInputFielResAttr: function(value, prefix) {
 
-        console.log('createAttrInputFielResAttr: ' + value + ', ' + prefix);
+        console.log('createInputFielResAttr: ' + value + ', ' + prefix);
 
         var self = this;
         new autocomplete({
@@ -156,21 +139,26 @@ var SuggestionItemView = Backbone.View.extend({
                 var regEx = new RegExp(request.term, 'i');
 
 
-                if(value && prefix) { // get only RDF properties for entered resource name
+                if(value && prefix) { // get RDF properties only for entered resource name and its super types
 
                     var prefixIRI = sugSource.getPrefixIRIFromPrefix(prefix);
 
+                    var typesAsIri = self.getRDFSuperClasses(prefixIRI+value);
+                    //console.log('TYPES AS IRI: ' + JSON.stringify(typesAsIri));
 
-                    sugSource.rdfStore.forSubjectsByIRI(function (subject) {
-                        var val = sugSource.getTermFromIRI(subject);
-                        var label = prefix + ': ' + val;
-                        if(label.match(regEx)) {
-                            results.push({
-                                value: val,
-                                label: label // TODO get class hierachy
-                            });
-                        }
-                    }, 'http://schema.org/domainIncludes', prefixIRI+value);
+                    typesAsIri.forEach(function (typeIri) {
+
+                        sugSource.rdfStore.forSubjectsByIRI(function (subject) {
+                            var val = sugSource.getTermFromIRI(subject);
+                            if(val.match(regEx)) {
+                                results.push({
+                                    value: val,
+                                    label: prefix + ': ' + val
+                                });
+                            }
+                        }, 'http://schema.org/domainIncludes', typeIri);
+
+                    });
 
                     response(results);
 
@@ -178,11 +166,12 @@ var SuggestionItemView = Backbone.View.extend({
                 } else { // get all RDF properties that match entered characters
 
                     sugSource.rdfStore.forSubjectsByIRI(function (subject) {
-                        var label = sugSource.getLabelFromIRI(subject);
-                        if(label.match(regEx)) {
+                        var val = sugSource.getTermFromIRI(subject);
+
+                        if(val.match(regEx)) {
                             results.push({
-                                value: sugSource.getTermFromIRI(subject),
-                                label: label // TODO get class hierachy
+                                value: val,
+                                label: sugSource.getLabelFromIRI(subject)
                             });
                         }
                     }, null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property');
@@ -234,6 +223,37 @@ var SuggestionItemView = Backbone.View.extend({
 
     writePrefixToHiddenInputField: function(prefix) {
         $('#'+this.id+'Prefix').val(prefix);
+    },
+
+    // currently ignores schema.org/Thing
+    getRDFTypeHierarchyAsString: function(typeIri, ignore) {
+        var localType = typeIri;
+        var typeHierString = sugSource.getTermFromIRI(typeIri);
+
+        while(localType && localType != ignore) {
+            var superType = sugSource.rdfStore.getObjectsByIRI(localType, 'http://www.w3.org/2000/01/rdf-schema#subClassOf');
+
+            if(superType && superType[0] != null && superType[0] != ignore) {
+                typeHierString = sugSource.getTermFromIRI(superType[0]) + ' > ' + typeHierString;
+            }
+            localType = superType[0];
+        }
+
+        return typeHierString;
+
+    },
+
+    getRDFSuperClasses: function(typeIri) {
+        var localType = typeIri;
+        var superClasses = [localType];
+
+        while(localType) {
+            var superType = sugSource.rdfStore.getObjectsByIRI(localType, 'http://www.w3.org/2000/01/rdf-schema#subClassOf');
+            if(superType && superType[0] != null) { superClasses.push(superType[0]); }
+            localType = superType[0];
+        }
+
+        return superClasses;
     }
 
 
