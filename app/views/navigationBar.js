@@ -25,13 +25,11 @@ var NavigationBarView = Backbone.View.extend({
     },
 
     events: {
-        'click .navItem': 'openSidePanel'
+        'click .opensSidePanel': 'openSidePanel'
     },
 
     openSidePanel: function (evt) {
-        //var end = evt.target.id.length - 3;
-        //new PopUpView({ subview : evt.target.id.substr(0, end) });
-        new SidePanel({});
+        new SidePanel({page: evt.target.id});
     }
 });
 
