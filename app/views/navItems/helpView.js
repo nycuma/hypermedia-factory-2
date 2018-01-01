@@ -9,16 +9,16 @@ var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
 
+var InstructionsList = require('../../collections/instructionsList');
+var InstructionView = require('../instructionView');
+
 var HelpView = Backbone.View.extend({
-    el: '#content',
+    el: '#sidePanelContent',
     template:  _.template($('#help-template').html()),
 
     initialize: function(){
+        this.loadInstructions();
         this.render();
-    },
-
-    events: {
-        'click .submitBtn': 'submit'
     },
 
     render: function () {
@@ -26,8 +26,16 @@ var HelpView = Backbone.View.extend({
         return this;
     },
 
-    submit: function (evt) {
-        evt.preventDefault();
+
+    loadInstructions: function () {
+        var instructions = new InstructionsList();
+
+        $.when(instructions.fetch({parse: true})).then(function() {
+            instructions.models.forEach(function(model) {
+                var view = new InstructionView({model: model}); // create new view for model
+                $('#instructions').append(view.render().el);
+            });
+        });
     }
 });
 

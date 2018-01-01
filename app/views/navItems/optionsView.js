@@ -1,5 +1,5 @@
 /**
- * Created by Julian Richter on 22 Sep 2017
+ * Created by Julian Richter on 01 Jan 2018
  */
 
 'use strict';
@@ -9,9 +9,9 @@ var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
 
-var AboutView = Backbone.View.extend({
+var OptionsView = Backbone.View.extend({
     el: '#sidePanelContent',
-    template:  _.template($('#about-template').html()),
+    template:  _.template($('#options-template').html()),
 
     initialize: function(){
         this.render();
@@ -23,4 +23,5 @@ var AboutView = Backbone.View.extend({
     }
 });
 
-module.exports = AboutView;
+module.exports = OptionsView;
+

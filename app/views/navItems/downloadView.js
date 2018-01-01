@@ -9,9 +9,9 @@ var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
 
-var ExportView = Backbone.View.extend({
-    el: '#content',
-    template:  _.template($('#export-template').html()),
+var DownloadView = Backbone.View.extend({
+    el: '#sidePanelContent',
+    template:  _.template($('#download-template').html()),
 
     initialize: function(){
         this.render();
@@ -31,4 +31,4 @@ var ExportView = Backbone.View.extend({
     }
 });
 
-module.exports = ExportView;
+module.exports = DownloadView;
