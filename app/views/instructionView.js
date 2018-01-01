@@ -11,21 +11,23 @@ Backbone.$ = $;
 
 var InstructionView = Backbone.View.extend({
     tagName: 'div',
-    template: _.template('<span class="instruction-title"><%= title %></span>\
-                          <br><span class="instruction-detail"><%= explanation %></span>'),
+    template: _.template('<h3><%= title %></h3>\
+                          <p><%= explanation %></p>'),
 
     render: function(){
         this.$el.html(this.template(this.model.toJSON()));
-        this.detail = this.$('.instruction-detail');
+        //this.detail = this.$('.instruction-detail');
         return this;
-    },
+    }
 
+    /*
     events: {
         'click .instruction-title' : 'showInstrDetail'
     },
     showInstrDetail: function () {
         this.detail.toggle();
     }
+    */
 });
 
 module.exports = InstructionView;
