@@ -15,4 +15,4 @@ var InstructionsList = Backbone.Collection.extend({
     }
 });
 
-module.exports = new InstructionsList();
+module.exports = InstructionsList;
