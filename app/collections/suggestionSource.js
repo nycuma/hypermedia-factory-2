@@ -84,9 +84,9 @@ var SuggestionSource = Backbone.Collection.extend({
     getTermFromIRI: function(iri) {
 
         var prefix = this.getPrefixFromIRI(iri);
-        var prefixIRILength = this.prefixes[prefix].length;
-
-        return iri.substr(prefixIRILength);
+        if (this.prefixes.hasOwnProperty(prefix)) {
+            return iri.substr(this.prefixes[prefix].length);
+        }
     },
 
     getLabelFromIRI: function(iri) {
