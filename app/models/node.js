@@ -16,15 +16,22 @@ var Node = joint.shapes.basic.Rect.extend({
         }
     }, joint.shapes.basic.Rect.prototype.defaults),
 
-    saveName: function(nameVal, namePrefix) {
-        this.prop('resourceName', {value: nameVal, prefix: namePrefix});
+    saveName: function(nameVal, namePrefix,isCustomName, customDescr) {
+        this.prop('resourceName', {
+            value: nameVal,
+            prefix: namePrefix,
+            isCustomName: isCustomName,
+            customDescr: customDescr
+        });
     },
 
-    saveAttribute: function(attrVal, attrPrefix) {
+    saveAttribute: function(attrVal, attrPrefix, isCustomAttr, customDescr) {
         var resourceAttrs = this.prop('resourceAttrs') || [];
         resourceAttrs.push({
             value: attrVal,
-            prefix: attrPrefix
+            prefix: attrPrefix,
+            isCustomAttr: isCustomAttr,
+            customDescr: customDescr
         });
         this.prop('resourceAttrs', resourceAttrs);
     },
