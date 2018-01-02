@@ -26,8 +26,6 @@ var EditResourceView = Backbone.View.extend({
         'click .submitBtn': 'submit',
         'click .cancelBtn' : 'close',
         'click .addFieldBtn' : 'addAttrField'
-        //'focus #resourceName':    'startAutocomplete',
-        //'keydown #resourceName':  'invokefetch'
     },
 
     render: function () {
@@ -126,12 +124,35 @@ var EditResourceView = Backbone.View.extend({
     submit: function (evt) {
         evt.preventDefault();
 
+        this.saveDataResourceName();
+        this.saveDataResourceAttrs();
+        this.close();
+    },
+
+    saveDataResourceName: function() {
+
+        var isCustom = false;
+        var customDescr;
+
+        if($('#resourceNameCheckCustomTerm').prop('checked')) {
+            isCustom = true;
+            customDescr = $('#resourceNameCustomTermDescr').val();
+        }
+
         var nameVal = $('#resourceName').val().trim();
         var namePrefix = $('#resourceNamePrefix').val().trim();
-        if(nameVal && namePrefix) {
+        if((nameVal && namePrefix) || (nameVal && isCustom && customDescr)) {
             this.model.set('label', nameVal);
-            this.model.saveName(nameVal, namePrefix);
+            this.model.saveName(nameVal, namePrefix, isCustom, customDescr);
+        } else {
+            //TODO show error msg to user
         }
+
+
+
+    },
+
+    saveDataResourceAttrs: function() {
 
         this.model.prop('resourceAttr', []);
         var model = this.model;
@@ -141,11 +162,26 @@ var EditResourceView = Backbone.View.extend({
             var attrVal = $(this).children('.ui-autocomplete-input').val().trim();
             var attrPrefix = $(this).children('.prefixInput').val().trim();
 
-            console.log('found input fields: ' + attrVal + ', ' + attrPrefix);
-            if(attrVal && attrPrefix) { model.saveAttribute(attrVal, attrPrefix); }
+            var isCustom = false;
+            var customDescr;
+            if($(this).parent().next().find('input[name=customTermCheck]').prop('checked')) {
+                isCustom = true;
+                customDescr = $(this).parent().next().next().find('input[name=customTermDescr]').val();
+                //console.log('#resourceNameCheckCustomAttr was checked, val: ' + customDescr);
+            }
+
+
+            console.log('found input fields: ' + attrVal + ', ' + attrPrefix + ', ' + isCustom +', ' + customDescr);
+            if((attrVal && attrPrefix) || (attrVal && isCustom && customDescr)) {
+                model.saveAttribute(attrVal, attrPrefix, isCustom, customDescr);
+            } else {
+                //TODO show error msg to user
+            }
+
+
         });
 
-        this.close();
+
     },
 
 
