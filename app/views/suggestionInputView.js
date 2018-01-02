@@ -22,8 +22,12 @@ var SuggestionItemView = Backbone.View.extend({
         this.render();
     },
 
+    events: {
+        'click input[type=checkbox]' : 'displayInputCustomTermDescr'
+    },
+
     render: function () {
-        this.$el.append(this.template({label: this.options.label}));
+        this.$el.append(this.template({label: this.options.label, idAC: this.id}));
 
         this.setInputFieldID();
 
@@ -254,6 +258,10 @@ var SuggestionItemView = Backbone.View.extend({
         }
 
         return superClasses;
+    },
+
+    displayInputCustomTermDescr: function() {
+        $(event.target).parent().parent().next().toggle();
     }
 
 
