@@ -47,9 +47,6 @@
   <script type="text/template" id="sidePanel-template">
     <div id="sidePanelCloseBtn">X</div>
     <div id="sidePanelContent"></div>
-
-
-
   </script>
 
   <!-- Welcome Template -->
@@ -58,7 +55,6 @@
     <br>This web site is a work in progress! Some welcome text. This is a
     <a href="#" title="go somewhere">link</a>. Some more welcome text.
     <a href="#" title="go somewhere">Another</a> link.
-
   </script>
 
   <!-- About Template -->
@@ -127,9 +123,23 @@
 
   <!-- Autocomplete Input Field Template -->
   <script type="text/template" id="autocomplete-input-template">
+
     <tr>
       <td><%= label %></td>
       <td class="autocompleteInputField"></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>
+            <input type="checkbox" name="customTermCheck" id="<%= idAC %>CheckCustomTerm"/><span class="textCustomTerm">Use a custom term</span>
+        </td>
+    </tr>
+    <tr class="customTerm">
+        <td></td>
+        <td>
+            <span class="textCustomTerm">Please add a description:</span>
+            <br><input type="text" name="customTermDescr" id="<%= idAC %>CustomTermDescr"/>
+        </td>
     </tr>
   </script>
 
