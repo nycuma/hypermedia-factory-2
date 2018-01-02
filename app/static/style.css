@@ -227,12 +227,8 @@ nav button:focus {
 }
 
 
-.editGraphElement form input {
+.editGraphElement form input[type=text] {
     width: 90%;
-}
-
-.editGraphElement form input[name=cellId] {
-    color: grey;
 }
 
 .editGraphElement .btn {
@@ -252,6 +248,21 @@ nav button:focus {
 
 .addFieldBtn {
     float: right;
+}
+
+.editGraphElement .customTerm {
+    display: none;
+}
+
+.editGraphElement .textCustomTerm {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: x-small;
+}
+
+.editGraphElement input[name=customTermDescr] {
+    margin-bottom: 5px;
+    background-color: lightgrey;
+    border: none;
 }
 
 hr {
