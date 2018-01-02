@@ -20,8 +20,7 @@ var EditLinkView = Backbone.View.extend({
     events: {
         'click .submitBtn': 'submit',
         'click .cancelBtn' : 'close',
-        'click .addFieldBtn' : 'addFields',
-        'keypress input[name=relation]': 'showRelSuggestions'
+        'click .addFieldBtn' : 'addFields'
     },
 
     render: function () {
@@ -94,7 +93,6 @@ var EditLinkView = Backbone.View.extend({
         var linkModel = this.model;
 
         if($('#editLink [name=collItemLinkCheckBox]').prop('checked')) {
-            console.log('collItemLinkCheckBox was checked');
             linkModel.setStructuralTypeAtNodes();
             linkModel.prop('isCollItemLink', true);
 
