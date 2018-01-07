@@ -16,21 +16,21 @@ var Node = joint.shapes.basic.Rect.extend({
         }
     }, joint.shapes.basic.Rect.prototype.defaults),
 
-    saveName: function(nameVal, namePrefix,isCustomName, customDescr) {
+    saveName: function(nameVal, namePrefix,isCustom, customDescr) {
         this.prop('resourceName', {
             value: nameVal,
             prefix: namePrefix,
-            isCustomName: isCustomName,
+            isCustom: isCustom,
             customDescr: customDescr
         });
     },
 
-    saveAttribute: function(attrVal, attrPrefix, isCustomAttr, customDescr) {
+    saveAttribute: function(attrVal, attrPrefix, isCustom, customDescr) {
         var resourceAttrs = this.prop('resourceAttrs') || [];
         resourceAttrs.push({
             value: attrVal,
             prefix: attrPrefix,
-            isCustomAttr: isCustomAttr,
+            isCustom: isCustom,
             customDescr: customDescr
         });
         this.prop('resourceAttrs', resourceAttrs);
@@ -44,7 +44,7 @@ var Node = joint.shapes.basic.Rect.extend({
     setStructuralType: function (structuralType) {
         this.prop('structuralType', structuralType);
         console.log('structural type set to: ' + this.prop('structuralType'));
-
+        // trigger event to change view of source node
         this.trigger('strucTypeChanged', {type: structuralType});
     }
 });
