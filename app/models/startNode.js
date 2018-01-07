@@ -2,8 +2,6 @@
  * Created by Julian Richter on 03 Sep 2017
  */
 
-// TODO darf nur einen ausgehenden Link haben (--> paper validateConnection)
-
 'use strict';
 
 var joint = require('jointjs');
