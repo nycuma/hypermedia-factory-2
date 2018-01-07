@@ -46,6 +46,19 @@ var Node = joint.shapes.basic.Rect.extend({
         console.log('structural type set to: ' + this.prop('structuralType'));
         // trigger event to change view of source node
         this.trigger('strucTypeChanged', {type: structuralType});
+    },
+
+    getResourceNameVal: function () {
+        if(this.prop('resourceName')) {
+            return this.prop('resourceName').value;
+        }
+    },
+
+    getResourceNamePrefix: function () {
+        if(this.prop('resourceName')) {
+            return this.prop('resourceName').prefix;
+        }
+
     }
 });
 
