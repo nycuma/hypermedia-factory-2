@@ -42,48 +42,27 @@ var RelationLink = joint.dia.Link.extend({
         ]
     }, joint.dia.Link.prototype.defaults),
 
-    addPropersties: function (newMethod, newUrl, newRel) {
-
-        //console.log('adding props: ' + newMethod + ', ' + newUrl + ', ' + newRel);
-
-        var stateTransisions = this.prop('stateTransitions') || [];
-
-        stateTransisions.push({
-            method: newMethod,
-            url: newUrl,
-            relation: newRel
-        });
-
-        this.prop('stateTransitions', stateTransisions);
-        this.renderLinkLabels();
+    renderLabelRelation: function () {
+        this.prop('labels/1/attrs/text/text', this.prop('relation').value);
     },
 
-    renderLinkLabels: function () {
-
-        var stateTransisions = this.prop('stateTransitions');
-
-        var methodLabel = stateTransisions.reduce(function (a,b) {
+    renderLabelOperations: function () {
+        var methodLabel = this.prop('operations').reduce(function (a,b) {
             if(!a) return b.method;
             if(!b.method) return a;
             return a + ', ' + b.method;
         }, '');
 
-        var relLabel = stateTransisions.reduce(function (a,b) {
-            if(!a) return b.relation;
-            if(!b.relation) return a;
-            return a + ', ' + b.relation;
-        }, '');
-
         this.prop('labels/0/attrs/text/text', methodLabel);
-        this.prop('labels/1/attrs/text/text', relLabel);
     },
 
+    // TODO merge setStructuralTypeAtNodes and unsetStructuralTypeAtNodes
     setStructuralTypeAtNodes: function() {
 
-        var sourceNode = this.graph.getCell(this.get('source').id);
+        var sourceNode = this.getSourceNode();
         sourceNode.setStructuralType('collection');
 
-        var targetNode = this.graph.getCell(this.get('target').id);
+        var targetNode = this.getTargetNode();
         if(targetNode.getStructuralType() !== 'collection') {
             targetNode.setStructuralType('item');
         }
@@ -92,12 +71,46 @@ var RelationLink = joint.dia.Link.extend({
     },
     unsetStructuralTypeAtNodes: function() {
 
-        var sourceNode = this.graph.getCell(this.get('source').id);
+        var sourceNode = this.getSourceNode();
         sourceNode.setStructuralType(null);
 
-        var targetNode = this.graph.getCell(this.get('target').id);
+        var targetNode = this.getTargetNode();
         targetNode.setStructuralType(null);
 
+    },
+
+    getSourceNode: function () {
+        return this.graph.getCell(this.get('source').id);
+    },
+
+    getTargetNode: function () {
+        return this.graph.getCell(this.get('target').id);
+    },
+
+
+    saveRelation: function(value, prefix, isCustom, customDescr) {
+        this.prop('relation', {
+            value: value,
+            prefix: prefix,
+            isCustom: isCustom,
+            customDescr: customDescr
+        });
+
+        this.renderLabelRelation()
+    },
+
+    saveOperation: function(method, value, prefix, isCustom, customDescr) {
+        var operations = this.prop('operations') || [];
+        operations.push({
+            method: method,
+            value: value,
+            prefix: prefix,
+            isCustom: isCustom,
+            customDescr: customDescr
+        });
+        this.prop('operations', operations);
+
+        this.renderLabelOperations();
     }
 });
 
