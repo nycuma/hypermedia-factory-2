@@ -18,13 +18,7 @@ joint.shapes.html.Node = Node;
 
 joint.shapes.html.NodeView = joint.dia.ElementView.extend({
 
-    template: [
-        '<div class="html-element">',
-        '<button class="newLink">link</button>',
-        '<button class="delete">x</button>',
-        '<label></label>',
-        '</div>'
-    ].join(''),
+    template:  $('#node-template').html(),
 
     initialize: function() {
         this.startListeners();
@@ -48,12 +42,12 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
         // Delete node
         this.$box.find('.delete').on('click', _.bind(this.model.remove, this.model));
 
-        // Display 'link' on mouse-over and add link on double-click
+        // Display link symbol on mouse-over and add link on double-click
         this.$box.find('.newLink').mouseover(function () {
-           $(this).css('color', '#265959');
+           $(this).css('background', 'url("./static/img/arrow.png") no-repeat');
         });
         this.$box.find('.newLink').mouseleave(function () {
-            $(this).css('color', 'transparent');
+            $(this).css('background', '');
         });
         this.$box.find('.newLink').on('dblclick', _.bind(this.addLink, this));
 
@@ -102,7 +96,7 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
 
         var sourceID = this.model.get('id'); // ID of this node
         var posCorner = [ this.model.prop('position/x') + this.model.prop('size/width'),
-                            this.model.prop('position/y') ];
+                            this.model.prop('position/y') + this.model.prop('size/height')];
         console.log('posCorner: ' + posCorner[0] + ' ' + posCorner[1]);
         this.paper.addLink(sourceID, posCorner);
     },
@@ -112,11 +106,14 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
     setColorStructuralType: function(data) {
         console.log('entered node view setColorStructuralType');
 
-        if(data.type == null) {
-            $(this.$box).removeClass('item');
-            $(this.$box).removeClass('collection');
+        if(data.type === 'collection') {
+            $(this.$box).addClass(data.type); // add CSS class to change node color
+            $(this.$box).find('.collectionLabel').show();
         } else {
-            $(this.$box).addClass(data.type); // add CSS class
+            //$(this.$box).removeClass('item');
+            $(this.$box).removeClass('collection');
+            $(this.$box).find('.collectionLabel').hide();
+
         }
 
     },
