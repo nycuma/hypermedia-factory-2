@@ -30,36 +30,36 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         // Nodes
         var start = new StartNode();
         var elCollection = this.createNodeForDemo(15, 90, 'Record Collection');
-        var elAlbum = this.createNodeForDemo(230, 90, 'Album');
-        var elTrack = this.createNodeForDemo(480, 90, 'Track');
-        var elArtist = this.createNodeForDemo(230, 220, 'Artist');
+        var elAlbum = this.createNodeForDemo(230, 90, 'MusicAlbum', 'schema');
+        var elTrack = this.createNodeForDemo(480, 90, 'MusicRecording', 'schema');
+        var elArtist = this.createNodeForDemo(230, 220, 'MusicGroup', 'schema');
 
         // Links
         var l1 = this.createStartLink(start.id, elCollection.id);
 
         var l2 = this.createLinkForDemo(elCollection.id, elAlbum.id);
-        l2.addPropersties('GET', '/test/1', 'relation1');
-        l2.addPropersties('POST', '/test/2', 'relation2');
+        //l2.addPropersties('GET', '/test/1', 'relation1');
+        //l2.addPropersties('POST', '/test/2', 'relation2');
 
         var l3 = this.createLinkForDemo(elAlbum.id, elAlbum.id);
         l3.set('vertices', [{ x: 240, y: 45 }, { x: 315, y: 45 }]);
-        l3.addPropersties('PUT', 'test/1', 'relation1');
-        l3.addPropersties('DELETE', 'test/2', 'relation2');
+        //l3.addPropersties('PUT', 'test/1', 'relation1');
+        //l3.addPropersties('DELETE', 'test/2', 'relation2');
 
         var l4 = this.createLinkForDemo(elAlbum.id, elTrack.id);
-        l4.addPropersties('GET', '/test/1', 'relation1');
-        l4.addPropersties('POST', '/test/2', 'relation2');
+        //l4.addPropersties('GET', '/test/1', 'relation1');
+        //l4.addPropersties('POST', '/test/2', 'relation2');
 
         var l5 = this.createLinkForDemo(elAlbum.id, elArtist.id);
-        l5.addPropersties('GET', '/test/1', 'relation1');
+        //l5.addPropersties('GET', '/test/1', 'relation1');
 
         var l6 = this.createLinkForDemo(elTrack.id, elTrack.id);
-        l6.set('vertices', [{ x: 485, y: 45 }, { x: 565, y: 45 }]);
-        l6.addPropersties('PUT', 'test/1', 'relation1');
-        l6.addPropersties('DELETE', 'test/2', 'relation2');
+        //l6.set('vertices', [{ x: 485, y: 45 }, { x: 565, y: 45 }]);
+        //l6.addPropersties('PUT', 'test/1', 'relation1');
+        //l6.addPropersties('DELETE', 'test/2', 'relation2');
 
         var l7 = this.createLinkForDemo(elTrack.id, elArtist.id);
-        l7.addPropersties('GET', '/test/1', 'relation1');
+        //l7.addPropersties('GET', '/test/1', 'relation1');
 
         this.model.addCells([start, elCollection, elAlbum, elTrack, elArtist, l1, l2, l3, l4, l5, l6, l7]);
     },
@@ -156,12 +156,12 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
     },
 
-    createNodeForDemo: function (x, y, label) {
+    createNodeForDemo: function (x, y, label, prefix) {
         var node = new Node({
             position: { x: x, y: y },
             label: label
         });
-        node.saveName(label, 'schema');
+        node.saveName(label, prefix);
         return node;
     },
 
