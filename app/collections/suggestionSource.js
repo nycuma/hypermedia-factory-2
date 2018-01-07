@@ -134,7 +134,7 @@ var SuggestionSource = Backbone.Collection.extend({
 
     getAllTermsFromVocab: function (prefix) {
         return this.reduce(function (filteredColl, term) {
-            if (term.get('prefix' === prefix)) {
+            if (term.get('prefix') === prefix) {
                 filteredColl.push(term.toJSON());
             }
             return filteredColl;
