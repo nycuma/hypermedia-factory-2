@@ -126,7 +126,7 @@
 
     <tr>
       <td><%= label %></td>
-      <td class="autocompleteInputField"></td>
+      <td class="autocompleteInputField" id="<%= idAC %>InputField"></td>
     </tr>
     <tr>
         <td></td>
@@ -161,42 +161,59 @@
 
   <!-- Edit Link Template -->
   <script type="text/template" id="edit-link-template">
+      <form>
       <table>
         <tr>
           <td><input type="checkbox" name="collItemLinkCheckBox"/></td>
           <td>This link connects a collection to an item.</td>
         </tr>
       </table>
+        <br>
+      <table>
+        <tbody id="relationInputWrapper">
+          <!-- autocomplete input field -->
+        </tbody>
+      </table>
+
       <hr>
         <strong>Operations</strong>
-      <hr>
-      <form>
-       <div id="editLinkFieldSets">
-          <div id="editLinkFieldSet0">
-            <table>
-            <tr>
-              <td><label for="methodDropdown0">Method:</label></td>
-              <td>
-                <select name="methodDropdown" id="methodDropdown0">
-                  <option></option>
-                  <option value="RETRIEVE">retrieve (safe)</option>
-                  <option value="CREATE">create (not idemportent)</option>
-                  <option value="REPLACE">replace (idempotent)</option>
-                  <option value="DELETE">delete (idempotent)</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td><label for="relation0">Relation:</label></td>
-              <td><input type="text" name="relation" id="relation0"></td>
-            </tr>
-            </table>
-          </div>
+        <div id="operationFieldSetsWrapper">
+          <!-- operation template -->
         </div>
       <button class="btn cancelBtn">Cancel</button>
       <button class="btn submitBtn">Save</button>
       <button class="btn addFieldBtn" title="Add state transition">+</button>
     </form>
+  </script>
+
+<!-- Operation Template -->
+  <script type="text/template" id="operation-template">
+    <hr>
+    <div id="operationFieldSet<%= idSet %>">
+      <table>
+
+        <tbody>
+        <tr>
+          <td><label for="methodDropdown<%= idSet %>">Method:</label></td>
+          <td>
+            <select name="methodDropdown" id="methodDropdown<%= idSet %>">
+              <option value=""></option>
+              <option value="RETRIEVE">retrieve (safe)</option>
+              <option value="CREATE">create (not idemportent)</option>
+              <option value="REPLACE">replace (idempotent)</option>
+              <option value="DELETE">delete (idempotent)</option>
+            </select>
+          </td>
+        </tr>
+        </tbody>
+
+        <tbody class="operationInputWrapper">
+          <!-- autocomplete input field -->
+        </tbody>
+
+      </table>
+    </div>
+
   </script>
 
 
