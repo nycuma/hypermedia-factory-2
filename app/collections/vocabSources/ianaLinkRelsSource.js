@@ -37,28 +37,28 @@ var IanaLinkRelsSource = Backbone.Collection.extend({
 
 
     parse: function (xml) {
-
         console.log('IANA parser called');
+        var val, descr;
 
-        var term = {};
         var recordNodes = xml.getElementsByTagName('record');
         for (var i = 0; i < recordNodes.length; i++) {
 
             for (var j = 0; j < recordNodes[i].childNodes.length; j++) {
 
                 if (recordNodes[i].childNodes[j].nodeType != 3 && recordNodes[i].childNodes[j].nodeName == 'value') {
-                    term.value = recordNodes[i].childNodes[j].childNodes[0].nodeValue;
+                    val = recordNodes[i].childNodes[j].childNodes[0].nodeValue;
                 }
                 if (recordNodes[i].childNodes[j].nodeType != 3 && recordNodes[i].childNodes[j].nodeName == 'description') {
-                    term.descr = recordNodes[i].childNodes[j].childNodes[0].nodeValue;
+                    descr = recordNodes[i].childNodes[j].childNodes[0].nodeValue;
                 }
             }
-            term.prefix = 'IANA';
-            term.label = term.prefix + ': ' + term.value;
-            this.push(term);
 
+            this.add(new Term({
+                value: val,
+                prefix: 'IANA',
+                descr : descr
+            }));
         }
-
         return this.models;
     }
 });
