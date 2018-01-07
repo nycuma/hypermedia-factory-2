@@ -9,7 +9,6 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
-var autocomplete = require('jquery-ui/ui/widgets/autocomplete');
 var SuggestionItemView = require('./suggestionInputView');
 
 
@@ -219,8 +218,6 @@ var EditResourceView = Backbone.View.extend({
             } else {
                 //TODO show error msg to user
             }
-
-
         });
 
 
