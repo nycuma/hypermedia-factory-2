@@ -7,16 +7,13 @@
 
 var Backbone  = require('backbone');
 
-// TODO all links in descriptions should open in new tab/window
+// TODO all hyperlinks in descriptions should open in new tab/window
 var Term = Backbone.Model.extend({
     defaults: {
         value: '',
         prefix: '',
         label: '',
         descr: '',
-        //superClasses: [],
-        isRdfClass: false,
-        isRdfProperty: false,
         isAction: false
     },
 
