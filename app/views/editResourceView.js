@@ -51,23 +51,53 @@ var EditResourceView = Backbone.View.extend({
     },
 
     fillInputFields: function () {
+        
+        this.fillInputFieldResName();
+        this.fillInputFieldsResAttrs();
         console.log('fillInputFields: resourceName: ' + this.model.prop('resourceName').value + ', ' + this.model.prop('resourceName').prefix);
+    },
 
-        $('#resourceName').val(this.model.get('resourceName').value);
-        $('#resourceNamePrefix').val(this.model.get('resourceName').prefix);
+    fillInputFieldResName: function() {
+         var modelData = this.model.get('resourceName');
 
-        var resourceAttrs = this.model.prop('resourceAttrs');
-        if(!resourceAttrs) { return; }
+        $('#resourceName').val(modelData.value);
 
-        resourceAttrs.forEach(_.bind(function(el, i) {
+        console.log('fillInputFieldResName isCustom: ' + modelData.isCustom);
+
+        if(modelData.isCustom) {
+            $('#resourceNameCheckCustomTerm').prop('checked', true);
+            $('#resourceNameCustomTermDescr').val(modelData.customDescr).parent().parent().show();
+        } else {
+            $('#resourceNamePrefix').val(modelData.prefix);
+            // TODO (see if it works) set term-val and term-prefix PLUS button
+            $('.addFieldBtn').attr({ 'term-value': modelData.value,
+                                     'term-prefix': modelData.prefix });
+        }
+    },
+
+    fillInputFieldsResAttrs: function() {
+        var attrsData = this.model.prop('resourceAttrs');
+        if(!attrsData) { return; }
+
+        attrsData.forEach(_.bind(function(el, i) {
             if (i !== 0) { this.addAttrField(); }
 
             console.log('fillInputFields: resourceAttr: ' + this.model.prop('resourceAttrs/' + i).value + ', ' + this.model.prop('resourceAttrs/' + i).prefix);
 
             $('#resourceAttr' + i).val(this.model.prop('resourceAttrs/' + i).value);
-            $('#resourceAttr' + i + 'Prefix').val(this.model.prop('resourceAttrs/' + i).prefix);
-        }, this));
 
+            if(this.model.prop('resourceAttrs/' + i).isCustom) {
+                $('#resourceAttr' + i + 'CheckCustomTerm').prop('checked', true);
+                $('#resourceAttr' + i + 'CustomTermDescr').val(this.model.prop('resourceAttrs/' + i).customDescr).parent().parent().show();
+
+            } else {
+                $('#resourceAttr' + i + 'Prefix').val(this.model.prop('resourceAttrs/' + i).prefix);
+            }
+
+
+
+
+        }, this));
     },
 
     addAttrField: function(evt) {
@@ -101,7 +131,7 @@ var EditResourceView = Backbone.View.extend({
     },
 
     getNextAttrID: function() {
-        return this.$('#resourceAttrInputWrapper').children().length;
+        return this.$('#resourceAttrInputWrapper').find('.autocompleteInputField').length;
     },
 
     refreshAttrField: function(data) {
@@ -126,21 +156,28 @@ var EditResourceView = Backbone.View.extend({
 
         this.saveDataResourceName();
         this.saveDataResourceAttrs();
+
+        // TODO user has to add namd and min. 1 attr before close
         this.close();
     },
 
     saveDataResourceName: function() {
 
+        var nameVal = $('#resourceName').val().trim();
         var isCustom = false;
         var customDescr;
 
         if($('#resourceNameCheckCustomTerm').prop('checked')) {
             isCustom = true;
             customDescr = $('#resourceNameCustomTermDescr').val();
+            nameVal  = nameVal.replace(/\s/g, ''); // TODO get camel CAse
+            nameVal  = nameVal.charAt(0).toUpperCase() + nameVal.slice(1);
+        } else {
+            var namePrefix = $('#resourceNamePrefix').val();
         }
 
-        var nameVal = $('#resourceName').val().trim();
-        var namePrefix = $('#resourceNamePrefix').val().trim();
+
+
         if((nameVal && namePrefix) || (nameVal && isCustom && customDescr)) {
             this.model.set('label', nameVal);
             this.model.saveName(nameVal, namePrefix, isCustom, customDescr);
@@ -160,14 +197,19 @@ var EditResourceView = Backbone.View.extend({
         $('#resourceAttrInputWrapper .autocompleteInputField').each(function() {
 
             var attrVal = $(this).children('.ui-autocomplete-input').val().trim();
-            var attrPrefix = $(this).children('.prefixInput').val().trim();
-
             var isCustom = false;
             var customDescr;
+
             if($(this).parent().next().find('input[name=customTermCheck]').prop('checked')) {
                 isCustom = true;
                 customDescr = $(this).parent().next().next().find('input[name=customTermDescr]').val();
                 //console.log('#resourceNameCheckCustomAttr was checked, val: ' + customDescr);
+                // TODO (see if it works) reset hidden prefix field
+                $(this).children('.prefixInput').val('');
+                attrVal = attrVal.replace(/\s/g, ''); // remove white spaces TODO get Camelcase
+                attrVal = attrVal.charAt(0).toLowerCase() + attrVal.slice(1);
+            } else {
+                var attrPrefix = $(this).children('.prefixInput').val();
             }
 
 
