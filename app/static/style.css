@@ -347,13 +347,14 @@ hr {
 }
 
 .html-element.collection {
-    background-color: #e9b796;
-    /*background-color: #a46313;*/
+    background-color: #d9d9d9;
 }
 
+/*
 .html-element.item {
     background-color: #b6b6c9;
 }
+*/
 
 .html-element label,
 .html-element input,
@@ -363,17 +364,15 @@ hr {
 }
 
 .html-element button.newLink {
-    color: transparent;
-    border: none;
-    background-color: transparent;
-    line-height: 15px;
-    text-align: center;
     position: absolute;
-    top: -15px;
+    bottom: -15px;
     right: -15px;
+    width: 15px;
+    height: 15px;
+    background-color: transparent;
+    border: none;
     padding: 0;
     margin: 0;
-    font-weight: bold;
 }
 .html-element button.delete {
     color: #262626;
@@ -390,6 +389,13 @@ hr {
     margin: 0;
     font-weight: bold;
     cursor: crosshair;
+}
+
+.html-element .collectionLabel {
+    display: none;
+    color: #262626;
+    font-size: x-small;
+    text-align: center;
 }
 
 .html-element .nodeInput {
