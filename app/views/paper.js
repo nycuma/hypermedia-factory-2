@@ -139,7 +139,7 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     addLink: function (source, target) {
         var link = new Link({
             source: { id: source },
-            target: { x: target[0]+50, y: target[1]-50 }
+            target: { x: target[0]+50, y: target[1]+50 }
         });
         this.model.addCell(link);
         console.log('link added to node ' + source);
