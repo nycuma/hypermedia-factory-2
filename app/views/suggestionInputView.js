@@ -12,6 +12,7 @@ var sugSource;
 sugSource = require('../collections/suggestionSource');
 var autocomplete = require('jquery-ui/ui/widgets/autocomplete');
 
+// TODO !!! merge SuggestionItemView and SuggestionItemViewLink and write a single createInputField() function
 var SuggestionItemView = Backbone.View.extend({
     template: _.template($('#autocomplete-input-template').html()),
 
@@ -29,33 +30,17 @@ var SuggestionItemView = Backbone.View.extend({
     render: function () {
         this.$el.append(this.template({label: this.options.label, idAC: this.id}));
 
-        this.setInputFieldID();
-
         if(this.id === 'resourceName') {
             console.log('new suggestionInputView name');
             this.createInputFieldResName();
 
         } else if (this.id.match(/resourceAttr/)) {
 
-            if(this.options.resourceNameValue && this.options.resourceNamePrefix) {
-
-                console.log('new suggestionInputView attr, value and prefix: '
-                    + this.options.resourceNameValue + ', ' + this.options.resourceNamePrefix);
-
-                this.createInputFielResAttr(this.options.resourceNameValue, this.options.resourceNamePrefix);
-
-            } else {
-                console.log('new suggestionInputView attr: without value and prefix');
-                this.createInputFielResAttr();
-            }
+            console.log('new suggestionInputView attr, value and prefix: '
+                + this.options.resourceNameValue + ', ' + this.options.resourceNamePrefix);
+            this.createInputFielResAttr(this.options.resourceNameValue, this.options.resourceNamePrefix);
         }
-
         return this;
-    },
-
-    setInputFieldID: function () {
-        // TODO set ID for THIS inputfield? (see nodeView)
-        this.$('.autocompleteInputField').last().attr('id', this.id+'InputField');
     },
 
     createInputFieldResName: function (propValue, propPrefix) {
@@ -96,7 +81,7 @@ var SuggestionItemView = Backbone.View.extend({
                         if(val.match(regEx)) {
                             results.push({
                                 value: val,
-                                label: sugSource.getPrefixFromIRI(subject)+': '+self.getRDFTypeHierarchyAsString(subject, 'http://schema.org/Thing') // TODO get class hierachy
+                                label: sugSource.getPrefixFromIRI(subject)+': '+self.getRDFTypeHierarchyAsString(subject, 'http://schema.org/Thing')
                             });
                         }
                     }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
