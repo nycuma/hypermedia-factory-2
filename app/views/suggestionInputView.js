@@ -54,6 +54,7 @@ var SuggestionItemView = Backbone.View.extend({
     },
 
     setInputFieldID: function () {
+        // TODO set ID for THIS inputfield? (see nodeView)
         this.$('.autocompleteInputField').last().attr('id', this.id+'InputField');
     },
 
@@ -189,8 +190,13 @@ var SuggestionItemView = Backbone.View.extend({
             },
 
             select: function(event, ui) {
-                var prefix = sugSource.getPrefixFromLabel(ui.item.label);
+                // uncheck checkbox and hide customTermDescription
+                $('#'+this.id+'CheckCustomTerm').prop('checked', false);
+                $(this).parent().parent().next().next().hide();
+                $('#'+this.id+'CustomTermDescr').val('');
+
                 // save prefix in hidden input field
+                var prefix = sugSource.getPrefixFromLabel(ui.item.label);
                 self.writePrefixToHiddenInputField(prefix);
             },
 
@@ -229,7 +235,7 @@ var SuggestionItemView = Backbone.View.extend({
         $('#'+this.id+'Prefix').val(prefix);
     },
 
-    // currently ignores schema.org/Thing
+    // goes up the class hierarchy until 'ignore'
     getRDFTypeHierarchyAsString: function(typeIri, ignore) {
         var localType = typeIri;
         var typeHierString = sugSource.getTermFromIRI(typeIri);
@@ -260,8 +266,15 @@ var SuggestionItemView = Backbone.View.extend({
         return superClasses;
     },
 
-    displayInputCustomTermDescr: function() {
-        $(event.target).parent().parent().next().toggle();
+    displayInputCustomTermDescr: function(evt) {
+        if($(evt.target).prop('checked')) {
+            $(evt.target).parent().parent().next().show();
+        } else {
+            $(evt.target).parent().parent().next().hide();
+        }
+
+
+        //$(evt.target).parent().parent().next().toggle(); --> bug
     }
 
 
