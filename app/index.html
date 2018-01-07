@@ -37,7 +37,7 @@
       <button class="navItem" id="openBtn">Open</button>
       <button class="navItem" id="saveBtn">Save</button>
       <button class="navItem opensSidePanel" id="downloadBtn">Download Profiles</button>
-      <button class="navItem opensSidePanel" id="optionsBtn">Options</button>
+      <!-- <button class="navItem opensSidePanel" id="optionsBtn">Options</button> -->
       <button class="navItem opensSidePanel" id="helpBtn">Help</button>
     </nav>
   </script>
@@ -131,13 +131,13 @@
     <tr>
         <td></td>
         <td>
-            <input type="checkbox" name="customTermCheck" id="<%= idAC %>CheckCustomTerm"/><span class="textCustomTerm">Use a custom term</span>
+            <input type="checkbox" name="customTermCheck" id="<%= idAC %>CheckCustomTerm"/><span class="textCustomTerm">This is a custom term</span>
         </td>
     </tr>
     <tr class="customTerm">
         <td></td>
         <td>
-            <span class="textCustomTerm">Please add a description:</span>
+            <span class="textCustomTerm">Please provide a description:</span>
             <br><input type="text" name="customTermDescr" id="<%= idAC %>CustomTermDescr"/>
         </td>
     </tr>
@@ -179,16 +179,12 @@
               <td>
                 <select name="methodDropdown" id="methodDropdown0">
                   <option></option>
-                  <option value="GET">GET</option>
-                  <option value="POST">POST</option>
-                  <option value="PUT">PUT</option>
-                  <option value="DELETE">DELETE</option>
+                  <option value="RETRIEVE">retrieve (safe)</option>
+                  <option value="CREATE">create (not idemportent)</option>
+                  <option value="REPLACE">replace (idempotent)</option>
+                  <option value="DELETE">delete (idempotent)</option>
                 </select>
               </td>
-            </tr>
-            <tr>
-              <td><label for="url0">URL:</label></td>
-              <td><input type="text" name="url" id="url0"></td>
             </tr>
             <tr>
               <td><label for="relation0">Relation:</label></td>
@@ -201,6 +197,18 @@
       <button class="btn submitBtn">Save</button>
       <button class="btn addFieldBtn" title="Add state transition">+</button>
     </form>
+  </script>
+
+
+  <!-- Node Template -->
+  <script type="text/template" id="node-template">
+    <div class="html-element">
+      <button class="newLink">
+      </button>
+      <button class="delete">x</button>
+      <div class="collectionLabel">&#8729; Collection &#8729;</div>
+      <label></label>
+    </div>
   </script>
 
 
