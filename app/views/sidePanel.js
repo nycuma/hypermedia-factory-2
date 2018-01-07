@@ -34,7 +34,7 @@ var SidePanelView = Backbone.View.extend({
             //case 'openBtn' : new OpenView({}); break;
             //case 'saveBtn' : new SaveView({}); break;
             case 'downloadBtn' : new DownloadView({}); break;
-            case 'optionsBtn' : new OptionsView({}); break;
+            //case 'optionsBtn' : new OptionsView({}); break;
             case 'helpBtn' : new HelpView({}); break;
         }
         this.$el.fadeIn(200);
