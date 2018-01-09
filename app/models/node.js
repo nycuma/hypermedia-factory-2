@@ -17,15 +17,24 @@ var Node = joint.shapes.basic.Rect.extend({
     }, joint.shapes.basic.Rect.prototype.defaults),
 
     saveName: function(nameVal, namePrefix,isCustom, customDescr) {
+
+        nameVal = isCustom ? this.getFormattedResName(nameVal) : nameVal;
+
         this.prop('resourceName', {
             value: nameVal,
             prefix: namePrefix,
             isCustom: isCustom,
             customDescr: customDescr
         });
+
+        // update label on node
+        this.set('label', this.getLabelWithLineBreaks(nameVal));
     },
 
     saveAttribute: function(attrVal, attrPrefix, isCustom, customDescr) {
+
+        attrVal = isCustom ? this.getFormattedAttr(attrVal) : attrVal;
+
         var resourceAttrs = this.prop('resourceAttrs') || [];
         resourceAttrs.push({
             value: attrVal,
@@ -59,7 +68,38 @@ var Node = joint.shapes.basic.Rect.extend({
             return this.prop('resourceName').prefix;
         }
 
+    },
+
+    // insert line-break after 11 characters
+    getLabelWithLineBreaks: function(label) {
+        var i = 11;
+        while(i < label.length) {
+            label = label.substr(0, i) + ' ' + label.substr(i, label.length);
+            i += 11;
+        }
+        return label;
+    },
+
+    // 1st letter lowercase, camelcase
+    getFormattedAttr: function (value) {
+        value = value.charAt(0).toLowerCase() + value.slice(1);
+        return this.getCamelCase(value);
+    },
+
+    // 1st letter uppercase, camelcase
+    getFormattedResName: function (value) {
+        value = value.charAt(0).toUpperCase() + value.slice(1);
+        return this.getCamelCase(value);
+    },
+
+    getCamelCase: function (value) {
+        //TODO get camel case
+        // remove spaces
+        value = value.replace(/\s/g, '');
+        return value;
     }
+
+
 });
 
 module.exports = Node;
