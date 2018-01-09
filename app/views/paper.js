@@ -29,7 +29,7 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
         // Nodes
         var start = new StartNode();
-        var elCollection = this.createNodeForDemo(15, 90, 'Record Collection');
+        var elCollection = this.createNodeForDemo(15, 90, 'RecordCollection', undefined, true, 'A collection of music records');
         var elAlbum = this.createNodeForDemo(230, 90, 'MusicAlbum', 'schema');
         var elTrack = this.createNodeForDemo(480, 90, 'MusicRecording', 'schema');
         var elArtist = this.createNodeForDemo(230, 220, 'MusicGroup', 'schema');
@@ -37,29 +37,29 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         // Links
         var l1 = this.createStartLink(start.id, elCollection.id);
 
-        var l2 = this.createLinkForDemo(elCollection.id, elAlbum.id);
-        //l2.addPropersties('GET', '/test/1', 'relation1');
-        //l2.addPropersties('POST', '/test/2', 'relation2');
+        var l2 = this.createLinkForDemo(elCollection.id, elAlbum.id, 'item', 'IANA');
+        l2.saveOperation('RETRIEVE', 'ReadAction', 'schema');
+        l2.saveOperation('CREATE', 'AddAction', 'schema');
 
         var l3 = this.createLinkForDemo(elAlbum.id, elAlbum.id);
         l3.set('vertices', [{ x: 240, y: 45 }, { x: 315, y: 45 }]);
-        //l3.addPropersties('PUT', 'test/1', 'relation1');
-        //l3.addPropersties('DELETE', 'test/2', 'relation2');
+        l3.saveOperation('REPLACE', 'UpdateAction', 'schema');
+        l3.saveOperation('DELETE', 'DeleteAction', 'schema');
 
-        var l4 = this.createLinkForDemo(elAlbum.id, elTrack.id);
-        //l4.addPropersties('GET', '/test/1', 'relation1');
-        //l4.addPropersties('POST', '/test/2', 'relation2');
+        var l4 = this.createLinkForDemo(elAlbum.id, elTrack.id, 'track', 'schema');
+        l4.saveOperation('RETRIEVE', 'ReadAction', 'schema');
+        l4.saveOperation('CREATE', 'AddAction', 'schema');
 
-        var l5 = this.createLinkForDemo(elAlbum.id, elArtist.id);
-        //l5.addPropersties('GET', '/test/1', 'relation1');
+        var l5 = this.createLinkForDemo(elAlbum.id, elArtist.id, 'byArtist', 'schema');
+        l5.saveOperation('RETRIEVE', 'ReadAction', 'schema');
 
         var l6 = this.createLinkForDemo(elTrack.id, elTrack.id);
-        //l6.set('vertices', [{ x: 485, y: 45 }, { x: 565, y: 45 }]);
-        //l6.addPropersties('PUT', 'test/1', 'relation1');
-        //l6.addPropersties('DELETE', 'test/2', 'relation2');
+        l6.set('vertices', [{ x: 485, y: 45 }, { x: 565, y: 45 }]);
+        l6.saveOperation('REPLACE', 'UpdateAction', 'schema');
+        l6.saveOperation('DELETE', 'DeleteAction', 'schema');
 
-        var l7 = this.createLinkForDemo(elTrack.id, elArtist.id);
-        //l7.addPropersties('GET', '/test/1', 'relation1');
+        var l7 = this.createLinkForDemo(elTrack.id, elArtist.id, 'byArtist', 'schema');
+        l7.saveOperation('RETRIEVE', 'ReadAction', 'schema');
 
         this.model.addCells([start, elCollection, elAlbum, elTrack, elArtist, l1, l2, l3, l4, l5, l6, l7]);
     },
@@ -115,7 +115,10 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
         this.on('cell:pointerdblclick',
             function(cellView, evt, x, y) {
-                if(cellView.model.isLink() /* && cellView.model.id != l1.model.id */) {
+                if(cellView.model.isLink()) {
+                    // TODO: don't display collItemLinkCheckBox if soure node == target node
+                    //var isSelfReference = cellView.model.get('source').id == cellView.model.get('target').id;
+                    // inform link model
                     new EditLinkView({ model: cellView.model });
                 }
                 if(cellView.model.isElement()) {
@@ -156,20 +159,22 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
     },
 
-    createNodeForDemo: function (x, y, label, prefix) {
+    createNodeForDemo: function (x, y, label, prefix, isCustom, customDescr) {
         var node = new Node({
             position: { x: x, y: y },
             label: label
         });
-        node.saveName(label, prefix);
+        node.saveName(label, prefix, isCustom, customDescr);
         return node;
     },
 
-    createLinkForDemo: function (sourceId, targetId) {
-       return new Link({
+    createLinkForDemo: function (sourceId, targetId, value, prefix, isCustom, customDescr) {
+        var link = new Link({
             source: { id: sourceId },
             target: { id: targetId }
         });
+        link.saveRelation(value, prefix, isCustom, customDescr);
+        return link;
     }
 });
 
