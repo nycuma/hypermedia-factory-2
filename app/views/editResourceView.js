@@ -78,7 +78,7 @@ var EditResourceView = Backbone.View.extend({
         var attrsData = this.model.prop('resourceAttrs');
         if(!attrsData) { return; }
 
-        attrsData.forEach(_.bind(function(el, i) {
+        attrsData.forEach(_.bind(function(el, i) { // TODO use 'el' instead of this.model.prop(...)
             if (i !== 0) { this.addAttrField(); }
 
             console.log('fillInputFields: resourceAttr: ' + this.model.prop('resourceAttrs/' + i).value + ', ' + this.model.prop('resourceAttrs/' + i).prefix);
@@ -92,10 +92,6 @@ var EditResourceView = Backbone.View.extend({
             } else {
                 $('#resourceAttr' + i + 'Prefix').val(this.model.prop('resourceAttrs/' + i).prefix);
             }
-
-
-
-
         }, this));
     },
 
@@ -169,8 +165,6 @@ var EditResourceView = Backbone.View.extend({
         if($('#resourceNameCheckCustomTerm').prop('checked')) {
             isCustom = true;
             customDescr = $('#resourceNameCustomTermDescr').val();
-            nameVal  = nameVal.replace(/\s/g, ''); // TODO get camel CAse
-            nameVal  = nameVal.charAt(0).toUpperCase() + nameVal.slice(1);
         } else {
             var namePrefix = $('#resourceNamePrefix').val();
         }
@@ -178,7 +172,6 @@ var EditResourceView = Backbone.View.extend({
 
 
         if((nameVal && namePrefix) || (nameVal && isCustom && customDescr)) {
-            this.model.set('label', nameVal);
             this.model.saveName(nameVal, namePrefix, isCustom, customDescr);
         } else {
             //TODO show error msg to user
@@ -189,9 +182,9 @@ var EditResourceView = Backbone.View.extend({
     },
 
     saveDataResourceAttrs: function() {
-
-        this.model.prop('resourceAttr', []);
         var model = this.model;
+        model.prop('resourceAttrs', []);
+
 
         $('#resourceAttrInputWrapper .autocompleteInputField').each(function() {
 
@@ -205,8 +198,6 @@ var EditResourceView = Backbone.View.extend({
                 //console.log('#resourceNameCheckCustomAttr was checked, val: ' + customDescr);
                 // TODO (see if it works) reset hidden prefix field
                 $(this).children('.prefixInput').val('');
-                attrVal = attrVal.replace(/\s/g, ''); // remove white spaces TODO get Camelcase
-                attrVal = attrVal.charAt(0).toLowerCase() + attrVal.slice(1);
             } else {
                 var attrPrefix = $(this).children('.prefixInput').val();
             }
