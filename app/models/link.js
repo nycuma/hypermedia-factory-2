@@ -60,14 +60,15 @@ var RelationLink = joint.dia.Link.extend({
     setStructuralTypeAtNodes: function() {
 
         var sourceNode = this.getSourceNode();
-        sourceNode.setStructuralType('collection');
-
         var targetNode = this.getTargetNode();
-        if(targetNode.getStructuralType() !== 'collection') {
-            targetNode.setStructuralType('item');
+
+        if(sourceNode != targetNode) {
+            sourceNode.setStructuralType('collection');
+
+            if(targetNode.getStructuralType() !== 'collection') {
+                targetNode.setStructuralType('item');
+            }
         }
-
-
     },
     unsetStructuralTypeAtNodes: function() {
 
@@ -89,6 +90,9 @@ var RelationLink = joint.dia.Link.extend({
 
 
     saveRelation: function(value, prefix, isCustom, customDescr) {
+
+        value = isCustom ? this.getFormattedRel(value) : value;
+
         this.prop('relation', {
             value: value,
             prefix: prefix,
@@ -101,6 +105,9 @@ var RelationLink = joint.dia.Link.extend({
 
     saveOperation: function(method, value, prefix, isCustom, customDescr) {
         var operations = this.prop('operations') || [];
+
+        if(value) { value = isCustom ? this.getFormattedOperation(value) : value; }
+
         operations.push({
             method: method,
             value: value,
@@ -111,6 +118,24 @@ var RelationLink = joint.dia.Link.extend({
         this.prop('operations', operations);
 
         this.renderLabelOperations();
+    },
+
+    // 1st letter lowercase, camelcase
+    getFormattedRel: function (value) {
+        value = value.charAt(0).toLowerCase() + value.slice(1);
+        return this.getCamelCase(value);
+    },
+
+    // 1st letter uppercase, camelcase
+    getFormattedOperation: function (value) {
+        value = value.charAt(0).toUpperCase() + value.slice(1);
+        return this.getCamelCase(value);
+    },
+
+    getCamelCase: function (value) {
+        //TODO get camel case
+        // remove spaces
+        return value.replace(/\s/g, '');
     }
 });
 
