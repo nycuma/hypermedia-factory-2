@@ -14,7 +14,7 @@ var EditLinkView = Backbone.View.extend({
     el: '#editLink',
     template:  _.template($('#edit-link-template').html()),
 
-    initialize: function(){
+    initialize: function(options){
         this.render();
     },
 
@@ -39,7 +39,7 @@ var EditLinkView = Backbone.View.extend({
 
         //TODO remove ID attributes when not needed
         this.addOperationFieldSet();
-        //this.fillInputFields();
+        this.fillInputFields();
         this.$el.show();
         return this;
     },
@@ -57,19 +57,48 @@ var EditLinkView = Backbone.View.extend({
 
         if(this.model.prop('isCollItemLink') === true) {
             // set check mark
+            console.log('fillInputFields isCollItemLink: true');
             this.$el.find('input[name=collItemLinkCheckBox]').prop('checked', true);
         }
 
-        var stateTransisions = this.model.prop('stateTransitions');
+        this.setInputFieldRelation();
+        this.setInputFieldsOperations();
+    },
 
-        if(!stateTransisions) return;
-        stateTransisions.forEach(_.bind(function(el, i) {
-            if (i !== 0) this.addFields();
+    setInputFieldRelation: function() {
+        var relation = this.model.prop('relation');
+        if(relation) { $('#relation').val(relation.value); }
 
-            var method = this.model.prop('stateTransitions/' + i + '/method');
-            if(method) $('#methodDropdown' + i + ' option[value=' + method + ']').prop('selected', true);
-            $('#url' + i).val(this.model.prop('stateTransitions/' + i + '/url'));
-            $('#relation' + i).val(this.model.prop('stateTransitions/' + i + '/relation'));
+        if(relation.isCustom) {
+            $('#relationCheckCustomTerm').prop('checked', true);
+            $('#relationCustomTermDescr').val(relation.customDescr).parent().parent().show();
+
+        } else {
+            $('#relationPrefix').val(relation.prefix);
+        }
+
+    },
+
+    setInputFieldsOperations: function () {
+        var operations = this.model.prop('operations');
+        if(!operations) return;
+
+        operations.forEach(_.bind(function(elem, i) {
+            if (i !== 0) this.addOperationFieldSet();
+
+            //console.log('fillInputFields: ' + relation + ', ' + el.method);
+            $('#methodDropdown' + i).val(elem.method);
+            $('#operation' + i).val(elem.value);
+
+
+            if(elem.isCustom) {
+                $('#operation' + i + 'CheckCustomTerm').prop('checked', true);
+                $('#operation' + i + 'CustomTermDescr').val(elem.customDescr).parent().parent().show();
+
+            } else {
+                $('#operation' + i + 'Prefix').val(elem.prefix);
+            }
+
         }, this));
     },
 
@@ -123,8 +152,6 @@ var EditLinkView = Backbone.View.extend({
         if($('#relationCheckCustomTerm').prop('checked')) {
             isCustom = true;
             customDescr = $('#relationCustomTermDescr').val();
-            relVal  = relVal.replace(/\s/g, ''); // TODO get camel CAse
-            relVal  = relVal.charAt(0).toLowerCase() + relVal.slice(1);
         } else {
             var prefix = $('#relationPrefix').val();
         }
@@ -145,6 +172,7 @@ var EditLinkView = Backbone.View.extend({
 
     saveDataOperations: function() {
         var linkModel = this.model;
+        linkModel.prop('operations', []);
 
         $('#operationFieldSetsWrapper').children('div').each(function() {
 
@@ -156,11 +184,8 @@ var EditLinkView = Backbone.View.extend({
             if($(this).find('input[name=customTermCheck]').prop('checked')) {
                 isCustom = true;
                 customDescr = $(this).find('input[name=customTermDescr]').val().trim();
-                //console.log('#resourceNameCheckCustomAttr was checked, val: ' + customDescr);
                 // TODO (see if it works) reset hidden prefix field
                 $(this).find('.prefixInput').val('');
-                descriptorVal = descriptorVal.replace(/\s/g, ''); // remove white spaces TODO get Camelcase
-                descriptorVal = descriptorVal.charAt(0).toLowerCase() + descriptorVal.slice(1);
             } else {
                 var descriptorPrefix = $(this).find('.prefixInput').val();
             }
