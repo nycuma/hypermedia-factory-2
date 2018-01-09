@@ -106,9 +106,7 @@ var SuggestionItemViewLink = Backbone.View.extend({
 
             select: function(event, ui) {
                 // uncheck checkbox and hide customTermDescription
-                $('#'+this.id+'CheckCustomTerm').prop('checked', false);
-                $(this).parent().parent().next().next().hide();
-                $('#'+this.id+'CustomTermDescr').val('');
+                self.removeInputCustomTermDescription(this);
 
                 // save prefix in hidden input field
                 var prefix = sugSource.getPrefixFromLabel(ui.item.label);
@@ -159,9 +157,7 @@ var SuggestionItemViewLink = Backbone.View.extend({
 
             select: function(event, ui) {
                 // uncheck checkbox and hide customTermDescription
-                $('#'+this.id+'CheckCustomTerm').prop('checked', false);
-                $(this).parent().parent().next().next().hide();
-                $('#'+this.id+'CustomTermDescr').val('');
+                self.removeInputCustomTermDescription(this);
 
                 // save prefix in hidden input field
                 var prefix = sugSource.getPrefixFromLabel(ui.item.label);
@@ -240,6 +236,12 @@ var SuggestionItemViewLink = Backbone.View.extend({
         } else {
             $(evt.target).parent().parent().next().hide();
         }
+    },
+
+    removeInputCustomTermDescription: function (inputElem) {
+        $('#'+this.id+'CheckCustomTerm').prop('checked', false);
+        $(inputElem).parent().parent().next().next().hide();
+        $('#'+this.id+'CustomTermDescr').val('');
     }
 
 
