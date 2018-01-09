@@ -7,7 +7,7 @@
     },
     {
       "title" : "Add link",
-      "explanation" : "Choose the node that is going to be your source. Move mouse to the top right of the node and double-click on 'link'."
+      "explanation" : "Move mouse to the lower right of the node and double-click on 'link'."
     },
     {
       "title" : "Resize canvas"
