@@ -8,6 +8,8 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
+var JSZip = require("jszip");
+var FileSaver = require('file-saver');
 
 var DownloadView = Backbone.View.extend({
     el: '#sidePanelContent',
@@ -28,6 +30,20 @@ var DownloadView = Backbone.View.extend({
 
     submit: function (evt) {
         evt.preventDefault();
+
+        this.downloadZip();
+    },
+
+    downloadZip: function () {
+        console.log('downloadZip called');
+
+        var zip = new JSZip();
+        zip.file("Hello.txt", "Hello World\n\tA tab\n\t\ttwo tabs");
+        zip.file("folder/Hello2.txt", "Hello 2");
+        zip.generateAsync({type:"blob"})
+            .then(function(content) {
+                FileSaver.saveAs(content, "example2.zip");
+            });
     }
 });
 
