@@ -20,7 +20,8 @@ var DownloadView = Backbone.View.extend({
     },
 
     events: {
-        'click .submitBtn': 'submit'
+        'click .submitBtn': 'submit',
+        'click #btnTestZipFile' : 'downloadZip'
     },
 
     render: function () {
@@ -30,8 +31,6 @@ var DownloadView = Backbone.View.extend({
 
     submit: function (evt) {
         evt.preventDefault();
-
-        this.downloadZip();
     },
 
     downloadZip: function () {
