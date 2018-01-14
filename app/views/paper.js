@@ -62,6 +62,11 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         l7.saveOperation('RETRIEVE', 'ReadAction', 'schema');
 
         this.model.addCells([start, elCollection, elAlbum, elTrack, elArtist, l1, l2, l3, l4, l5, l6, l7]);
+
+        elCollection.setStructuralType('collection');
+        elAlbum.setStructuralType('collection');
+        l2.prop('isCollItemLink', true);
+        l4.prop('isCollItemLink', true);
     },
 
     calculatePaperSize: function () {
@@ -144,6 +149,7 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
             source: { id: source },
             target: { x: target[0]+50, y: target[1]+50 }
         });
+        link.saveOperation('RETRIEVE', 'ReadAction', 'schema');
         this.model.addCell(link);
         console.log('link added to node ' + source);
     },
