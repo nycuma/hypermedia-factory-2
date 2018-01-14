@@ -9,6 +9,8 @@ var Instruction = require('../models/singleInstruction');
 
 var InstructionsList = Backbone.Collection.extend({
     model: Instruction,
+    // PRODUCTION: url: '../modelData/instructionsData.json',
+    // DEV:
     url: '../app/modelData/instructionsData.json',
     parse: function (data) {
         return data.items;

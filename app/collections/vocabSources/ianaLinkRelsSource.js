@@ -12,6 +12,8 @@ var Term = require('../../models/term');
 var IanaLinkRelsSource = Backbone.Collection.extend({
 
     model: Term,
+    // PRODUCTION: url: '../static/vocabs/link-relations.xml',
+    // DEV:
     url: '../app/static/vocabs/link-relations.xml',
 
     sync: function (method, model, options) {

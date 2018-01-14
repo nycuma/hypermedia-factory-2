@@ -14,6 +14,8 @@ var Term = require('../../models/term');
 var SchemaOrgSource = Backbone.Collection.extend({
 
     model: Term,
+    // PRODUCTION: url: '../static/vocabs/schema.ttl',
+    // DEV:
     url: '../app/static/vocabs/schema.ttl',
 
     store: N3.Store(null, {prefixes : {schema : 'http://schema.org'}}),
