@@ -62,7 +62,7 @@ var RelationLink = joint.dia.Link.extend({
         var sourceNode = this.getSourceNode();
         var targetNode = this.getTargetNode();
 
-        if(sourceNode != targetNode) {
+        if(sourceNode && targetNode && (sourceNode != targetNode)) {
             sourceNode.setStructuralType('collection');
 
             if(targetNode.getStructuralType() !== 'collection') {
@@ -73,11 +73,12 @@ var RelationLink = joint.dia.Link.extend({
     unsetStructuralTypeAtNodes: function() {
 
         var sourceNode = this.getSourceNode();
-        sourceNode.setStructuralType(null);
-
         var targetNode = this.getTargetNode();
-        targetNode.setStructuralType(null);
 
+        if(sourceNode && targetNode) {
+            sourceNode.setStructuralType(null);
+            targetNode.setStructuralType(null);
+        }
     },
 
     getSourceNode: function () {
