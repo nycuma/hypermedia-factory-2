@@ -67,16 +67,17 @@ var EditLinkView = Backbone.View.extend({
 
     setInputFieldRelation: function() {
         var relation = this.model.prop('relation');
-        if(relation) { $('#relation').val(relation.value); }
+        if(relation) {
+            $('#relation').val(relation.value);
 
-        if(relation.isCustom) {
-            $('#relationCheckCustomTerm').prop('checked', true);
-            $('#relationCustomTermDescr').val(relation.customDescr).parent().parent().show();
+            if(relation.isCustom) {
+                $('#relationCheckCustomTerm').prop('checked', true);
+                $('#relationCustomTermDescr').val(relation.customDescr).parent().parent().show();
 
-        } else {
-            $('#relationPrefix').val(relation.prefix);
+            } else {
+                $('#relationPrefix').val(relation.prefix);
+            }
         }
-
     },
 
     setInputFieldsOperations: function () {
