@@ -96,14 +96,16 @@
           <td><input type="radio" name="profileFormat" id="jsonld"></td>
           <td><label for="jsonld">JSON-LD with Hydra</label></td>
         </tr>
-        <tr>
+        <!-- <tr>
           <td><input type="radio" name="profileFormat" id="alps"></td>
           <td><label for="alps">ALPS</label></td>
-        </tr>
+        </tr> -->
       </table>
       <button class="btn submitBtn" type="submit">Download</button>
       <br><br><br>
       <button class="btn submitBtn" id="btnTestZipFile" type="submit">TEST ZipFile</button>
+      <br><br><br>
+      <button class="btn submitBtn" id="btnTestGetGraph" type="submit">Print graph</button>
     </form>
   </script>
 
@@ -129,6 +131,10 @@
     <tr>
       <td><%= label %></td>
       <td class="autocompleteInputField" id="<%= idAC %>InputField"></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td><input id="<%= idAC %>Iri" type="text" name="inputFieldIri" placeholder="URI for term" readonly></td>
     </tr>
     <tr>
         <td></td>
