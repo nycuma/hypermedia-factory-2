@@ -206,7 +206,9 @@ nav button:focus {
     top: 15vh;
     left: 20vw;
     right: 20vw;
-    width: 300px;
+    min-width: 330px;
+    max-width: 600px;
+    width: 10vw;
     margin: auto;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -222,13 +224,14 @@ nav button:focus {
 
 .editGraphElement table {
     margin: auto;
+    width: 95%;
     padding-left: 5px;
     padding-right: 5px;
 }
 
 
 .editGraphElement form input[type=text] {
-    width: 90%;
+    width: 100%;
 }
 
 .editGraphElement .btn {
@@ -264,6 +267,14 @@ nav button:focus {
     background-color: lightgrey;
     border: none;
 }
+
+.editGraphElement input[name=inputFieldIri] {
+    color: grey;
+    border: none;
+    background-color: #f5f0f0;
+    /*direction:rtl;*/
+}
+
 
 hr {
     height: 1px;
