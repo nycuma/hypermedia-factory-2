@@ -29,7 +29,7 @@ var NavigationBarView = Backbone.View.extend({
     },
 
     openSidePanel: function (evt) {
-        new SidePanel({page: evt.target.id});
+        new SidePanel({model: this.model, page: evt.target.id});
     }
 });
 

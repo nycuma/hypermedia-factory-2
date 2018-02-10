@@ -33,7 +33,7 @@ var SidePanelView = Backbone.View.extend({
             case 'aboutBtn' : new AboutView({}); break;
             //case 'openBtn' : new OpenView({}); break;
             //case 'saveBtn' : new SaveView({}); break;
-            case 'downloadBtn' : new DownloadView({}); break;
+            case 'downloadBtn' : new DownloadView({model: this.model}); break;
             //case 'optionsBtn' : new OptionsView({}); break;
             case 'helpBtn' : new HelpView({}); break;
         }
