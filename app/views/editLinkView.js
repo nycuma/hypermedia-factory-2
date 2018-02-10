@@ -69,6 +69,7 @@ var EditLinkView = Backbone.View.extend({
         var relation = this.model.prop('relation');
         if(relation) {
             $('#relation').val(relation.value);
+            $('#relationIri').val(relation.iri);
 
             if(relation.isCustom) {
                 $('#relationCheckCustomTerm').prop('checked', true);
@@ -90,6 +91,7 @@ var EditLinkView = Backbone.View.extend({
             //console.log('fillInputFields: ' + relation + ', ' + el.method);
             $('#methodDropdown' + i).val(elem.method);
             $('#operation' + i).val(elem.value);
+            $('#operation' + i + 'Iri').val(elem.iri);
 
 
             if(elem.isCustom) {
@@ -147,6 +149,7 @@ var EditLinkView = Backbone.View.extend({
 
     saveDataLinkRelation: function() {
         var relVal = $('#relation').val().trim();
+        var iri = $('#relationIri').val();
         var isCustom = false;
         var customDescr;
 
@@ -157,18 +160,18 @@ var EditLinkView = Backbone.View.extend({
             var prefix = $('#relationPrefix').val();
         }
 
-        console.log('saveDataLinkRelation: ' +relVal + ', '
-            + prefix + ', ' + isCustom +', ' + customDescr);
-
-
+        console.log('saving link relation... found input fields: '
+            + '\n\tValue: ' + relVal
+            + '\n\tPrefix: ' + prefix
+            + '\n\tIRI: ' + iri
+            + '\n\tisCustom: ' + isCustom
+            + '\n\tCustom description: ' + customDescr);
 
         if((relVal && prefix) || (relVal && isCustom && customDescr)) {
-            this.model.saveRelation(relVal, prefix, isCustom, customDescr);
+            this.model.saveRelation(relVal, prefix, iri, isCustom, customDescr);
         } else {
-            //TODO show error msg to user
+            //TODO show msg to user
         }
-
-
     },
 
     saveDataOperations: function() {
@@ -179,6 +182,7 @@ var EditLinkView = Backbone.View.extend({
 
             var method = $(this).find('select[name=methodDropdown]').val();
             var descriptorVal = $(this).find('.ui-autocomplete-input').val().trim();
+            var iri = $(this).find('input[name=inputFieldIri]').val();
             var isCustom = false;
             var customDescr;
 
@@ -191,11 +195,16 @@ var EditLinkView = Backbone.View.extend({
                 var descriptorPrefix = $(this).find('.prefixInput').val();
             }
 
-            console.log('saveDataOperations: ' + method + ', '+ descriptorVal + ', '
-                + descriptorPrefix + ', ' + isCustom +', ' + customDescr);
+            console.log('saving operation... found input fields: '
+                + '\n\tMethod: ' + method
+                + '\n\tDescriptor value: ' + descriptorVal
+                + '\n\tDescriptor prefix: ' + descriptorPrefix
+                + '\n\tDescriptor IRI: ' + iri
+                + '\n\tDescriptor is custom: ' + isCustom
+                + '\n\tDescriptor custom description: ' + customDescr);
 
             if((method) && (!isCustom || (isCustom && descriptorVal && customDescr))) {
-                linkModel.saveOperation(method, descriptorVal, descriptorPrefix, isCustom, customDescr);
+                linkModel.saveOperation(method, descriptorVal, descriptorPrefix, iri, isCustom, customDescr);
             } else {
                 //TODO show error msg to user
             }

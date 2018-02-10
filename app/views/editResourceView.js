@@ -59,9 +59,17 @@ var EditResourceView = Backbone.View.extend({
     fillInputFieldResName: function() {
          var modelData = this.model.get('resourceName');
 
-        $('#resourceName').val(modelData.value);
+         /*
+        console.log('loading resource name... found model data: '
+            + '\n\tAttr value: ' + modelData.value
+            + '\n\tAttr prefix: ' + modelData.prefix
+            + '\n\tIRI: ' + modelData.iri
+            + '\n\tisCustom: ' + modelData.isCustom
+            + '\n\tCustom description: ' + modelData.customDescr);
+        */
 
-        console.log('fillInputFieldResName isCustom: ' + modelData.isCustom);
+        $('#resourceName').val(modelData.value);
+        $('#resourceNameIri').val(modelData.iri);
 
         if(modelData.isCustom) {
             $('#resourceNameCheckCustomTerm').prop('checked', true);
@@ -78,19 +86,26 @@ var EditResourceView = Backbone.View.extend({
         var attrsData = this.model.prop('resourceAttrs');
         if(!attrsData) { return; }
 
-        attrsData.forEach(_.bind(function(el, i) { // TODO use 'el' instead of this.model.prop(...)
+        attrsData.forEach(_.bind(function(modelData, i) {
             if (i !== 0) { this.addAttrField(); }
+            /*
+            console.log('loading resource attribute... found model data: '
+                + '\n\tAttr value: ' + modelData.value
+                + '\n\tAttr prefix: ' + modelData.prefix
+                + '\n\tIRI: ' + modelData.iri
+                + '\n\tisCustom: ' + modelData.isCustom
+                + '\n\tCustom description: ' + modelData.customDescr);
+                */
 
-            console.log('fillInputFields: resourceAttr: ' + this.model.prop('resourceAttrs/' + i).value + ', ' + this.model.prop('resourceAttrs/' + i).prefix);
-
-            $('#resourceAttr' + i).val(this.model.prop('resourceAttrs/' + i).value);
+            $('#resourceAttr' + i).val(modelData.value);
+            $('#resourceAttr' + i + 'Iri').val(modelData.iri);
 
             if(this.model.prop('resourceAttrs/' + i).isCustom) {
                 $('#resourceAttr' + i + 'CheckCustomTerm').prop('checked', true);
-                $('#resourceAttr' + i + 'CustomTermDescr').val(this.model.prop('resourceAttrs/' + i).customDescr).parent().parent().show();
+                $('#resourceAttr' + i + 'CustomTermDescr').val(modelData.customDescr).parent().parent().show();
 
             } else {
-                $('#resourceAttr' + i + 'Prefix').val(this.model.prop('resourceAttrs/' + i).prefix);
+                $('#resourceAttr' + i + 'Prefix').val(modelData.prefix);
             }
         }, this));
     },
@@ -159,6 +174,7 @@ var EditResourceView = Backbone.View.extend({
     saveDataResourceName: function() {
 
         var nameVal = $('#resourceName').val().trim();
+        var iri = $('#resourceNameIri').val();
         var isCustom = false;
         var customDescr;
 
@@ -169,10 +185,15 @@ var EditResourceView = Backbone.View.extend({
             var namePrefix = $('#resourceNamePrefix').val();
         }
 
-
+        console.log('saving resource name... found input fields: '
+            + '\n\tAttr value: ' + nameVal
+            + '\n\tAttr prefix: ' + namePrefix
+            + '\n\tIRI: ' + iri
+            + '\n\tisCustom: ' + isCustom
+            + '\n\tCustom description: ' + customDescr);
 
         if((nameVal && namePrefix) || (nameVal && isCustom && customDescr)) {
-            this.model.saveName(nameVal, namePrefix, isCustom, customDescr);
+            this.model.saveName(nameVal, namePrefix, iri, isCustom, customDescr);
         } else {
             //TODO show error msg to user
         }
@@ -189,12 +210,13 @@ var EditResourceView = Backbone.View.extend({
         $('#resourceAttrInputWrapper .autocompleteInputField').each(function() {
 
             var attrVal = $(this).children('.ui-autocomplete-input').val().trim();
+            var iri = $(this).parent().next().find('input[name=inputFieldIri]').val();
             var isCustom = false;
             var customDescr;
 
-            if($(this).parent().next().find('input[name=customTermCheck]').prop('checked')) {
+            if($(this).parent().next().next().find('input[name=customTermCheck]').prop('checked')) {
                 isCustom = true;
-                customDescr = $(this).parent().next().next().find('input[name=customTermDescr]').val();
+                customDescr = $(this).parent().next().next().next().find('input[name=customTermDescr]').val();
                 //console.log('#resourceNameCheckCustomAttr was checked, val: ' + customDescr);
                 // TODO (see if it works) reset hidden prefix field
                 $(this).children('.prefixInput').val('');
@@ -202,10 +224,15 @@ var EditResourceView = Backbone.View.extend({
                 var attrPrefix = $(this).children('.prefixInput').val();
             }
 
+            console.log('saving resource attributes... found input fields: '
+                + '\n\tAttr value: ' + attrVal
+                + '\n\tAttr prefix: ' + attrPrefix
+                + '\n\tIRI: ' + iri
+                + '\n\tisCustom: ' + isCustom
+                + '\n\tCustom description: ' + customDescr);
 
-            console.log('found input fields: ' + attrVal + ', ' + attrPrefix + ', ' + isCustom +', ' + customDescr);
             if((attrVal && attrPrefix) || (attrVal && isCustom && customDescr)) {
-                model.saveAttribute(attrVal, attrPrefix, isCustom, customDescr);
+                model.saveAttribute(attrVal, attrPrefix, iri, isCustom, customDescr);
             } else {
                 //TODO show error msg to user
             }

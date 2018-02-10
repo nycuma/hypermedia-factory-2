@@ -108,6 +108,9 @@ var SuggestionItemViewLink = Backbone.View.extend({
                 // uncheck checkbox and hide customTermDescription
                 self.removeInputCustomTermDescription(this);
 
+                // display complete IRI next to autocomplete field
+                self.fillInputFieldIri(ui.item.label, ui.item.value);
+
                 // save prefix in hidden input field
                 var prefix = sugSource.getPrefixFromLabel(ui.item.label);
                 self.writePrefixToHiddenInputField(prefix);
@@ -121,6 +124,7 @@ var SuggestionItemViewLink = Backbone.View.extend({
             .appendTo('#'+this.id+'InputField');
 
         this.createHiddenFieldForPrefix('#'+this.id+'InputField');
+        this.registerAutocompleteInputChangeEvent();
 
     },
 
@@ -159,6 +163,9 @@ var SuggestionItemViewLink = Backbone.View.extend({
                 // uncheck checkbox and hide customTermDescription
                 self.removeInputCustomTermDescription(this);
 
+                // display complete IRI next to autocomplete field
+                self.fillInputFieldIri(ui.item.label, ui.item.value);
+
                 // save prefix in hidden input field
                 var prefix = sugSource.getPrefixFromLabel(ui.item.label);
                 self.writePrefixToHiddenInputField(prefix);
@@ -172,6 +179,7 @@ var SuggestionItemViewLink = Backbone.View.extend({
             .appendTo('#'+this.id+'InputField');
 
         this.createHiddenFieldForPrefix('#'+this.id+'InputField');
+        this.registerAutocompleteInputChangeEvent();
 
     },
 
@@ -196,6 +204,8 @@ var SuggestionItemViewLink = Backbone.View.extend({
     },
 
     writePrefixToHiddenInputField: function(prefix) {
+        //console.log('writePrefixToHiddenInputField called on: ' +  this.id);
+        //console.log('writePrefixToHiddenInputField prefix: ' +  prefix);
         $('#'+this.id+'Prefix').val(prefix);
     },
 
@@ -233,15 +243,48 @@ var SuggestionItemViewLink = Backbone.View.extend({
     displayInputCustomTermDescr: function(evt) {
         if($(evt.target).prop('checked')) {
             $(evt.target).parent().parent().next().show();
+            // update IRI
+            this.setCustomIRI(this.id);
         } else {
             $(evt.target).parent().parent().next().hide();
+            // reset IRI
+            this.resetCustomIRI();
         }
+        //$(evt.target).parent().parent().next().toggle(); --> bug
     },
 
     removeInputCustomTermDescription: function (inputElem) {
         $('#'+this.id+'CheckCustomTerm').prop('checked', false);
-        $(inputElem).parent().parent().next().next().hide();
+        $(inputElem).parent().parent().next().next().next().hide();
         $('#'+this.id+'CustomTermDescr').val('');
+    },
+
+    fillInputFieldIri: function(label, value) {
+        var prefixIRI = sugSource.getPrefixIRIFromLabel(label);
+        if(prefixIRI) {
+            $('#'+this.id+'Iri').val(prefixIRI + value);
+        } else {
+            $('#'+this.id+'Iri').val('');
+        }
+    },
+
+    setCustomIRI: function(targetId) {
+        if($('#'+this.id+'CheckCustomTerm').prop('checked')) {
+            $('#'+targetId+'Iri').val('{myURL}/vocab#' + $('#'+targetId).val());
+        }
+    },
+
+    resetCustomIRI: function() {
+        $('#'+this.id+'Iri').val('');
+    },
+
+    registerAutocompleteInputChangeEvent: function () {
+        // register change events for autocomplete input fields
+        console.log('registered AutocompleteInputChangeEvent on: ' + this.id);
+        var self = this;
+        $('.ui-autocomplete-input').bind('change',function(evt) {
+            self.setCustomIRI(evt.target.id);
+        });
     }
 
 
