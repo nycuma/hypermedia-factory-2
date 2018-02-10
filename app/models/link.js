@@ -90,13 +90,14 @@ var RelationLink = joint.dia.Link.extend({
     },
 
 
-    saveRelation: function(value, prefix, isCustom, customDescr) {
+    saveRelation: function(value, prefix, iri, isCustom, customDescr) {
 
         value = isCustom ? this.getFormattedRel(value) : value;
 
         this.prop('relation', {
             value: value,
             prefix: prefix,
+            iri: iri,
             isCustom: isCustom,
             customDescr: customDescr
         });
@@ -104,7 +105,7 @@ var RelationLink = joint.dia.Link.extend({
         this.renderLabelRelation()
     },
 
-    saveOperation: function(method, value, prefix, isCustom, customDescr) {
+    saveOperation: function(method, value, prefix, iri, isCustom, customDescr) {
         var operations = this.prop('operations') || [];
 
         if(value) { value = isCustom ? this.getFormattedOperation(value) : value; }
@@ -112,6 +113,7 @@ var RelationLink = joint.dia.Link.extend({
         operations.push({
             method: method,
             value: value,
+            iri: iri,
             prefix: prefix,
             isCustom: isCustom,
             customDescr: customDescr

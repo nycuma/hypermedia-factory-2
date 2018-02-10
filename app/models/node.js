@@ -16,13 +16,14 @@ var Node = joint.shapes.basic.Rect.extend({
         }
     }, joint.shapes.basic.Rect.prototype.defaults),
 
-    saveName: function(nameVal, namePrefix,isCustom, customDescr) {
+    saveName: function(nameVal, namePrefix, iri, isCustom, customDescr) {
 
         nameVal = isCustom ? this.getFormattedResName(nameVal) : nameVal;
 
         this.prop('resourceName', {
             value: nameVal,
             prefix: namePrefix,
+            iri: iri,
             isCustom: isCustom,
             customDescr: customDescr
         });
@@ -31,7 +32,8 @@ var Node = joint.shapes.basic.Rect.extend({
         this.set('label', this.getLabelWithLineBreaks(nameVal));
     },
 
-    saveAttribute: function(attrVal, attrPrefix, isCustom, customDescr) {
+    //TODO add custom identifier for value
+    saveAttribute: function(attrVal, attrPrefix, iri, isCustom, customDescr) {
 
         attrVal = isCustom ? this.getFormattedAttr(attrVal) : attrVal;
 
@@ -39,6 +41,7 @@ var Node = joint.shapes.basic.Rect.extend({
         resourceAttrs.push({
             value: attrVal,
             prefix: attrPrefix,
+            iri: iri,
             isCustom: isCustom,
             customDescr: customDescr
         });
@@ -66,6 +69,13 @@ var Node = joint.shapes.basic.Rect.extend({
     getResourceNamePrefix: function () {
         if(this.prop('resourceName')) {
             return this.prop('resourceName').prefix;
+        }
+
+    },
+
+    getResourceNameIri: function () {
+        if(this.prop('resourceName')) {
+            return this.prop('resourceName').iri;
         }
 
     },
