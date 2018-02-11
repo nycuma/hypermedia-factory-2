@@ -275,6 +275,12 @@ nav button:focus {
     /*direction:rtl;*/
 }
 
+.editGraphElement input[name=settingsAttribute] {
+    color: grey;
+    border: none;
+}
+
+
 
 hr {
     height: 1px;
