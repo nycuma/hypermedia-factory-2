@@ -80,6 +80,14 @@ var Node = joint.shapes.basic.Rect.extend({
 
     },
 
+    getResourceAttrsValues: function() {
+        if(this.prop('resourceAttrs')) {
+            return this.prop('resourceAttrs').map(function(attr) {
+                return attr.value;
+            });
+        }
+    },
+
     // insert line-break after 11 characters
     getLabelWithLineBreaks: function(label) {
         var i = 11;
