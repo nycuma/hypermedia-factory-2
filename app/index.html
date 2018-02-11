@@ -93,13 +93,17 @@
     <form>
       <table>
         <tr>
-          <td><input type="radio" name="profileFormat" id="jsonld"></td>
-          <td><label for="jsonld">JSON-LD with Hydra</label></td>
+          <td><input type="radio" name="profileFormat" value="jsonld"></td>
+          <td>JSON-LD contexts</td>
         </tr>
-        <!-- <tr>
-          <td><input type="radio" name="profileFormat" id="alps"></td>
-          <td><label for="alps">ALPS</label></td>
-        </tr> -->
+        <tr>
+          <td><input type="radio" name="profileFormat" value="hydra"></td>
+          <td>Hydra ApiDocs</td>
+        </tr>
+        <tr>
+          <td><input type="radio" name="profileFormat" value="alps"></td>
+          <td>ALPS</td>
+        </tr>
       </table>
       <button class="btn submitBtn" type="submit">Download</button>
       <br><br><br>
@@ -130,11 +134,11 @@
 
     <tr>
       <td><%= label %></td>
-      <td class="autocompleteInputField" id="<%= idAC %>InputField"></td>
+      <td colspan="2" class="autocompleteInputField" id="<%= idAC %>InputField"></td>
     </tr>
     <tr>
       <td></td>
-      <td><input id="<%= idAC %>Iri" type="text" name="inputFieldIri" placeholder="URI for term" readonly></td>
+      <td colspan="2"><input id="<%= idAC %>Iri" type="text" name="inputFieldIri" placeholder="URI for term" readonly></td>
     </tr>
     <tr>
         <td></td>
@@ -144,7 +148,7 @@
     </tr>
     <tr class="customTerm">
         <td></td>
-        <td>
+        <td colspan="2">
             <span class="textCustomTerm">Please provide a description:</span>
             <br><input type="text" name="customTermDescr" id="<%= idAC %>CustomTermDescr"/>
         </td>
@@ -204,13 +208,16 @@
         <tr>
           <td><label for="methodDropdown<%= idSet %>">Method:</label></td>
           <td>
-            <select name="methodDropdown" id="methodDropdown<%= idSet %>">
+            <select name="methodDropdown" id="methodDropdown<%= idSet %>" count="<%= idSet %>">
               <option value=""></option>
               <option value="RETRIEVE">retrieve (safe)</option>
               <option value="CREATE">create (not idemportent)</option>
               <option value="REPLACE">replace (idempotent)</option>
               <option value="DELETE">delete (idempotent)</option>
             </select>
+          </td>
+          <td>
+            <img class="settingsIcon" src="static/img/icon_settings.png" title="(TODO) Options for request parameters" width="15" height="15">
           </td>
         </tr>
         </tbody>
@@ -222,6 +229,28 @@
       </table>
     </div>
 
+  </script>
+
+
+  <!-- Operation Request param Template -->
+  <script type="text/template" id="request-param-template">
+    <!-- <tbody class="paramWrapper"> -->
+    <tr>
+      <td colspan="1">
+        <input type="text" name="settingsAttribute" placeholder="TODO" value="<%= attrVal %>" readonly>
+      </td>
+      <td colspan="2">
+        <input type="checkbox" name="include" value="include" checked><span class="textCustomTerm">include in request</span>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="1"></td>
+      <td colspan="2">
+        <input type="checkbox" name="checkboxRequired" value="isRequired"><span class="textCustomTerm">required</span>
+        <input type="checkbox" name="checkboxReadOnly" value="isReadOnly"><span class="textCustomTerm">read-only</span>
+      </td>
+    </tr>
+    <!--</tbody>-->
   </script>
 
 

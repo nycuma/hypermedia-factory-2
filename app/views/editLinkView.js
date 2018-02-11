@@ -8,7 +8,7 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
-var SuggestionItemViewLink = require('./suggestionInputViewLink');
+var AutocompleteView = require('./autocompleteView');
 
 var EditLinkView = Backbone.View.extend({
     el: '#editLink',
@@ -29,7 +29,7 @@ var EditLinkView = Backbone.View.extend({
 
         var resNameSource = this.getResNameSourceNode();
 
-        new SuggestionItemViewLink({
+        new AutocompleteView({
             el: '#relationInputWrapper',
             id: 'relation',
             label: 'Relation',
@@ -92,7 +92,7 @@ var EditLinkView = Backbone.View.extend({
             $('#methodDropdown' + i).val(elem.method);
             $('#operation' + i).val(elem.value);
             $('#operation' + i + 'Iri').val(elem.iri);
-
+            this.updateSettingsIcon(null, i);
 
             if(elem.isCustom) {
                 $('#operation' + i + 'CheckCustomTerm').prop('checked', true);
@@ -116,11 +116,13 @@ var EditLinkView = Backbone.View.extend({
         var operationTemplate =_.template($('#operation-template').html());
         $('#operationFieldSetsWrapper').append(operationTemplate({idSet: operationCount}));
 
-        new SuggestionItemViewLink({
+        new AutocompleteView({
             el: this.$el.find('.operationInputWrapper').last(),
             id: 'operation'+operationCount,
             label: 'Descriptor'
         });
+
+        this.registerDropdownChangeEvent(operationCount);
 
     },
 
@@ -211,10 +213,70 @@ var EditLinkView = Backbone.View.extend({
         });
     },
 
+    updateSettingsIcon: function (evt, count) {
+
+        var dropdown, dropdownCount;
+
+        if(evt) {
+            dropdown = $(evt.target);
+            dropdownCount = dropdown.attr('count');
+        } else {
+            dropdown = $('#methodDropdown'+count);
+            dropdownCount = count;
+        }
+
+        if(dropdown.val() === 'REPLACE' || dropdown.val() === 'CREATE') {
+            dropdown.parent().next().find('.settingsIcon')
+                .attr({src: 'static/img/icon_settings.png', title: '(TODO) Options for request parameters', count: dropdownCount})
+                .addClass('displayIcon');
+        } else {
+            dropdown.parent().next().find('.settingsIcon')
+                .attr({src: 'static/img/icon_no_settings.png', title: '', count: ''})
+                .removeClass('displayIcon');
+        }
+    },
+
+    //TODO displayOptionsRequestParams
+    toggleOptionsRequestParams: function(evt) {
+
+        var optionsOnDisplay = $(evt.target).parent().parent().parent().parent().find('.requestParamsOptionsWrapper');
+
+        console.log('displayOptionsRequestParams size: ' + optionsOnDisplay.length);
+
+        if(optionsOnDisplay.length > 0) {
+            optionsOnDisplay.remove();
+        } else {
+            if($(evt.target).hasClass('displayIcon')) {
+                var count = $(evt.target).attr('count');
+                var attrs = this.model.getSourceNode().getResourceAttrsValues();
+
+                attrs.forEach(function(attr) {
+                    var paramTemplate =_.template($('#request-param-template').html());
+                    var tbody = $(paramTemplate({attrVal: attr})).wrap('<tbody></tbody>').addClass('requestParamsOptionsWrapper');
+                    $('#operationFieldSet'+count+' table').append(tbody);
+
+                });
+
+            }
+        }
+
+
+    },
+
     close: function (evt) {
         if(evt) evt.preventDefault();
         this.remove();
         $('body').append('<div id="editLink" class="editGraphElement"></div>');
+    },
+
+    registerDropdownChangeEvent: function (count) {
+        $('#methodDropdown'+count).change(_.bind(function(evt) {
+            this.updateSettingsIcon(evt);
+        }, this));
+
+        $('#methodDropdown'+count).parent().next().find('.settingsIcon').click(_.bind(function(evt) {
+            this.toggleOptionsRequestParams(evt);
+        }, this));
     }
 });
 

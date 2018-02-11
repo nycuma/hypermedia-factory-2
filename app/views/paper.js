@@ -31,6 +31,8 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         var start = new StartNode();
         var elCollection = this.createNodeForDemo(15, 90, 'RecordCollection', undefined, '{myURL}/vocab#RecordCollection', true, 'A collection of music records');
         var elAlbum = this.createNodeForDemo(230, 90, 'MusicAlbum', 'schema', 'http://schema.org/MusicAlbum');
+        elAlbum.saveAttribute('numTracks', 'schema', 'http://schema.org/numTracks');
+        elAlbum.saveAttribute('yearlyRevenue', 'schema', 'http://schema.org/yearlyRevenue');
         var elTrack = this.createNodeForDemo(480, 90, 'MusicRecording', 'schema', 'http://schema.org/MusicRecording');
         var elArtist = this.createNodeForDemo(230, 220, 'MusicGroup', 'schema', 'http://schema.org/MusicGroup');
 
