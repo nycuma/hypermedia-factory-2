@@ -9,7 +9,7 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
-var SuggestionItemView = require('./suggestionInputView');
+var AutocompleteView = require('./autocompleteView');
 
 
 
@@ -31,12 +31,12 @@ var EditResourceView = Backbone.View.extend({
 
         this.$el.html(this.template());
 
-        var sivResName = new SuggestionItemView({el: '#resourceNameInputWrapper',
+        var avResName = new AutocompleteView({el: '#resourceNameInputWrapper',
                                                 id: 'resourceName',
                                                 label: 'Name'});
-        this.listenTo(sivResName, 'resourceNameSelected', this.refreshAttrField);
+        this.listenTo(avResName, 'resourceNameSelected', this.refreshAttrField);
 
-        new SuggestionItemView({el: '#resourceAttrInputWrapper',
+        new AutocompleteView({el: '#resourceAttrInputWrapper',
                                 id: 'resourceAttr0',
                                 label: 'Attributes'});
 
@@ -133,7 +133,7 @@ var EditResourceView = Backbone.View.extend({
         }
 
         var attrID = this.getNextAttrID();
-        new SuggestionItemView({el: '#resourceAttrInputWrapper',
+        new AutocompleteView({el: '#resourceAttrInputWrapper',
                                 id: 'resourceAttr' + attrID,
                                 label: attrID == 0 ? 'Attributes':'',
                                 resourceNameValue: resourceNameValue,
@@ -144,13 +144,20 @@ var EditResourceView = Backbone.View.extend({
         return this.$('#resourceAttrInputWrapper').find('.autocompleteInputField').length;
     },
 
+    /**
+     * When user selects a new resource name (= new RDF class), all previously
+     * selected resource attributes (RDF properties) are deleted. A new autocomplete
+     * input field is generated which suggests only properties whose domain include the new
+     * resource name
+     * @param data : prefix and value of the RDF class of resource name
+     */
     refreshAttrField: function(data) {
         console.log('refresh attr fields');
         // remove all existing input fields for resource attributes
         $('#resourceAttrInputWrapper').empty();
 
         // add input field that suggests only properties for entered resource name
-        new SuggestionItemView({el: '#resourceAttrInputWrapper',
+        new AutocompleteView({el: '#resourceAttrInputWrapper',
                                 id: 'resourceAttr0',
                                 label: 'Attributes',
                                 resourceNameValue: data.value,
@@ -240,7 +247,6 @@ var EditResourceView = Backbone.View.extend({
 
 
     },
-
 
     close: function (evt) {
         if(evt) evt.preventDefault();
