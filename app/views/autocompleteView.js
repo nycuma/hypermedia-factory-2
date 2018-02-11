@@ -12,8 +12,7 @@ var sugSource;
 sugSource = require('../collections/suggestionSource');
 var autocomplete = require('jquery-ui/ui/widgets/autocomplete');
 
-// TODO !!! merge SuggestionItemView and SuggestionItemViewLink and write a single createInputField() function
-var SuggestionItemView = Backbone.View.extend({
+var AutocompleteView = Backbone.View.extend({
     template: _.template($('#autocomplete-input-template').html()),
 
     initialize: function(options){
@@ -31,65 +30,168 @@ var SuggestionItemView = Backbone.View.extend({
         this.$el.append(this.template({label: this.options.label, idAC: this.id}));
 
         if(this.id === 'resourceName') {
-            console.log('new suggestionInputView name');
-            this.createInputFieldResName();
+            this.createInputField();
 
         } else if (this.id.match(/resourceAttr/)) {
 
-            console.log('new suggestionInputView attr, value and prefix: '
+            console.log('new suggestionInputView attr: value and prefix: '
                 + this.options.resourceNameValue + ', ' + this.options.resourceNamePrefix);
-            this.createInputFielResAttr(this.options.resourceNameValue, this.options.resourceNamePrefix);
+
+            this.createInputField(this.options.resourceNameValue, this.options.resourceNamePrefix);
+
+        } else if(this.id === 'relation') {
+
+            console.log('new suggestionInputView relation: value and prefix: '
+                + this.options.resourceNameValue + ', ' + this.options.resourceNamePrefix);
+
+            this.createInputField(this.options.resourceNameValue, this.options.resourceNamePrefix);
+        } else if(this.id.match(/operation/)) {
+            this.createInputField();
         }
+
+
         return this;
     },
 
-    createInputFieldResName: function (propValue, propPrefix) {
+    getSourceResName: function(userInput, propValue, propPrefix) {
+
+        var results = [];
+        var regExUserInput = new RegExp(userInput, 'i'); // characters entered by user
+        var self = this;
+
+        if(propValue && propPrefix) { // get only RDF classes in the range of this property
+
+            var prefixIRI = sugSource.getPrefixIRIFromPrefix(propPrefix);
+
+            sugSource.rdfStore.forObjectsByIRI(function(object) {
+
+                var val = sugSource.getTermFromIRI(object);
+
+                if(val.match(regExUserInput)) {
+                    results.push({
+                        value: val,
+                        label: propPrefix+': '+ self.getRDFTypeHierarchyAsString(object, 'http://schema.org/Thing')
+                    });
+                }
+
+            }, prefixIRI+propValue,'http://schema.org/rangeIncludes'); //TODO RDF IRI for rangeIncludes?
+
+
+        } else { //get all RDF classes matching entered characters
+
+            sugSource.rdfStore.forSubjectsByIRI(function (subject) {
+
+                var val = sugSource.getTermFromIRI(subject);
+                if(val.match(regExUserInput)) {
+                    results.push({
+                        value: val,
+                        label: sugSource.getPrefixFromIRI(subject)+': '+self.getRDFTypeHierarchyAsString(subject, 'http://schema.org/Thing')
+                    });
+                }
+            }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
+        }
+
+        return results.slice(0, 15); // max. 15 results
+    },
+
+    getSourceResAttribute: function(userInput, resourceNameValue, resourceNamePrefix) {
+
+        var results = this.getSourceRdfProperties(userInput, resourceNameValue, resourceNamePrefix);
+
+        return results.slice(0, 15);// max. 15 results
+    },
+
+    getSourceLinkRelation: function(userInput, resourceNameValue, resourceNamePrefix) {
+
+        var results = this.getSourceRdfProperties(userInput, resourceNameValue, resourceNamePrefix);
+
+        // add IANA link relations to suggestion list
+        var ianaRels = $.ui.autocomplete.filter(sugSource.getAllTermsFromVocab('IANA'), userInput);
+        results = results.concat(ianaRels);
+
+        return results.slice(0, 15);  // max. 15 results
+
+    },
+
+    getSourceOperation: function(userInput) {
+
+        var results = [];
+        var regExUserInput = new RegExp(userInput, 'i');
+        var self = this;
+
+        //get all RDF classes describing actions
+        sugSource.rdfStore.forSubjectsByIRI(function (subject) {
+
+            var val = sugSource.getTermFromIRI(subject);
+            if(val.match(regExUserInput) && val.match(/Action/)) {
+                results.push({
+                    value: val,
+                    label: sugSource.getPrefixFromIRI(subject)+': '+self.getRDFTypeHierarchyAsString(subject, 'http://schema.org/Action')
+                });
+            }
+        }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
+
+        return results.slice(0, 15); // max. 15 results
+    },
+
+    getSourceRdfProperties: function(userInput, resourceNameValue, resourceNamePrefix) {
+
+        var results = [];
+        var regExUserInput = new RegExp(userInput, 'i');
+
+        if(resourceNameValue && resourceNamePrefix) { // get RDF properties only for entered resource name and its super types
+
+            var prefixIRI = sugSource.getPrefixIRIFromPrefix(resourceNamePrefix);
+
+            var typesAsIri = this.getRDFSuperClasses(prefixIRI+resourceNameValue);
+            //console.log('TYPES AS IRI: ' + JSON.stringify(typesAsIri));
+
+            typesAsIri.forEach(function (typeIri) {
+
+                sugSource.rdfStore.forSubjectsByIRI(function (subject) {
+                    var val = sugSource.getTermFromIRI(subject);
+                    if(val.match(regExUserInput)) {
+                        results.push({
+                            value: val,
+                            label: resourceNamePrefix + ': ' + val
+                        });
+                    }
+                }, 'http://schema.org/domainIncludes', typeIri);
+
+            });
+
+
+        } else { // get all RDF properties that match entered characters
+
+            sugSource.rdfStore.forSubjectsByIRI(function (subject) {
+                var val = sugSource.getTermFromIRI(subject);
+
+                if(val.match(regExUserInput)) {
+                    results.push({
+                        value: val,
+                        label: sugSource.getLabelFromIRI(subject)
+                    });
+                }
+            }, null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property');
+        }
+
+        return results;
+    },
+
+    createInputField: function (value, prefix) {
         var self = this;
         new autocomplete({
             minLength: 2,
-            source: function(request, response) {
+            source: function(request, response) { // values to be suggested to user
 
                 var results = [];
-                var regEx = new RegExp(request.term, 'i');
 
+                if(self.id === 'resourceName') results = self.getSourceResName(request.term, value, prefix);
+                else if (self.id.match(/resourceAttr/)) results = self.getSourceResAttribute(request.term, value, prefix);
+                else if(self.id === 'relation') results = self.getSourceLinkRelation(request.term, value, prefix);
+                else if(self.id.match(/operation/)) results = self.getSourceOperation(request.term);
 
-
-                if(propValue && propPrefix) {
-                    // get RDF classes in the range of this property
-
-                    var prefixIRI = sugSource.getPrefixIRIFromPrefix(propPrefix);
-
-                    sugSource.rdfStore.forObjectsByIRI(function(object) {
-
-                        var val = sugSource.getTermFromIRI(object);
-
-                        if(val.match(regEx)) {
-                            results.push({
-                                value: val,
-                                label: propPrefix+': '+self.getRDFTypeHierarchyAsString(object, 'http://schema.org/Thing')
-                            });
-                        }
-
-                    }, prefixIRI+propValue,'http://schema.org/rangeIncludes'); //TODO RDF IRI for rangeIncludes?
-                    response(results);
-
-                } else {
-                    //get all RDF classes matching entered characters
-                    sugSource.rdfStore.forSubjectsByIRI(function (subject) {
-
-                        var val = sugSource.getTermFromIRI(subject);
-                        if(val.match(regEx)) {
-                            results.push({
-                                value: val,
-                                label: sugSource.getPrefixFromIRI(subject)+': '+self.getRDFTypeHierarchyAsString(subject, 'http://schema.org/Thing')
-                            });
-                        }
-                    }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
-
-                    response(results.slice(0, 15)); // max. 15 results
-
-
-                }
+                response(results);
             },
 
             focus: function(event, ui) {
@@ -97,14 +199,17 @@ var SuggestionItemView = Backbone.View.extend({
             },
 
             select: function(event, ui) {
-                // uncheck checkbox and hide customTermDescription
+                var prefix = sugSource.getPrefixFromLabel(ui.item.label);
+
+                // refresh input fields for resources attributes (suggest only properties for selected resource name)
+                if(this.id === 'resourceName') self.trigger('resourceNameSelected', {value: ui.item.value, prefix: prefix});
+
+                // uncheck 'custom term'-checkbox and hide customTermDescription
                 self.removeInputCustomTermDescription(this);
 
                 // display complete IRI next to autocomplete field
                 self.fillInputFieldIri(ui.item.label, ui.item.value);
-                var prefix = sugSource.getPrefixFromLabel(ui.item.label);
-                // refresh input fields for resources attributes
-                self.trigger('resourceNameSelected', {value: ui.item.value, prefix: prefix});
+
                 // save prefix in hidden input field
                 self.writePrefixToHiddenInputField(prefix);
 
@@ -302,7 +407,7 @@ var SuggestionItemView = Backbone.View.extend({
 
     registerAutocompleteInputChangeEvent: function () {
         // register change events for autocomplete input fields
-        console.log('registered AutocompleteInputChangeEvent on: ' + this.id);
+        //console.log('registered AutocompleteInputChangeEvent on: ' + this.id);
         var self = this;
         $('.ui-autocomplete-input').bind('change',function(evt) {
             self.setCustomIRI(evt.target.id);
@@ -312,4 +417,4 @@ var SuggestionItemView = Backbone.View.extend({
 
 });
 
-module.exports = SuggestionItemView;
+module.exports = AutocompleteView;
