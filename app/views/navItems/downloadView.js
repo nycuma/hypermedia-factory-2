@@ -10,6 +10,7 @@ var $ = require('jquery');
 Backbone.$ = $;
 var JSZip = require("jszip");
 var FileSaver = require('file-saver');
+var JsonLdGenerator = require('../../util/jsonLdGenerator');
 
 var DownloadView = Backbone.View.extend({
     el: '#sidePanelContent',
@@ -36,6 +37,11 @@ var DownloadView = Backbone.View.extend({
     downloadZip: function () {
         console.log('downloadZip called');
 
+        var namespace = 'http://myapi.com/vocab#';
+        JsonLdGenerator.downloadHydraAPI(this.model, namespace);
+
+
+        /*
         var zip = new JSZip();
         zip.file("Hello.txt", "Hello World\n\tA tab\n\t\ttwo tabs");
         zip.file("folder/Hello2.txt", "Hello 2");
@@ -43,6 +49,7 @@ var DownloadView = Backbone.View.extend({
             .then(function(content) {
                 FileSaver.saveAs(content, "example2.zip");
             });
+            */
     }
 });
 
