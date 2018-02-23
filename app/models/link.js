@@ -42,8 +42,16 @@ var RelationLink = joint.dia.Link.extend({
         ]
     }, joint.dia.Link.prototype.defaults),
 
-    renderLabelRelation: function () {
-        this.prop('labels/1/attrs/text/text', this.prop('relation').value);
+    renderLabelRelations: function () {
+
+        if(this.prop('operations')) {
+            var relationLabel = this.prop('operations').reduce(function (a,b) {
+                if(!a) return b.value;
+                if(!b.value) return a;
+                return a + ', ' + b.value;
+            }, '');
+            this.prop('labels/1/attrs/text/text', relationLabel);
+        }
     },
 
     renderLabelOperations: function () {
@@ -89,7 +97,30 @@ var RelationLink = joint.dia.Link.extend({
         return this.graph.getCell(this.get('target').id);
     },
 
+    saveLink: function(method, value, prefix, iri, isCustom, customDescr, actionValue, actionPrefix, actionIri) {
+        var operations = this.prop('operations') || [];
 
+        value = isCustom ? this.getFormattedRel(value) : value;
+
+        operations.push({
+            method: method,
+            value: value, // relation value
+            iri: iri, // relation IRI
+            prefix: prefix, // relation prefix
+            isCustom: isCustom, // applies to relation
+            customDescr: customDescr, // applies to relation
+            actionValue: actionValue,
+            actionPrefix: actionPrefix,
+            actionIri: actionIri
+        });
+        this.prop('operations', operations);
+
+        this.renderLabelOperations();
+        this.renderLabelRelations();
+
+    },
+
+    /*
     saveRelation: function(value, prefix, iri, isCustom, customDescr) {
 
         value = isCustom ? this.getFormattedRel(value) : value;
@@ -102,13 +133,13 @@ var RelationLink = joint.dia.Link.extend({
             customDescr: customDescr
         });
 
-        this.renderLabelRelation()
+        this.renderLabelRelations();
     },
 
     saveOperation: function(method, value, prefix, iri, isCustom, customDescr) {
         var operations = this.prop('operations') || [];
 
-        if(value) { value = isCustom ? this.getFormattedOperation(value) : value; }
+        //if(value) { value = isCustom ? this.getFormattedOperation(value) : value; }
 
         operations.push({
             method: method,
@@ -122,16 +153,11 @@ var RelationLink = joint.dia.Link.extend({
 
         this.renderLabelOperations();
     },
+    */
 
     // 1st letter lowercase, camelcase
     getFormattedRel: function (value) {
         value = value.charAt(0).toLowerCase() + value.slice(1);
-        return this.getCamelCase(value);
-    },
-
-    // 1st letter uppercase, camelcase
-    getFormattedOperation: function (value) {
-        value = value.charAt(0).toUpperCase() + value.slice(1);
         return this.getCamelCase(value);
     },
 
