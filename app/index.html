@@ -130,12 +130,16 @@
 
     <tr>
       <td><%= label %></td>
-      <td colspan="2" class="autocompleteInputField" id="<%= idAC %>InputField"></td>
+      <td class="autocompleteInputField" id="<%= idAC %>InputField"></td>
+      <td rowspan="2"><textarea name="termDescr" id="<%= idAC %>TermDescr" rows="3" placeholder="Please add a short description of the term..."></textarea> </td>
     </tr>
     <tr>
       <td></td>
-      <td colspan="2"><input id="<%= idAC %>Iri" type="text" name="inputFieldIri" placeholder="URI for term" readonly></td>
+      <td><input id="<%= idAC %>Iri" type="text" name="inputFieldIri" placeholder="URI for term" readonly></td>
     </tr>
+
+    <!--
+
     <tr>
         <td></td>
         <td>
@@ -149,8 +153,10 @@
             <br><input type="text" name="customTermDescr" id="<%= idAC %>CustomTermDescr" placeholder="Description"/>
         </td>
     </tr>
-  </script>
+    -->
 
+
+  </script>
 
   <!-- Edit Resource Template -->
   <script type="text/template" id="edit-resource-template">
@@ -178,14 +184,6 @@
       </table>
         <br>
 
-        <!--
-      <table>
-        <tbody id="relationInputWrapper">
-          <!-- autocomplete input field -->
-        </tbody>
-      </table>
-        -->
-
       <hr>
         <strong>Operations</strong>
         <div id="operationFieldSetsWrapper">
@@ -203,11 +201,11 @@
     <div id="operationFieldSet<%= idSet %>">
       <table>
 
-        <tbody id="relationInputWrapper">
+        <tbody class="relationInputWrapper">
         <!-- autocomplete input field for link relation-->
         </tbody>
 
-        <tbody class="operationInputWrapper">
+        <tbody class="actionInputWrapper">
         <!-- autocomplete input field for action type -->
         </tbody>
 
@@ -216,16 +214,17 @@
           <td><label for="methodDropdown<%= idSet %>">Method:</label></td>
           <td>
             <select name="methodDropdown" id="methodDropdown<%= idSet %>" count="<%= idSet %>">
-              <option value=""></option>
               <option value="RETRIEVE">retrieve (safe)</option>
               <option value="CREATE">create (not idemportent)</option>
               <option value="REPLACE">replace (idempotent)</option>
               <option value="DELETE">delete (idempotent)</option>
             </select>
           </td>
+          <!--
           <td>
             <img class="settingsIcon" src="static/img/icon_settings.png" title="(TODO) Options for request parameters" width="15" height="15">
           </td>
+          -->
         </tr>
         </tbody>
 
