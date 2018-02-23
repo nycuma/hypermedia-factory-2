@@ -31,7 +31,7 @@
 
   <!-- Navigation Bar Template -->
   <script type="text/template" id="navigationBar-template">
-    <!-- <img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="static/img/hm-logo-small.png" width="130" height="37"/> -->
+    <img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="static/img/hm-logo-small.png" width="100" height="35"/>
     <nav>
       <button class="navItem opensSidePanel" id="aboutBtn">About</button>
       <button class="navItem" id="openBtn">Open</button>
@@ -106,10 +106,6 @@
         </tr>
       </table>
       <button class="btn submitBtn" type="submit">Download</button>
-      <br><br><br>
-      <button class="btn submitBtn" id="btnTestZipFile" type="submit">TEST ZipFile</button>
-      <br><br><br>
-      <button class="btn submitBtn" id="btnTestGetGraph" type="submit">Print graph</button>
     </form>
   </script>
 
@@ -150,7 +146,7 @@
         <td></td>
         <td colspan="2">
             <span class="textCustomTerm">Please provide a description:</span>
-            <br><input type="text" name="customTermDescr" id="<%= idAC %>CustomTermDescr"/>
+            <br><input type="text" name="customTermDescr" id="<%= idAC %>CustomTermDescr" placeholder="Description"/>
         </td>
     </tr>
   </script>
@@ -181,11 +177,14 @@
         </tr>
       </table>
         <br>
+
+        <!--
       <table>
         <tbody id="relationInputWrapper">
           <!-- autocomplete input field -->
         </tbody>
       </table>
+        -->
 
       <hr>
         <strong>Operations</strong>
@@ -203,6 +202,14 @@
     <hr>
     <div id="operationFieldSet<%= idSet %>">
       <table>
+
+        <tbody id="relationInputWrapper">
+        <!-- autocomplete input field for link relation-->
+        </tbody>
+
+        <tbody class="operationInputWrapper">
+        <!-- autocomplete input field for action type -->
+        </tbody>
 
         <tbody>
         <tr>
@@ -222,9 +229,7 @@
         </tr>
         </tbody>
 
-        <tbody class="operationInputWrapper">
-          <!-- autocomplete input field -->
-        </tbody>
+
 
       </table>
     </div>
