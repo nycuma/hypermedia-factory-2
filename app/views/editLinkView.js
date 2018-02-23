@@ -236,7 +236,6 @@ var EditLinkView = Backbone.View.extend({
         }
     },
 
-    //TODO displayOptionsRequestParams
     toggleOptionsRequestParams: function(evt) {
 
         var optionsOnDisplay = $(evt.target).parent().parent().parent().parent().find('.requestParamsOptionsWrapper');
@@ -248,7 +247,7 @@ var EditLinkView = Backbone.View.extend({
         } else {
             if($(evt.target).hasClass('displayIcon')) {
                 var count = $(evt.target).attr('count');
-                var attrs = this.model.getSourceNode().getResourceAttrsValues();
+                var attrs = this.model.getTargetNode().getResourceAttrsValues();
 
                 attrs.forEach(function(attr) {
                     var paramTemplate =_.template($('#request-param-template').html());
