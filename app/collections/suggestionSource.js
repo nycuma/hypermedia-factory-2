@@ -91,6 +91,11 @@ var SuggestionSource = Backbone.Collection.extend({
         return this.getPrefixFromIRI(iri) + ': ' + this.getTermFromIRI(iri);
     },
 
+    getDescriptionForNonRDFTerm: function(prefix, value) {
+        var result = this.findWhere({prefix: prefix, value: value});
+        return result.get('descr');
+    },
+
 
 
     /*
