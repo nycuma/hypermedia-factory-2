@@ -1,0 +1,39 @@
+{
+  "vocabularies" : [
+    {
+      "IANA": {
+        "about": {
+          "available": [
+            "RETRIEVE"
+          ],
+          "default": "RETRIEVE"
+        },
+        "collection": {
+          "available": [
+            "RETRIEVE"
+          ],
+          "default": "RETRIEVE"
+        },
+        "edit": {
+          "available": [
+            "REPLACE",
+            "DELETE"
+          ],
+          "default": "REPLACE"
+        },
+        "item": {
+          "available": [
+            "RETRIEVE"
+          ],
+          "default": "RETRIEVE"
+        },
+        "stylesheet": {
+          "available": [
+            "RETRIEVE"
+          ],
+          "default": "RETRIEVE"
+        }
+      }
+    }
+    ]
+}
