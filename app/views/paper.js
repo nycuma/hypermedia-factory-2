@@ -38,30 +38,32 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
         // Links
         var l1 = this.createStartLink(start.id, elCollection.id);
+        // TODO customize start link
 
-        var l2 = this.createLinkForDemo(elCollection.id, elAlbum.id, 'item', 'IANA');
-        l2.saveOperation('RETRIEVE', 'ReadAction', 'schema', 'http://schema.org/ReadAction');
-        l2.saveOperation('CREATE', 'AddAction', 'schema', 'http://schema.org/AddAction');
+        var l2 = this.createLinkForDemo(elCollection.id, elAlbum.id);
+        l2.saveLink('RETRIEVE', 'item', 'IANA', null, false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+        l2.saveLink('CREATE', 'item', 'IANA', null, false, null, 'AddAction', 'schema', 'http://schema.org/AddAction');
+        // TODO IANA IRIs
 
         var l3 = this.createLinkForDemo(elAlbum.id, elAlbum.id);
         l3.set('vertices', [{ x: 240, y: 45 }, { x: 315, y: 45 }]);
-        l3.saveOperation('REPLACE', 'UpdateAction', 'schema', 'http://schema.org/UpdateAction');
-        l3.saveOperation('DELETE', 'DeleteAction', 'schema', 'http://schema.org/DeleteAction');
+        l3.saveLink('REPLACE', 'updateAlbum', null, null, true, 'Replaces the album data with new values', 'UpdateAction', 'schema', 'http://schema.org/UpdateAction');
+        l3.saveLink('DELETE', 'deleteAlbum', null, null, true, 'Deletes the album', 'DeleteAction', 'schema', 'http://schema.org/DeleteAction');
 
-        var l4 = this.createLinkForDemo(elAlbum.id, elTrack.id, 'track', 'schema', 'http://schema.org/track');
-        l4.saveOperation('RETRIEVE', 'ReadAction', 'schema', 'http://schema.org/ReadAction');
-        l4.saveOperation('CREATE', 'AddAction', 'schema', 'http://schema.org/AddAction');
+        var l4 = this.createLinkForDemo(elAlbum.id, elTrack.id);
+        l4.saveLink('RETRIEVE', 'track', 'schema', 'http://schema.org/track', false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+        l4.saveLink('CREATE', 'addAlbumTrack', null, null, true, 'Adds a new track to the album', 'AddAction', 'schema', 'http://schema.org/AddAction');
 
-        var l5 = this.createLinkForDemo(elAlbum.id, elArtist.id, 'byArtist', 'schema', 'http://schema.org/byArtist');
-        l5.saveOperation('RETRIEVE', 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+        var l5 = this.createLinkForDemo(elAlbum.id, elArtist.id);
+        l5.saveLink('RETRIEVE', 'byArtist', 'schema', 'http://schema.org/byArtist', false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
 
         var l6 = this.createLinkForDemo(elTrack.id, elTrack.id);
         l6.set('vertices', [{ x: 485, y: 45 }, { x: 565, y: 45 }]);
-        l6.saveOperation('REPLACE', 'UpdateAction', 'schema', 'http://schema.org/UpdateAction');
-        l6.saveOperation('DELETE', 'DeleteAction', 'schema', 'http://schema.org/DeleteAction');
+        l6.saveLink('REPLACE', 'updateTrack', null, null, true, 'Replaces the track data with new values', 'UpdateAction', 'schema', 'http://schema.org/UpdateAction');
+        l6.saveLink('DELETE', 'deleteTrack', null, null, true, 'Deletes the track', 'DeleteAction', 'schema', 'http://schema.org/DeleteAction');
 
-        var l7 = this.createLinkForDemo(elTrack.id, elArtist.id, 'byArtist', 'schema', 'http://schema.org/byArtist');
-        l7.saveOperation('RETRIEVE', 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+        var l7 = this.createLinkForDemo(elTrack.id, elArtist.id);
+        l7.saveLink('RETRIEVE', 'byArtist', 'schema', 'http://schema.org/byArtist', false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
 
         this.model.addCells([start, elCollection, elAlbum, elTrack, elArtist, l1, l2, l3, l4, l5, l6, l7]);
 
@@ -151,7 +153,7 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
             source: { id: source },
             target: { x: target[0]+50, y: target[1]+50 }
         });
-        link.saveOperation('RETRIEVE', 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+        link.saveLink('RETRIEVE', null, null, null, false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
         this.model.addCell(link);
         console.log('link added to node ' + source);
     },
@@ -176,12 +178,11 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         return node;
     },
 
-    createLinkForDemo: function (sourceId, targetId, value, prefix, iri, isCustom, customDescr) {
+    createLinkForDemo: function (sourceId, targetId) {
         var link = new Link({
             source: { id: sourceId },
             target: { id: targetId }
         });
-        link.saveRelation(value, prefix, iri, isCustom, customDescr);
         return link;
     }
 });
