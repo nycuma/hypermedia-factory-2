@@ -40,7 +40,7 @@ body {
 
 img {
     float: left;
-    margin: 10px;
+    margin: 12px 8px 8px 10px;
 }
 
 nav {
@@ -206,8 +206,8 @@ nav button:focus {
     top: 15vh;
     left: 20vw;
     right: 20vw;
-    min-width: 330px;
-    max-width: 600px;
+    min-width: 500px;
+    max-width: 700px;
     width: 10vw;
     margin: auto;
     padding-top: 10px;
@@ -230,10 +230,6 @@ nav button:focus {
 }
 
 
-.editGraphElement form input[type=text] {
-    width: 100%;
-}
-
 .editGraphElement .btn {
     color: #6a4848;
     background-color: #f5f5ef;
@@ -243,41 +239,64 @@ nav button:focus {
     float: left;
 }
 
+.editGraphElement .addFieldBtn {
+    float: right;
+}
+
 .editGraphElement .btn:hover,
 .editGraphElement .btn:focus {
     color: #f5f5ef;
     background-color: #6a4848;
 }
 
-.addFieldBtn {
-    float: right;
-}
-
-.editGraphElement .customTerm {
-    display: none;
-}
-
-.editGraphElement .textCustomTerm {
-    font-family: Helvetica, Arial, sans-serif;
-    font-size: x-small;
-}
-
-.editGraphElement input[name=customTermDescr] {
-    margin-bottom: 5px;
-    background-color: lightgrey;
+.editGraphElement input[type=text],
+.editGraphElement textarea {
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    padding: 3px;
     border: none;
+}
+
+.editGraphElement .ui-autocomplete-input {
+    font-weight: bold;
+
 }
 
 .editGraphElement input[name=inputFieldIri] {
+    /*vertical-align: top;*/
     color: grey;
-    border: none;
     background-color: #f5f0f0;
-    /*direction:rtl;*/
 }
 
+/*
 .editGraphElement input[name=settingsAttribute] {
     color: grey;
     border: none;
+}
+*/
+
+.editGraphElement textarea {
+    margin: 2px;
+    width: 98%;
+    font-size: small;
+    font-family: Helvetica, Arial, sans-serif;
+    resize: none;
+}
+
+.editGraphElement textarea[readonly] {
+    color: grey;
+    background-color: #f5f0f0;
+    place
+}
+
+.editGraphElement select {
+    margin: 3px;
+    padding: 3px;
+    border: none;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
 }
 
 
