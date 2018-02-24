@@ -33,7 +33,7 @@ var Node = joint.shapes.basic.Rect.extend({
     },
 
     //TODO add custom identifier for value
-    saveAttribute: function(attrVal, attrPrefix, iri, isCustom, customDescr /*, dataType*/) {
+    saveAttribute: function(attrVal, attrPrefix, iri, isCustom, customDescr, dataType, isReadonly) {
 
         attrVal = isCustom ? this.getFormattedAttr(attrVal) : attrVal;
 
@@ -43,8 +43,9 @@ var Node = joint.shapes.basic.Rect.extend({
             prefix: attrPrefix,
             iri: iri,
             isCustom: isCustom,
-            customDescr: customDescr
-            //dataType: dataType
+            customDescr: customDescr,
+            dataType: dataType,
+            isReadonly: isReadonly
         });
         this.prop('resourceAttrs', resourceAttrs);
     },
