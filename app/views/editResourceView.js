@@ -10,6 +10,8 @@ var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
 var AutocompleteView = require('./autocompleteView');
+var sugSource;
+sugSource = require('../collections/suggestionSource');
 
 
 
@@ -24,24 +26,24 @@ var EditResourceView = Backbone.View.extend({
     events: {
         'click .submitBtn': 'submit',
         'click .cancelBtn' : 'close',
-        'click .addFieldBtn' : 'addAttrField'
+        'click .addFieldBtn' : 'addAttrFieldSet'
     },
 
     render: function () {
 
         this.$el.html(this.template());
 
-        var avResName = new AutocompleteView({el: '#resourceNameInputWrapper',
-                                                id: 'resourceName',
-                                                label: 'Name'});
+        // add autocomplete input field for resource name
+        var avResName = new AutocompleteView({
+            el: '#resourceNameInputWrapper',
+            id: 'resourceName',
+            label: ''
+        });
         this.listenTo(avResName, 'resourceNameSelected', this.refreshAttrField);
 
-        new AutocompleteView({el: '#resourceAttrInputWrapper',
-                                id: 'resourceAttr0',
-                                label: 'Attributes'});
-
-
-        if(this.model.get('label') !== 'new resource') {
+        if(this.model.get('label') == 'new resource') {
+            this.addAttrFieldSet();
+        } else {
             this.fillInputFields();
         }
 
@@ -49,45 +51,101 @@ var EditResourceView = Backbone.View.extend({
         return this;
     },
 
-    fillInputFields: function () {
-        
-        this.fillInputFieldResName();
-        this.fillInputFieldsResAttrs();
-        console.log('fillInputFields: resourceName: ' + this.model.prop('resourceName').value + ', ' + this.model.prop('resourceName').prefix);
+    addAttrFieldSet: function(evt, nameVal, namePrefix) {
+
+        var resourceNameValue, resourceNamePrefix;
+
+        if(evt) { // case if PLUS button is clicked by user
+            evt.preventDefault();
+
+            var $resName = $('#resourceName');
+            if(!$resName.attr('isCustom')) {
+                resourceNameValue = $resName.val();
+                resourceNamePrefix = $resName.attr('term-prefix');
+            }
+
+            console.log('addAttrFieldSet via PLUS button ' +
+                    '\n\tterm-value: ' + resourceNameValue +
+                    '\n\tterm-prefix: ' + resourceNamePrefix);
+
+        } else if(nameVal && namePrefix) {
+            resourceNameValue = nameVal;
+            resourceNamePrefix = namePrefix;
+        }
+
+        var attrCount = this.getNextAttrID();
+
+        console.log('editResourceView addAttrFieldSet attrCount: ' + attrCount);
+
+        var attrTemplate =_.template($('#resource-attribute-template').html());
+        $('#resourceAttrsWrapper').append(attrTemplate({idSet: attrCount}));
+
+        new AutocompleteView({
+            //el: '#resourceAttrInputWrapper',
+            el: this.$el.find('.resourceAttrInputWrapper').last(),
+            id: 'resourceAttr' + attrCount,
+            label: '',
+            resourceNameValue: resourceNameValue,
+            resourceNamePrefix: resourceNamePrefix });
     },
 
-    fillInputFieldResName: function() {
-         var modelData = this.model.get('resourceName');
+    getNextAttrID: function() {
+        return this.$('#resourceAttrsWrapper').find('.autocompleteInputField').length;
+    },
 
-         /*
+    fillInputFields: function () {
+        var resName = this.model.prop('resourceName');
+        this.fillInputFieldResName(resName);
+        this.fillInputFieldsResAttrs(resName.value, resName.prefix);
+        console.log('fillInputFields: resourceName: ' + resName.value + ', ' + resName.prefix);
+    },
+
+    fillInputFieldResName: function(resNameData) {
+        var modelData = resNameData ? resNameData : this.model.get('resourceName');
+
+        /*
         console.log('loading resource name... found model data: '
             + '\n\tAttr value: ' + modelData.value
             + '\n\tAttr prefix: ' + modelData.prefix
             + '\n\tIRI: ' + modelData.iri
             + '\n\tisCustom: ' + modelData.isCustom
             + '\n\tCustom description: ' + modelData.customDescr);
-        */
+            */
 
-        $('#resourceName').val(modelData.value);
-        $('#resourceNameIri').val(modelData.iri);
+        var $resField = $('#resourceName');
+        $resField.val(modelData.value);
 
         if(modelData.isCustom) {
-            $('#resourceNameCheckCustomTerm').prop('checked', true);
-            $('#resourceNameCustomTermDescr').val(modelData.customDescr).parent().parent().show();
+            $('#resourceNameIri').val('{myURL}/vocab#' + modelData.value);
+            $('#resourceNameTermDescr').val(modelData.customDescr);
+            $resField.attr('isCustom', true);
         } else {
-            $('#resourceNamePrefix').val(modelData.prefix);
-            // TODO (see if it works) set term-val and term-prefix PLUS button
-            $('.addFieldBtn').attr({ 'term-value': modelData.value,
-                                     'term-prefix': modelData.prefix });
+            $('#resourceNameIri').val(modelData.iri);
+            $('#resourceNameTermDescr').val(this.getDescriptionFromVocab(modelData.iri, modelData.prefix, modelData.value));
+            $resField.attr({'isCustom': false, 'term-prefix': modelData.prefix});
         }
     },
 
-    fillInputFieldsResAttrs: function() {
+    fillInputFieldsResAttrs: function(resNameVal, resNamePrefix) {
         var attrsData = this.model.prop('resourceAttrs');
-        if(!attrsData) { return; }
+
+        /*
+        var resNameVal, resNamePrefix, $resName = $('#resourceName');
+        if(!$resName.attr('isCustom')) {
+            resNameVal = $resName.val();
+            resNamePrefix = $resName.attr('term-prefix');
+        }
+        */
+
+        if(!attrsData || attrsData.length === 0) {
+            // show empty field set if no attributes are found in model data
+            console.log('not attr data found');
+            this.addAttrFieldSet(null, resNameVal, resNamePrefix);
+            return;
+        }
 
         attrsData.forEach(_.bind(function(modelData, i) {
-            if (i !== 0) { this.addAttrField(); }
+            this.addAttrFieldSet(null, resNameVal, resNamePrefix);
             /*
             console.log('loading resource attribute... found model data: '
                 + '\n\tAttr value: ' + modelData.value
@@ -97,51 +155,24 @@ var EditResourceView = Backbone.View.extend({
                 + '\n\tCustom description: ' + modelData.customDescr);
                 */
 
-            $('#resourceAttr' + i).val(modelData.value);
-            $('#resourceAttr' + i + 'Iri').val(modelData.iri);
+            var $attrField = $('#resourceAttr' + i);
+            $attrField.val(modelData.value);
 
-            if(this.model.prop('resourceAttrs/' + i).isCustom) {
-                $('#resourceAttr' + i + 'CheckCustomTerm').prop('checked', true);
-                $('#resourceAttr' + i + 'CustomTermDescr').val(modelData.customDescr).parent().parent().show();
-
+            if(modelData.isCustom) {
+                $('#resourceAttr'+i+'Iri').val('{myURL}/vocab#' + modelData.value);
+                $('#resourceAttr'+i+'TermDescr').val(modelData.customDescr);
+                $attrField.attr('isCustom', true);
             } else {
-                $('#resourceAttr' + i + 'Prefix').val(modelData.prefix);
+                $('#resourceAttr'+i+'Iri').val(modelData.iri);
+                $('#resourceAttr'+i+'TermDescr').val(this.getDescriptionFromVocab(modelData.iri, modelData.prefix, modelData.value));
+                $attrField.attr({'isCustom': false, 'term-prefix': modelData.prefix});
             }
+
+            $('#datatypeDropdown'+i).val(modelData.dataType);
+            if(modelData.isReadonly) $('#readonlyCheckBox'+i).prop('checked', true);
+
+
         }, this));
-    },
-
-    addAttrField: function(evt) {
-
-        var resourceNameValue, resourceNamePrefix;
-
-        if(evt) { // case if PLUS button is clicked by user
-            evt.preventDefault();
-
-            resourceNameValue = $(evt.target).attr('term-value');
-            resourceNamePrefix = $(evt.target).attr('term-prefix');
-
-            console.log('addAttrField term-value: ' + resourceNameValue);
-            console.log('addAttrField term-prefix: ' + resourceNamePrefix);
-
-        } else { // case if editResourceView is initialised for the > 1 time and attributes might be retrieved from node model
-            var termVal = this.model.get('resourceName').value;
-            var termPrefix = this.model.get('resourceName').prefix;
-            if(termVal && termPrefix) {
-                $('.addFieldBtn').attr({'term-value': termVal, 'term-prefix': termPrefix});
-            }
-
-        }
-
-        var attrID = this.getNextAttrID();
-        new AutocompleteView({el: '#resourceAttrInputWrapper',
-                                id: 'resourceAttr' + attrID,
-                                label: attrID == 0 ? 'Attributes':'',
-                                resourceNameValue: resourceNameValue,
-                                resourceNamePrefix: resourceNamePrefix });
-    },
-
-    getNextAttrID: function() {
-        return this.$('#resourceAttrInputWrapper').find('.autocompleteInputField').length;
     },
 
     /**
@@ -154,18 +185,23 @@ var EditResourceView = Backbone.View.extend({
     refreshAttrField: function(data) {
         console.log('refresh attr fields');
         // remove all existing input fields for resource attributes
-        $('#resourceAttrInputWrapper').empty();
+        $('#resourceAttrsWrapper').empty();
 
+        // add input field that suggests only properties for entered resource name
+        this.addAttrFieldSet(null, data.value, data.prefix);
+
+        /*
         // add input field that suggests only properties for entered resource name
         new AutocompleteView({el: '#resourceAttrInputWrapper',
                                 id: 'resourceAttr0',
                                 label: 'Attributes',
                                 resourceNameValue: data.value,
                                 resourceNamePrefix: data.prefix});
+                                */
 
 
         // refresh PLUS button that adds new attr fields
-        $('.addFieldBtn').attr({'term-value': data.value, 'term-prefix': data.prefix});
+        //$('.addFieldBtn').attr({'term-value': data.value, 'term-prefix': data.prefix});
     },
 
     submit: function (evt) {
@@ -174,82 +210,116 @@ var EditResourceView = Backbone.View.extend({
         this.saveDataResourceName();
         this.saveDataResourceAttrs();
 
-        // TODO user has to add namd and min. 1 attr before close
         this.close();
     },
 
     saveDataResourceName: function() {
 
-        var nameVal = $('#resourceName').val().trim();
+        var $resName = $('#resourceName');
+
+        var nameVal = $resName.val().trim();
         var iri = $('#resourceNameIri').val();
-        var isCustom = false;
+        var isCustom = this.checkIfCustom($resName);
         var customDescr;
 
-        if($('#resourceNameCheckCustomTerm').prop('checked')) {
-            isCustom = true;
-            customDescr = $('#resourceNameCustomTermDescr').val();
+        if(isCustom) {
+            customDescr = $('#resourceNameTermDescr').val();
         } else {
-            var namePrefix = $('#resourceNamePrefix').val();
+            var namePrefix = $resName.attr('term-prefix');
         }
 
         console.log('saving resource name... found input fields: '
-            + '\n\tAttr value: ' + nameVal
-            + '\n\tAttr prefix: ' + namePrefix
+            + '\n\tValue: ' + nameVal
+            + '\n\tPrefix: ' + namePrefix
             + '\n\tIRI: ' + iri
             + '\n\tisCustom: ' + isCustom
             + '\n\tCustom description: ' + customDescr);
 
-        if((nameVal && namePrefix) || (nameVal && isCustom && customDescr)) {
+        if((nameVal && namePrefix) || (nameVal && isCustom)) {
             this.model.saveName(nameVal, namePrefix, iri, isCustom, customDescr);
+            return true;
         } else {
-            //TODO show error msg to user
+            return false;
         }
-
-
-
     },
 
     saveDataResourceAttrs: function() {
-        var model = this.model;
-        model.prop('resourceAttrs', []);
+        this.model.prop('resourceAttrs', []);
+        var self = this;
 
 
-        $('#resourceAttrInputWrapper .autocompleteInputField').each(function() {
+        $('#resourceAttrsWrapper .resourceAttrSet').each(function() {
 
-            var attrVal = $(this).children('.ui-autocomplete-input').val().trim();
-            var iri = $(this).parent().next().find('input[name=inputFieldIri]').val();
-            var isCustom = false;
-            var customDescr;
+            // save attribute
+            var $resAttr = $(this).find('.ui-autocomplete-input');
+            var attrVal = $resAttr.val().trim();
+            var iri = $(this).find('input[name=inputFieldIri]').val();
 
-            if($(this).parent().next().next().find('input[name=customTermCheck]').prop('checked')) {
-                isCustom = true;
-                customDescr = $(this).parent().next().next().next().find('input[name=customTermDescr]').val();
-                //console.log('#resourceNameCheckCustomAttr was checked, val: ' + customDescr);
-                // TODO (see if it works) reset hidden prefix field
-                $(this).children('.prefixInput').val('');
-            } else {
-                var attrPrefix = $(this).children('.prefixInput').val();
+            if(attrVal && iri) {
+                var isCustom = self.checkIfCustom($resAttr);
+                var customDescr = '';
+
+                if (isCustom) {
+                    customDescr = $(this).find('textarea[name=termDescr]').val().trim();
+                } else {
+                    var attrPrefix = $resAttr.attr('term-prefix');
+                }
+
+                var dataType = $(this).find('select[name=datatypeDropdown]').val();
+                var readonly = $(this).find('input[name=readonlyCheckBox]').prop('checked');
+
+                console.log('saving resource attributes... found input fields: '
+                    + '\n\tAttr value: ' + attrVal
+                    + '\n\tAttr prefix: ' + attrPrefix
+                    + '\n\tIRI: ' + iri
+                    + '\n\tisCustom: ' + isCustom
+                    + '\n\tCustom description: ' + customDescr
+                    + '\n\tData type: ' + dataType
+                    + '\n\tReadonly: ' + readonly
+                );
+
+                if ((attrVal && attrPrefix) || (attrVal && isCustom)) {
+                    self.model.saveAttribute(attrVal, attrPrefix, iri, isCustom, customDescr, dataType, readonly);
+                    return true;
+                } else {
+                    return false;
+                }
             }
 
-            console.log('saving resource attributes... found input fields: '
-                + '\n\tAttr value: ' + attrVal
-                + '\n\tAttr prefix: ' + attrPrefix
-                + '\n\tIRI: ' + iri
-                + '\n\tisCustom: ' + isCustom
-                + '\n\tCustom description: ' + customDescr);
-
-            if((attrVal && attrPrefix) || (attrVal && isCustom && customDescr)) {
-                model.saveAttribute(attrVal, attrPrefix, iri, isCustom, customDescr);
-            } else {
-                //TODO show error msg to user
-            }
         });
+    },
 
+    // TODO dupilcate code
+    checkIfCustom: function (element) {
+        if($(element).attr('isCustom') == 'true') {
+            return true;
+        }
+        return false;
+    },
 
+    // TODO dupilcate code
+    getDescriptionFromVocab: function(iri, prefix, value) {
+        var descr = '';
+        if(iri) {
+            var rdfComment = sugSource.rdfStore.getObjectsByIRI(iri, 'http://www.w3.org/2000/01/rdf-schema#comment');
+            if(rdfComment) descr = rdfComment[0].substr(1, rdfComment[0].length-2);
+        }
+        else if(prefix && value) {
+            descr = sugSource.getDescriptionForNonRDFTerm(prefix, value);
+        }
+        return this.getStringFromHTML(descr);
+    },
+
+    // dupilcate code
+    getStringFromHTML: function(html) {
+        var text = $('<p>'+html+'</p>').text();
+        text = text.replace(/\r?\n|\r|\t/g, ' '); // remove linebreaks and tabs
+        return text;
     },
 
     close: function (evt) {
         if(evt) evt.preventDefault();
+
         this.remove();
         $('body').append('<div id="editResource" class="editGraphElement"></div>');
     }
