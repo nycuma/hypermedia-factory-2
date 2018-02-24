@@ -137,40 +137,64 @@
       <td></td>
       <td><input id="<%= idAC %>Iri" type="text" name="inputFieldIri" placeholder="URI for term" readonly></td>
     </tr>
-
-    <!--
-
-    <tr>
-        <td></td>
-        <td>
-            <input type="checkbox" name="customTermCheck" id="<%= idAC %>CheckCustomTerm"/><span class="textCustomTerm">This is a custom term</span>
-        </td>
-    </tr>
-    <tr class="customTerm">
-        <td></td>
-        <td colspan="2">
-            <span class="textCustomTerm">Please provide a description:</span>
-            <br><input type="text" name="customTermDescr" id="<%= idAC %>CustomTermDescr" placeholder="Description"/>
-        </td>
-    </tr>
-    -->
-
-
   </script>
 
   <!-- Edit Resource Template -->
   <script type="text/template" id="edit-resource-template">
     <form>
-      <table id="editResourceAttributes">
-        <tbody id="resourceNameInputWrapper">
-        </tbody>
-        <tbody id="resourceAttrInputWrapper">
-        </tbody>
+      <table id="resourceNameInputWrapper">
+        <!-- resource name autcomplete field -->
       </table>
+
+      <hr>
+      <strong>Attributes</strong>
+      <div id="resourceAttrsWrapper">
+        <!-- resource attribute template -->
+      </div>
       <button class="btn cancelBtn">Cancel</button>
       <button class="btn submitBtn">Save</button>
       <button class="btn addFieldBtn" title="Add attribute">+</button>
     </form>
+  </script>
+
+
+
+  <!-- Resource attribute Template -->
+  <script type="text/template" id="resource-attribute-template">
+    <hr>
+    <div id="resourceAttrSet<%= idSet %>">
+      <table  class="resourceAttrSet">
+        <tbody class="resourceAttrInputWrapper"> <!-- id="resourceAttrInputWrapper<%= idSet %>" -->
+            <!-- attribute autocomplete input field -->
+        </tbody>
+        <tbody>
+          <!-- attribute options -->
+          <tr>
+            <td></td>
+            <td><label for="datatypeDropdown<%= idSet %>">Data type:</label>
+              <select name="datatypeDropdown" id="datatypeDropdown<%= idSet %>">
+                <option value="string">String</option>
+                <option value="boolean">Boolean</option>
+                <option value="integer">Integer</option>
+                <option value="decimal">Decimal</option>
+                <option value="date">Date</option>
+                <option value="time">Time</option>
+                <option value="datetime">DateTime</option>
+                <option value="url">URL</option>
+              </select>
+            </td>
+            <td>Read-only: <input type="checkbox" name="readonlyCheckBox" id="readonlyCheckBox<%= idSet %>"/></td>
+          </tr>
+          <!--
+          <tr>
+            <td>Nested collection</td>
+            <td><input type="checkbox" /></td>
+          </tr>
+          -->
+        </tbody>
+      </table>
+    </div>
+
   </script>
 
   <!-- Edit Link Template -->
@@ -180,6 +204,10 @@
         <tr>
           <td><input type="checkbox" name="collItemLinkCheckBox"/></td>
           <td>This link connects a collection to an item.</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><input type="checkbox" name="allowFilterCheckBox"/> <span class="allowFilterText">Allow filter queries.</span></td>
         </tr>
       </table>
         <br>
@@ -220,19 +248,10 @@
               <option value="DELETE">delete (idempotent)</option>
             </select>
           </td>
-          <!--
-          <td>
-            <img class="settingsIcon" src="static/img/icon_settings.png" title="(TODO) Options for request parameters" width="15" height="15">
-          </td>
-          -->
         </tr>
         </tbody>
-
-
-
       </table>
     </div>
-
   </script>
 
 
