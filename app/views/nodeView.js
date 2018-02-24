@@ -104,8 +104,6 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
     // sets the background color of the node according to its
     // structural type ('collection' or 'item')
     setColorStructuralType: function(data) {
-        console.log('entered node view setColorStructuralType');
-
         if(data.type === 'collection') {
             $(this.$box).addClass(data.type); // add CSS class to change node color
             $(this.$box).find('.collectionLabel').show();
