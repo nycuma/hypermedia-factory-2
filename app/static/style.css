@@ -263,19 +263,6 @@ nav button:focus {
 
 }
 
-.editGraphElement input[name=inputFieldIri] {
-    /*vertical-align: top;*/
-    color: grey;
-    background-color: #f5f0f0;
-}
-
-/*
-.editGraphElement input[name=settingsAttribute] {
-    color: grey;
-    border: none;
-}
-*/
-
 .editGraphElement textarea {
     margin: 2px;
     width: 98%;
@@ -284,10 +271,9 @@ nav button:focus {
     resize: none;
 }
 
-.editGraphElement textarea[readonly] {
-    color: grey;
+.editGraphElement [readonly] {
+    color: darkslategrey;
     background-color: #f5f0f0;
-    place
 }
 
 .editGraphElement select {
@@ -299,6 +285,9 @@ nav button:focus {
     border-radius: 2px;
 }
 
+#editResource input[type=text] {
+    width: 93%;
+}
 
 
 hr {
