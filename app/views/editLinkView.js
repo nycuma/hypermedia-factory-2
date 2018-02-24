@@ -23,7 +23,8 @@ var EditLinkView = Backbone.View.extend({
     events: {
         'click .submitBtn': 'submit',
         'click .cancelBtn' : 'close',
-        'click .addFieldBtn' : 'addOperationFieldSet'
+        'click .addFieldBtn' : 'addOperationFieldSet',
+        'click input[name=collItemLinkCheckBox]' : 'toggleAllowFilterCheckbox'
     },
 
     render: function () {
@@ -50,8 +51,11 @@ var EditLinkView = Backbone.View.extend({
         // set check mark if link connects collection and item
         if(this.model.prop('isCollItemLink') === true) {
             this.$el.find('input[name=collItemLinkCheckBox]').prop('checked', true);
+            if(this.model.prop('allowFilter') === true) {
+                this.$el.find('input[name=allowFilterCheckBox]').prop('checked', true);
+            }
         }
-
+        this.toggleAllowFilterCheckbox();
         this.setInputFieldsOperations();
 
     },
@@ -71,29 +75,28 @@ var EditLinkView = Backbone.View.extend({
         operations.forEach(_.bind(function(elem, i) {
             if (i !== 0) this.addOperationFieldSet();
 
+            var $relField = $('#relation' + i);
             // set fields for relation
-            $('#relation' + i).val(elem.value);
-            $('#relation' + i).attr('term-prefix', elem.prefix);
+            $relField.val(elem.value);
             $('#relation' + i + 'Iri').val(elem.iri);
 
 
             if(elem.isCustom) {
-                $('#relation' + i).attr('isCustom', true);
+                $relField.attr('isCustom', true);
                 // set custom description
-                $('#relation' + i +'TermDesc').val(elem.customDescr);
+                $('#relation' + i +'TermDescr').val(elem.customDescr);
                 // update IRI field
                 $('#relation' + i + 'Iri').val('{myURL}/vocab#' + elem.value);
             } else {
-                $('#relation' + i).attr('isCustom', false);
                 // get description from vocab
                 var vocabDescription = this.getDescriptionFromVocab(elem.iri, elem.prefix, elem.value);
                 $('#relation' + i +'TermDescr').val(vocabDescription);
-                $('#operation' + i + 'Prefix').val(elem.prefix);
+                $relField.attr({'isCustom': false, 'term-prefix': elem.prefix});
             }
 
 
             // set fields for action and method
-            $('#action' + i).val(elem.actionValue);
+            $('#action' + i).val(elem.actionValue).attr('term-prefix', elem.prefix);
             $('#action' + i + 'Iri').val(elem.actionIri);
             $('#action' + i +'TermDescr').val(this.getDescriptionFromVocab(elem.actionIri));
             $('#methodDropdown' + i).val(elem.method);
@@ -101,6 +104,7 @@ var EditLinkView = Backbone.View.extend({
         }, this));
     },
 
+    // TODO duplicate code
     getDescriptionFromVocab: function(iri, prefix, value) {
         var descr = '';
         if(iri) {
@@ -110,7 +114,14 @@ var EditLinkView = Backbone.View.extend({
         else if(prefix && value) {
             descr = sugSource.getDescriptionForNonRDFTerm(prefix, value);
         }
-        return descr;
+        return this.getStringFromHTML(descr);
+    },
+
+    // TODO duplicate from autocomplete view
+    getStringFromHTML: function(html) {
+        var text = $('<p>'+html+'</p>').text();
+        text = text.replace(/\r?\n|\r|\t/g, ' '); // remove linebreaks and tabs
+        return text;
     },
 
     addOperationFieldSet: function (evt) {
@@ -156,10 +167,13 @@ var EditLinkView = Backbone.View.extend({
         if(this.$el.find('input[name=collItemLinkCheckBox]').prop('checked')) {
             linkModel.setStructuralTypeAtNodes();
             linkModel.prop('isCollItemLink', true);
-
+            if(this.$el.find('input[name=allowFilterCheckBox]').prop('checked')) {
+                linkModel.prop('allowFilter', true);
+            }
         } else {
             linkModel.unsetStructuralTypeAtNodes();
             linkModel.prop('isCollItemLink', false);
+            linkModel.prop('allowFilter', false);
         }
     },
 
@@ -172,25 +186,25 @@ var EditLinkView = Backbone.View.extend({
         $('#operationFieldSetsWrapper').children('div').each(function() {
 
             // save relation
-            var relWrapper = $(this).find('.relationInputWrapper').first();
+            var $relWrapper = $(this).find('.relationInputWrapper').first();
 
-            var relVal = relWrapper.find('.ui-autocomplete-input').val().trim();
-            var relIri = relWrapper.find('input[name=inputFieldIri]').val();
-            var relPrefix = relWrapper.find('.ui-autocomplete-input').attr('term-prefix');
-            var relIsCustom = self.checkIfCustom(relWrapper.find('.ui-autocomplete-input'));
+            var relVal = $relWrapper.find('.ui-autocomplete-input').val().trim();
+            var relIri = $relWrapper.find('input[name=inputFieldIri]').val();
+            var relIsCustom = self.checkIfCustom($relWrapper.find('.ui-autocomplete-input'));
             var relCustomDescr;
 
             if(relIsCustom) {
-                console.log('SaveDataOp: relIsCustom');
-                relCustomDescr = relWrapper.find('textarea[name=termDescr]').val().trim();
+                relCustomDescr = $relWrapper.find('textarea[name=termDescr]').val().trim();
+            } else {
+                var relPrefix = $relWrapper.find('.ui-autocomplete-input').attr('term-prefix');
             }
 
             // save action
-            var actionWrapper = $(this).find('.actionInputWrapper').first();
+            var $actionWrapper = $(this).find('.actionInputWrapper').first();
 
-            var actionVal = actionWrapper.find('.ui-autocomplete-input').val().trim();
-            var actionIri = actionWrapper.find('input[name=inputFieldIri]').val();
-            var actionPrefix = actionWrapper.find('.prefixInput').val(); // TODO !!!
+            var actionVal = $actionWrapper.find('.ui-autocomplete-input').val().trim();
+            var actionIri = $actionWrapper.find('input[name=inputFieldIri]').val();
+            var actionPrefix = $actionWrapper.find('.ui-autocomplete-input').attr('term-prefix'); //TODO testen
 
             // save method
             var method = $(this).find('select[name=methodDropdown]').val();
@@ -219,6 +233,16 @@ var EditLinkView = Backbone.View.extend({
             return true;
         }
         return false;
+    },
+
+    toggleAllowFilterCheckbox: function() {
+        if(this.$el.find('input[name=collItemLinkCheckBox]').prop('checked')) {
+            this.$el.find('input[name=allowFilterCheckBox]').attr('disabled', false);
+            this.$el.find('.allowFilterText').css('color', '');
+        } else {
+            this.$el.find('input[name=allowFilterCheckBox]').attr('disabled', true);
+            this.$el.find('.allowFilterText').css('color', '#b6afaf');
+        }
     },
 
     /*
