@@ -36,7 +36,7 @@ var MethodSuggestions = Backbone.Collection.extend({
     getMethodSuggestion: function(value, prefix) {
         var model = this.findWhere({vocabPrefix: prefix});
         //console.log('getMethodSuggestions val: ' + model.get('methods')[value]);
-        return model.get('methods')[value];
+        if(model) return model.get('methods')[value];
     }
 });
 
