@@ -24,10 +24,6 @@ var AutocompleteView = Backbone.View.extend({
         this.render();
     },
 
-    events: {
-        'click input[type=checkbox]' : 'displayInputCustomTermDescr'
-    },
-
     render: function () {
         this.$el.append(this.template({label: this.options.label, idAC: this.id}));
 
@@ -36,17 +32,20 @@ var AutocompleteView = Backbone.View.extend({
 
         } else if (this.id.match(/resourceAttr/)) {
 
-            console.log('new suggestionInputView attr: value and prefix: '
-                + this.options.resourceNameValue + ', ' + this.options.resourceNamePrefix);
+            console.log('new AutocompleteView (Attribute) with suggestions for...' +
+                '\n\t value: ' + this.options.resourceNameValue +
+                '\n\t prefix: ' + this.options.resourceNamePrefix);
 
             this.createInputField(this.options.resourceNameValue, this.options.resourceNamePrefix);
 
         } else if(this.id.match(/relation/)) {
 
-            console.log('new suggestionInputView relation: value and prefix: '
-                + this.options.resourceNameValue + ', ' + this.options.resourceNamePrefix);
+            console.log('new AutocompleteView (Relation) with suggestions for...' +
+                '\n\t value: ' + this.options.resourceNameValue +
+                '\n\t prefix: ' + this.options.resourceNamePrefix);
 
             this.createInputField(this.options.resourceNameValue, this.options.resourceNamePrefix);
+
         } else if(this.id.match(/action/)) {
             this.createInputField();
         }
@@ -215,9 +214,8 @@ var AutocompleteView = Backbone.View.extend({
                 // display complete description next to autocomplete field
                 self.fillInputFieldTermDescr(ui);
 
-                // save prefix as atribute of input field
+                // save prefix as attribute of input field
                 self.updateCurrentPrefix(prefix);
-
             },
 
             close: function() {
@@ -227,9 +225,8 @@ var AutocompleteView = Backbone.View.extend({
         }).element.attr({ type: 'text', id: this.id})
             .appendTo('#'+this.id+'InputField');
 
-        if(!this.id.match(/action/)) {
-            this.registerInputChangeEvent();
-        }
+        if(!this.id.match(/action/)) this.registerInputChangeEvents();
+
     },
 
     displayTermDescription: function(event, ui) {
@@ -300,13 +297,13 @@ var AutocompleteView = Backbone.View.extend({
     updateMethodSuggestions: function(targetId, value, prefix) {
         // get options suggestions
         //.val('DELETE');
-        var $dropdown = $('#methodDropdown' + targetId.substring(targetId.length-1));
+        //var $dropdown = $('#methodDropdown' + targetId.substring(targetId.length-1));
 
-        $dropdown.empty();
+        //$dropdown.empty();
 
-        var methods = methodsSugs.getMethodSuggestion(value, prefix);
+        //var methods = methodsSugs.getMethodSuggestion(value, prefix);
 
-        console.log('updateMethodSuggs: methods: ' + JSON.stringify(methods));
+        //console.log('updateMethodSuggs: methods: ' + JSON.stringify(methods));
 
         /*
         $.when(methodsSugs.fetch({parse: true})).then(function() {
@@ -359,18 +356,24 @@ var AutocompleteView = Backbone.View.extend({
         $('#'+targetId).attr({'term-prefix': '', 'isCustom': true});
     },
 
-    registerInputChangeEvent: function () {
-        $('#'+this.id).bind('change',_.bind(function(evt) {
-            this.setCustomIRI(evt.target.id);
-            this.setAsCustom(evt.target.id);
-        }, this));
+    registerInputChangeEvents: function () {
+        $('#'+this.id).on('input', _.bind(this.handleChangeEventsForACField, this));
+        $('#'+this.id+'TermDescr').on('input', _.bind(this.handleChangeEventsForDescrField, this));
+    },
 
-        $('#'+this.id+'TermDescr').bind('change',_.bind(function(evt) {
-            var targetId = evt.target.id;
-            var firstPart = targetId.substr(0, targetId.indexOf('TermDescr'));
-            this.setCustomIRI(firstPart);
-            this.setAsCustom(firstPart);
-        }, this));
+    handleChangeEventsForACField: function (evt) {
+        var targetId = evt.target.id;
+
+        this.setCustomIRI(targetId);
+        this.setAsCustom(targetId);
+    },
+
+    handleChangeEventsForDescrField: function (evt) {
+        var targetId = evt.target.id;
+        targetId = targetId.substr(0, targetId.indexOf('TermDescr'));
+
+        this.setCustomIRI(targetId);
+        this.setAsCustom(targetId);
     }
 });
 
