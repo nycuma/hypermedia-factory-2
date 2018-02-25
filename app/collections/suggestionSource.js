@@ -8,8 +8,9 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
-var N3 = require('n3');
 var Term = require('../models/term');
+var N3 = require('n3');
+var Utils = require('../util/utils');
 
 // Import vocabularies to load
 var SchemaOrgSource = require('./vocabSources/schemaOrgSource');
@@ -96,6 +97,17 @@ var SuggestionSource = Backbone.Collection.extend({
         return result.get('descr');
     },
 
+    getDescriptionFromVocab: function(iri, prefix, value) {
+        var descr = '';
+        if(iri) {
+            var rdfComment = this.rdfStore.getObjectsByIRI(iri, 'http://www.w3.org/2000/01/rdf-schema#comment');
+            if(rdfComment) descr = rdfComment[0].substr(1, rdfComment[0].length-2);
+        }
+        else if(prefix && value) {
+            descr = this.getDescriptionForNonRDFTerm(prefix, value);
+        }
+        return Utils.getStringFromHTML(descr);
+    },
 
 
     /*

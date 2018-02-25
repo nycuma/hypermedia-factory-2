@@ -5,6 +5,7 @@
 'use strict';
 
 var joint = require('jointjs');
+var Utils = require('../util/utils');
 
 var Node = joint.shapes.basic.Rect.extend({
     defaults: joint.util.deepSupplement({
@@ -18,7 +19,7 @@ var Node = joint.shapes.basic.Rect.extend({
 
     saveName: function(nameVal, namePrefix, iri, isCustom, customDescr) {
 
-        nameVal = isCustom ? this.getFormattedResName(nameVal) : nameVal;
+        nameVal = isCustom ? Utils.getCamelCaseFirstLetterUp(nameVal) : nameVal;
 
         this.prop('resourceName', {
             value: nameVal,
@@ -29,13 +30,13 @@ var Node = joint.shapes.basic.Rect.extend({
         });
 
         // update label on node
-        this.set('label', this.getLabelWithLineBreaks(nameVal));
+        this.set('label', Utils.getLabelWithLineBreaks(nameVal));
     },
 
     //TODO add custom identifier for value
     saveAttribute: function(attrVal, attrPrefix, iri, isCustom, customDescr, dataType, isReadonly) {
 
-        attrVal = isCustom ? this.getFormattedAttr(attrVal) : attrVal;
+        attrVal = isCustom ? Utils.getCamelCase(attrVal) : attrVal;
 
         var resourceAttrs = this.prop('resourceAttrs') || [];
         resourceAttrs.push({
@@ -88,38 +89,7 @@ var Node = joint.shapes.basic.Rect.extend({
                 return attr.value;
             });
         }
-    },
-
-    // insert line-break after 11 characters
-    getLabelWithLineBreaks: function(label) {
-        var i = 11;
-        while(i < label.length) {
-            label = label.substr(0, i) + ' ' + label.substr(i, label.length);
-            i += 11;
-        }
-        return label;
-    },
-
-    // 1st letter lowercase, camelcase
-    getFormattedAttr: function (value) {
-        value = value.charAt(0).toLowerCase() + value.slice(1);
-        return this.getCamelCase(value);
-    },
-
-    // 1st letter uppercase, camelcase
-    getFormattedResName: function (value) {
-        value = value.charAt(0).toUpperCase() + value.slice(1);
-        return this.getCamelCase(value);
-    },
-
-    getCamelCase: function (value) {
-        //TODO get camel case
-        // remove spaces
-        value = value.replace(/\s/g, '');
-        return value;
     }
-
-
 });
 
 module.exports = Node;

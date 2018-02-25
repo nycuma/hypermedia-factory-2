@@ -13,6 +13,7 @@ sugSource = require('../collections/suggestionSource');
 var methodsSugs;
 methodsSugs = require('../collections/methodSuggestions');
 var autocomplete = require('jquery-ui/ui/widgets/autocomplete');
+var Utils = require('../util/utils');
 
 var AutocompleteView = Backbone.View.extend({
     template: _.template($('#autocomplete-input-template').html()),
@@ -331,13 +332,7 @@ var AutocompleteView = Backbone.View.extend({
 
     fillInputFieldTermDescr: function(ui) {
         var descrHTML = this.getTermDescription(ui);
-        $('#'+this.id+'TermDescr').val(this.getStringFromHTML(descrHTML));
-    },
-
-    getStringFromHTML: function(html) {
-        var text = $('<p>'+html+'</p>').text();
-        text = text.replace(/\r?\n|\r|\t/g, ' '); // remove linebreaks and tabs
-        return text;
+        $('#'+this.id+'TermDescr').val(Utils.getStringFromHTML(descrHTML));
     },
 
     setCustomIRI: function(targetId) {

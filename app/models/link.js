@@ -5,6 +5,7 @@
 'use strict';
 
 var joint = require('jointjs');
+var Utils = require('../util/utils');
 
 var RelationLink = joint.dia.Link.extend({
 
@@ -100,7 +101,7 @@ var RelationLink = joint.dia.Link.extend({
     saveLink: function(method, value, prefix, iri, isCustom, customDescr, actionValue, actionPrefix, actionIri) {
         var operations = this.prop('operations') || [];
 
-        value = isCustom ? this.getFormattedRel(value) : value;
+        value = isCustom ? Utils.getCamelCase(value) : value;
 
         operations.push({
             method: method,
@@ -118,54 +119,8 @@ var RelationLink = joint.dia.Link.extend({
         this.renderLabelOperations();
         this.renderLabelRelations();
 
-    },
-
-    /*
-    saveRelation: function(value, prefix, iri, isCustom, customDescr) {
-
-        value = isCustom ? this.getFormattedRel(value) : value;
-
-        this.prop('relation', {
-            value: value,
-            prefix: prefix,
-            iri: iri,
-            isCustom: isCustom,
-            customDescr: customDescr
-        });
-
-        this.renderLabelRelations();
-    },
-
-    saveOperation: function(method, value, prefix, iri, isCustom, customDescr) {
-        var operations = this.prop('operations') || [];
-
-        //if(value) { value = isCustom ? this.getFormattedOperation(value) : value; }
-
-        operations.push({
-            method: method,
-            value: value,
-            iri: iri,
-            prefix: prefix,
-            isCustom: isCustom,
-            customDescr: customDescr
-        });
-        this.prop('operations', operations);
-
-        this.renderLabelOperations();
-    },
-    */
-
-    // 1st letter lowercase, camelcase
-    getFormattedRel: function (value) {
-        value = value.charAt(0).toLowerCase() + value.slice(1);
-        return this.getCamelCase(value);
-    },
-
-    getCamelCase: function (value) {
-        //TODO get camel case
-        // remove spaces
-        return value.replace(/\s/g, '');
     }
+
 });
 
 
