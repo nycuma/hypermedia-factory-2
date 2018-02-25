@@ -5,6 +5,8 @@
 'use strict';
 
 var $ = require('jquery');
+var JSZip = require('jszip');
+var FileSaver = require('file-saver');
 
 var Utils = {
 
@@ -39,8 +41,21 @@ var Utils = {
 
     // checks if a DOM elment has an 'isCutsom' attribute
     checkIfCustom: function (element) {
-        //console.log('checkIfCustom called. result: ' + $(element).attr('isCustom'));
-        return $(element).attr('isCustom');
+        //console.log('checkIfCustom called. result: ' + typeof((element).attr('isCustom')));
+        if($(element).attr('isCustom') === 'true') {
+            return true;
+        }
+        return false;
+    },
+
+    // generates a text file, packages it in a zip file and let's the user download it
+    downloadZip: function(fileName, content) {
+        var zip = new JSZip();
+        zip.file(fileName, content);
+        zip.generateAsync({type:'blob'})
+            .then(function(content) {
+                FileSaver.saveAs(content, 'hydraAPI.zip');
+            });
     }
 };
 
