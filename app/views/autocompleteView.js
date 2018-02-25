@@ -108,7 +108,7 @@ var AutocompleteView = Backbone.View.extend({
         var results = this.getSourceRdfProperties(userInput, resourceNameValue, resourceNamePrefix);
 
         // add IANA link relations to suggestion list
-        var ianaRels = $.ui.autocomplete.filter(sugSource.getAllTermsFromVocab('IANA'), userInput);
+        var ianaRels = $.ui.autocomplete.filter(sugSource.getAllTermsFromVocab('iana'), userInput);
         results = results.concat(ianaRels);
 
         return results.slice(0, 15);  // max. 15 results
@@ -244,7 +244,7 @@ var AutocompleteView = Backbone.View.extend({
             var prefixIRI = sugSource.getPrefixIRIFromLabel(ui.item.label);
             var rdfComment = sugSource.rdfStore.getObjectsByIRI(prefixIRI+ui.item.value, 'http://www.w3.org/2000/01/rdf-schema#comment');
 
-            if(rdfComment) { //TODO what if no RDF comment available?
+            if(rdfComment && rdfComment[0]) {
                 descr = rdfComment[0].substr(1, rdfComment[0].length-2);
             }
         }
