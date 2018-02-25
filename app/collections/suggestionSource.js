@@ -37,6 +37,7 @@ var SuggestionSource = Backbone.Collection.extend({
         var ianaLinkRelsSource = new IanaLinkRelsSource();
         $.when(ianaLinkRelsSource.fetch({parse: true})).then(function() {
             self.add(ianaLinkRelsSource.models);
+            self.prefixes.iana = 'http://www.iana.org/assignments/relation/';
             ianaLinkRelsSource.reset();
         });
 
@@ -94,17 +95,18 @@ var SuggestionSource = Backbone.Collection.extend({
 
     getDescriptionForNonRDFTerm: function(prefix, value) {
         var result = this.findWhere({prefix: prefix, value: value});
-        return result.get('descr');
+        if(result) return result.get('descr');
     },
 
     getDescriptionFromVocab: function(iri, prefix, value) {
         var descr = '';
-        if(iri) {
-            var rdfComment = this.rdfStore.getObjectsByIRI(iri, 'http://www.w3.org/2000/01/rdf-schema#comment');
-            if(rdfComment) descr = rdfComment[0].substr(1, rdfComment[0].length-2);
-        }
-        else if(prefix && value) {
+        if(prefix === 'iana' && value) {
             descr = this.getDescriptionForNonRDFTerm(prefix, value);
+        } else {
+            if(iri) {
+                var rdfComment = this.rdfStore.getObjectsByIRI(iri, 'http://www.w3.org/2000/01/rdf-schema#comment');
+                if(rdfComment && rdfComment[0]) descr = rdfComment[0].substr(1, rdfComment[0].length-2);
+            }
         }
         return Utils.getStringFromHTML(descr);
     },
