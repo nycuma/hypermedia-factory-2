@@ -17,6 +17,7 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     width: 600,
     height: 400,
     gridSize: 1,
+    startNodeId: '',
 
     initialize: function() {
         joint.dia.Paper.prototype.initialize.apply(this, arguments);
@@ -115,6 +116,8 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     },
 
     setEvents: function () {
+        var self = this;
+
         this.on('blank:pointerdblclick', this.addNode);
         
         this.on('blank:pointerclick', function (evt, x, y) {
@@ -128,7 +131,15 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
                     // TODO: don't display collItemLinkCheckBox if soure node == target node
                     //var isSelfReference = cellView.model.get('source').id == cellView.model.get('target').id;
                     // inform link model
-                    new EditLinkView({ model: cellView.model });
+
+                    // only open view to edit links of link does not originate in start node
+                    if(cellView.model.get('source').id != self.startNodeId) {
+                        new EditLinkView({ model: cellView.model });
+                    } else {
+                        console.log('link originates in start node. No view to edit link.')
+                    }
+
+
                 }
                 if(cellView.model.isElement()) {
                     new EditResourceView({ model: cellView.model });
