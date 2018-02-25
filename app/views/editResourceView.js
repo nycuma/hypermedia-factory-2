@@ -12,6 +12,7 @@ Backbone.$ = $;
 var AutocompleteView = require('./autocompleteView');
 var sugSource;
 sugSource = require('../collections/suggestionSource');
+var Utils = require('../util/utils');
 
 
 
@@ -20,6 +21,7 @@ var EditResourceView = Backbone.View.extend({
     template:  _.template($('#edit-resource-template').html()),
 
     initialize: function(){
+        $('#paper').css('pointer-events', 'none');
         this.render();
     },
 
@@ -121,7 +123,7 @@ var EditResourceView = Backbone.View.extend({
             $resField.attr('isCustom', true);
         } else {
             $('#resourceNameIri').val(modelData.iri);
-            $('#resourceNameTermDescr').val(this.getDescriptionFromVocab(modelData.iri, modelData.prefix, modelData.value));
+            $('#resourceNameTermDescr').val(sugSource.getDescriptionFromVocab(modelData.iri, modelData.prefix, modelData.value));
             $resField.attr({'isCustom': false, 'term-prefix': modelData.prefix});
         }
     },
@@ -164,7 +166,7 @@ var EditResourceView = Backbone.View.extend({
                 $attrField.attr('isCustom', true);
             } else {
                 $('#resourceAttr'+i+'Iri').val(modelData.iri);
-                $('#resourceAttr'+i+'TermDescr').val(this.getDescriptionFromVocab(modelData.iri, modelData.prefix, modelData.value));
+                $('#resourceAttr'+i+'TermDescr').val(sugSource.getDescriptionFromVocab(modelData.iri, modelData.prefix, modelData.value));
                 $attrField.attr({'isCustom': false, 'term-prefix': modelData.prefix});
             }
 
@@ -219,7 +221,7 @@ var EditResourceView = Backbone.View.extend({
 
         var nameVal = $resName.val().trim();
         var iri = $('#resourceNameIri').val();
-        var isCustom = this.checkIfCustom($resName);
+        var isCustom = Utils.checkIfCustom($resName);
         var customDescr;
 
         if(isCustom) {
@@ -256,7 +258,7 @@ var EditResourceView = Backbone.View.extend({
             var iri = $(this).find('input[name=inputFieldIri]').val();
 
             if(attrVal && iri) {
-                var isCustom = self.checkIfCustom($resAttr);
+                var isCustom = Utils.checkIfCustom($resAttr);
                 var customDescr = '';
 
                 if (isCustom) {
@@ -289,38 +291,11 @@ var EditResourceView = Backbone.View.extend({
         });
     },
 
-    // TODO dupilcate code
-    checkIfCustom: function (element) {
-        if($(element).attr('isCustom') == 'true') {
-            return true;
-        }
-        return false;
-    },
-
-    // TODO dupilcate code
-    getDescriptionFromVocab: function(iri, prefix, value) {
-        var descr = '';
-        if(iri) {
-            var rdfComment = sugSource.rdfStore.getObjectsByIRI(iri, 'http://www.w3.org/2000/01/rdf-schema#comment');
-            if(rdfComment) descr = rdfComment[0].substr(1, rdfComment[0].length-2);
-        }
-        else if(prefix && value) {
-            descr = sugSource.getDescriptionForNonRDFTerm(prefix, value);
-        }
-        return this.getStringFromHTML(descr);
-    },
-
-    // dupilcate code
-    getStringFromHTML: function(html) {
-        var text = $('<p>'+html+'</p>').text();
-        text = text.replace(/\r?\n|\r|\t/g, ' '); // remove linebreaks and tabs
-        return text;
-    },
-
     close: function (evt) {
         if(evt) evt.preventDefault();
 
         this.remove();
+        $('#paper').css('pointer-events', '');
         $('body').append('<div id="editResource" class="editGraphElement"></div>');
     }
 });

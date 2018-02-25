@@ -11,12 +11,14 @@ Backbone.$ = $;
 var AutocompleteView = require('./autocompleteView');
 var sugSource;
 sugSource = require('../collections/suggestionSource');
+var Utils = require('../util/utils');
 
 var EditLinkView = Backbone.View.extend({
     el: '#editLink',
     template:  _.template($('#edit-link-template').html()),
 
     initialize: function(options){
+        $('#paper').css('pointer-events', 'none');
         this.render();
     },
 
@@ -89,7 +91,7 @@ var EditLinkView = Backbone.View.extend({
                 $('#relation' + i + 'Iri').val('{myURL}/vocab#' + elem.value);
             } else {
                 // get description from vocab
-                var vocabDescription = this.getDescriptionFromVocab(elem.iri, elem.prefix, elem.value);
+                var vocabDescription = sugSource.getDescriptionFromVocab(elem.iri, elem.prefix, elem.value);
                 $('#relation' + i +'TermDescr').val(vocabDescription);
                 $relField.attr({'isCustom': false, 'term-prefix': elem.prefix});
             }
@@ -98,30 +100,10 @@ var EditLinkView = Backbone.View.extend({
             // set fields for action and method
             $('#action' + i).val(elem.actionValue).attr('term-prefix', elem.prefix);
             $('#action' + i + 'Iri').val(elem.actionIri);
-            $('#action' + i +'TermDescr').val(this.getDescriptionFromVocab(elem.actionIri));
+            $('#action' + i +'TermDescr').val(sugSource.getDescriptionFromVocab(elem.actionIri));
             $('#methodDropdown' + i).val(elem.method);
 
         }, this));
-    },
-
-    // TODO duplicate code
-    getDescriptionFromVocab: function(iri, prefix, value) {
-        var descr = '';
-        if(iri) {
-            var rdfComment = sugSource.rdfStore.getObjectsByIRI(iri, 'http://www.w3.org/2000/01/rdf-schema#comment');
-            if(rdfComment) descr = rdfComment[0].substr(1, rdfComment[0].length-2);
-        }
-        else if(prefix && value) {
-            descr = sugSource.getDescriptionForNonRDFTerm(prefix, value);
-        }
-        return this.getStringFromHTML(descr);
-    },
-
-    // TODO duplicate from autocomplete view
-    getStringFromHTML: function(html) {
-        var text = $('<p>'+html+'</p>').text();
-        text = text.replace(/\r?\n|\r|\t/g, ' '); // remove linebreaks and tabs
-        return text;
     },
 
     addOperationFieldSet: function (evt) {
@@ -190,7 +172,7 @@ var EditLinkView = Backbone.View.extend({
 
             var relVal = $relWrapper.find('.ui-autocomplete-input').val().trim();
             var relIri = $relWrapper.find('input[name=inputFieldIri]').val();
-            var relIsCustom = self.checkIfCustom($relWrapper.find('.ui-autocomplete-input'));
+            var relIsCustom = Utils.checkIfCustom($relWrapper.find('.ui-autocomplete-input'));
             var relCustomDescr;
 
             if(relIsCustom) {
@@ -226,13 +208,6 @@ var EditLinkView = Backbone.View.extend({
                 //TODO show error msg to user
             }
         });
-    },
-
-    checkIfCustom: function (element) {
-        if($(element).attr('isCustom') == 'true') {
-            return true;
-        }
-        return false;
     },
 
     toggleAllowFilterCheckbox: function() {
@@ -300,6 +275,7 @@ var EditLinkView = Backbone.View.extend({
     close: function (evt) {
         if(evt) evt.preventDefault();
         this.remove();
+        $('#paper').css('pointer-events', '');
         $('body').append('<div id="editLink" class="editGraphElement"></div>');
     }
 
