@@ -61,7 +61,7 @@ var EditResourceView = Backbone.View.extend({
             evt.preventDefault();
 
             var $resName = $('#resourceName');
-            if(!$resName.attr('isCustom')) {
+            if(Utils.checkIfCustom($resName) === false) {
                 resourceNameValue = $resName.val();
                 resourceNamePrefix = $resName.attr('term-prefix');
             }
@@ -224,7 +224,7 @@ var EditResourceView = Backbone.View.extend({
         var isCustom = Utils.checkIfCustom($resName);
         var customDescr;
 
-        if(isCustom) {
+        if(isCustom === true) {
             customDescr = $('#resourceNameTermDescr').val();
         } else {
             var namePrefix = $resName.attr('term-prefix');

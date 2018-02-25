@@ -131,7 +131,7 @@ var EditLinkView = Backbone.View.extend({
             label: 'Action:'
         });
 
-        $('#action'+operationCount+'TermDescr').attr({'readonly': true, 'placeholder': ''});
+        $('#action'+operationCount+'TermDescr').attr({'readonly': 'readonly', 'placeholder': ''});
     },
 
     submit: function (evt) {
@@ -175,7 +175,7 @@ var EditLinkView = Backbone.View.extend({
             var relIsCustom = Utils.checkIfCustom($relWrapper.find('.ui-autocomplete-input'));
             var relCustomDescr;
 
-            if(relIsCustom) {
+            if(relIsCustom === true) {
                 relCustomDescr = $relWrapper.find('textarea[name=termDescr]').val().trim();
             } else {
                 var relPrefix = $relWrapper.find('.ui-autocomplete-input').attr('term-prefix');
@@ -186,7 +186,7 @@ var EditLinkView = Backbone.View.extend({
 
             var actionVal = $actionWrapper.find('.ui-autocomplete-input').val().trim();
             var actionIri = $actionWrapper.find('input[name=inputFieldIri]').val();
-            var actionPrefix = $actionWrapper.find('.ui-autocomplete-input').attr('term-prefix'); //TODO testen
+            var actionPrefix = $actionWrapper.find('.ui-autocomplete-input').attr('term-prefix');
 
             // save method
             var method = $(this).find('select[name=methodDropdown]').val();
