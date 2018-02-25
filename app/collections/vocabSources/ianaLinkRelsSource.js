@@ -57,7 +57,7 @@ var IanaLinkRelsSource = Backbone.Collection.extend({
 
             this.add(new Term({
                 value: val,
-                prefix: 'IANA',
+                prefix: 'iana',
                 descr : descr
             }));
         }
