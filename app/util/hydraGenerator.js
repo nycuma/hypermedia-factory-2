@@ -30,7 +30,7 @@ HydraDocs.prototype = {
         var completeDocs = this.generateHydraObj();
 
         //Utils.downloadZip('docs.jsonld', JSON.stringify(completeDocs, null, 2));
-        console.log('complete docs: ' + JSON.stringify(completeDocs, null, 2));
+        //console.log('complete docs: ' + JSON.stringify(completeDocs, null, 2));
     },
 
     generateHydraObj: function () {
@@ -209,32 +209,28 @@ HydraDocs.prototype = {
      * Returns an array with all links for <cell> whose source node and target node are the same
      */
     getReturningLinks: function (cell) {
+
         var outgoingLinks = this._graph.getConnectedLinks(cell, {outbound: true});
         var incomingLinks = this._graph.getConnectedLinks(cell, {inbound: true});
+
         var returningLinks = [];
         if (outgoingLinks && incomingLinks && outgoingLinks.length > 0 && incomingLinks.length > 0) {
             outgoingLinks.forEach(function (outLink) {
                 var sourceId = outLink.get('source').id;
                 incomingLinks.forEach(function (inLink) {
                     var targetId = inLink.get('target').id;
-                    if (sourceId === targetId === cell.id) {
+                    if (sourceId === targetId && inLink.get('id') === outLink.get('id')) {
                         returningLinks.push(inLink);
                     }
                 });
             });
         }
-        console.log('found returning links for node ' + cell.id + ': ' + JSON.stringify(returningLinks));
+        //console.log('found returning links for node ' + cell.prop('resourceName').value + ': ' + JSON.stringify(returningLinks));
         return returningLinks;
     },
 
     getResNameTargetNode: function(link) {
-        console.log('link target: ' + JSON.stringify(link.get('target')));
-        var targetNode = this._graph.getCell(link.get('target').id);
-
-        console.log('target node res name: ' + JSON.stringify(this._graph.getCell(targetNode)));
-
-        var targetNodeResName = targetNode.prop('resourceName');
-
+        var targetNodeResName = this._graph.getCell(link.get('target').id).prop('resourceName');
         return targetNodeResName.isCustom ? 'vocab:'+targetNodeResName.value : targetNodeResName.iri;
     }
 
