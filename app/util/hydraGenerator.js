@@ -9,6 +9,9 @@ var Utils = require('./utils');
 var sugSource;
 sugSource = require('../collections/suggestionSource');
 
+// TODO sonderfall: when resource == collection, dann type: hydra:Collection
+// TODO TemplatedLinks for filter operations
+
 function HydraDocs(graph, namespace, baseURL, apiTitle, apiDescr) {
     if (!(this instanceof HydraDocs)) {
         return new HydraDocs();
@@ -29,8 +32,8 @@ HydraDocs.prototype = {
     downloadHydraAPIDocs: function () {
         var completeDocs = this.generateHydraObj();
 
-        //Utils.downloadZip('docs.jsonld', JSON.stringify(completeDocs, null, 2));
-        //console.log('complete docs: ' + JSON.stringify(completeDocs, null, 2));
+        //Utils.downloadZip('docs.jsonld', JSON.stringify(completeDocs, null, 2), 'hydraAPI');
+        console.log('COMPLETE DOCS:\n' + JSON.stringify(completeDocs, null, 2));
     },
 
     generateHydraObj: function () {
@@ -41,6 +44,7 @@ HydraDocs.prototype = {
         docs['@type'] = 'hydra:ApiDocumentation';
         docs['hydra:title'] = this._apiTitle;
         docs['hydra:description'] = this._apiDescr;
+        docs['hydra:entrypoint'] = this._baseURL;
 
         var cells = this._graph.get('cells');
         docs['hydra:supportedClass'] = [];
@@ -79,12 +83,59 @@ HydraDocs.prototype = {
         return context;
     },
 
-    getEntryPoint: function () {
+    getEntryPoint: function(startNode) {
 
         var entryPoint = {};
-
+        entryPoint['@id'] = 'http://schema.org/EntryPoint';
+        entryPoint['@type'] = 'hydra:Class';
+        entryPoint['label'] = 'EntryPoint';
+        //entryPoint['supportedOperation'] = GET to resource itself TODO
+        entryPoint['supportedProperty'] = this.getLinksFromEntryPoint(startNode);
 
         return entryPoint;
+    },
+
+    getLinksFromEntryPoint: function (startNode) {
+
+        var supportedProps = [];
+        // get links from StartNode
+        var startLinks = this._graph.getConnectedLinks(startNode, {outbound: true});
+        var self = this;
+
+        if(startLinks) {
+            startLinks.forEach(function(link) {
+                var linkProp = {}, hydraProp = {};
+                var targetNode = link.get('target').id;
+                var resourceName = self._graph.getCell(targetNode).prop('resourceName');
+
+                hydraProp['@id'] = resourceName.value.charAt(0).toLowerCase() + resourceName.value.slice(1);
+                hydraProp['@type'] = 'hydra:Link';
+                hydraProp['domain'] = 'http://schema.org/EntryPoint';
+                hydraProp['range'] = resourceName.isCustom ? 'vocab:' + resourceName.value : resourceName.iri;
+                hydraProp['supportedOperation'] = self.getSupportedOperationFromEntryPoint(resourceName);
+
+                linkProp['hydra:property'] = hydraProp;
+                linkProp['hydra:title'] = resourceName.value;
+                linkProp['hydra:description'] = resourceName.isCustom ? resourceName.customDescr : sugSource.getDescriptionFromVocab(resourceName.iri);
+
+
+                supportedProps.push(linkProp);
+            });
+        }
+        return supportedProps;
+    },
+
+    getSupportedOperationFromEntryPoint: function(resourceName) {
+        var supportedOps = [];
+        var supportedOp = {};
+
+        supportedOp['@type'] = 'http://schema.org/ReadAction';
+        supportedOp['hydra:method'] = 'GET';
+        supportedOp['expects'] = 'null';
+        supportedOp['returns'] = resourceName.isCustom ? 'vocab:' + resourceName.value : resourceName.iri;
+
+        supportedOps.push(supportedOp);
+        return supportedOps;
     },
 
     getSupportedClass: function (cell, outboundLinks) {
@@ -95,7 +146,7 @@ HydraDocs.prototype = {
         classObj['@type'] = 'hydra:Class';
         if (resourceName.isCustom) classObj['rdfs:comment'] = resourceName.customDescr;
         classObj['rdfs:label'] = cell.prop('value');
-        //classObj['hydra:description'] = cell.prop('isCustom') ? cell.prop('customDescr') : // TODO get RDF comment
+        classObj['hydra:description'] = resourceName.isCustom ? resourceName.customDescr : sugSource.getDescriptionFromVocab(resourceName.iri);
         classObj['hydra:supportedProperty'] = this.getSupportedProperties(cell);
 
         // only for links pointing back to the same resource
@@ -116,6 +167,7 @@ HydraDocs.prototype = {
         // resource attributes from resource have literal values and are shipped as resource content
         if(resourceAttrs) {
             resourceAttrs.forEach(function (attr) {
+
                 var supportedProp = {}, hydraProp = {};
                 supportedProp['@type'] = 'hydra:SupportedProperty';
 
@@ -124,7 +176,7 @@ HydraDocs.prototype = {
                 hydraProp['rdfs:label'] = attr.value;
                 if (attr.isCustom) hydraProp['rdfs:comment'] = attr.customDescr;
                 hydraProp['domain'] = resourceName.isCustom ? 'vocab:' + resourceName.value : resourceName.iri;
-                hydraProp['range'] = 'xmls:' + attr.dataType;
+                hydraProp['range'] = attr.dataType ? 'xmls:' + attr.dataType : 'xmls:string';
 
                 supportedProp['hydra:property'] = hydraProp;
                 supportedProp['hydra:title'] = attr.value;
@@ -167,7 +219,7 @@ HydraDocs.prototype = {
                         supportedPropLink['hydra:title'] = op.value;
                         supportedPropLink['hydra:description'] = op.isCustom ? op.customDescr : sugSource.getDescriptionFromVocab(op.iri);
                         supportedPropLink['hydra:required'] = 'null';
-                        supportedPropLink['hydra:readonly'] =  'true';
+                        supportedPropLink['hydra:readonly'] =  op.method === 'RETRIEVE' ? true : false;
 
                         supportedPropsArr.push(supportedPropLink);
                     });
@@ -207,6 +259,7 @@ HydraDocs.prototype = {
 
     /**
      * Returns an array with all links for <cell> whose source node and target node are the same
+     * TODO do we need that?
      */
     getReturningLinks: function (cell) {
 
@@ -235,77 +288,5 @@ HydraDocs.prototype = {
     }
 
 };
-
-/*
-function getProfileDocs(graph) {
-
-    var cells = graph.get('cells');
-
-
-    cells.forEach(function (cell) {
-        if (cell.get('type') === 'html.Node') {
-
-            var jsonLdAsString = getJsonLdStringForNode(cell);
-
-             console.log('cell type: ' + cell.get('type'));
-             console.log('cell resource name: ' + JSON.stringify(cell.prop('resourceName')));
-             console.log('cell resource attrs: ' + JSON.stringify(cell.prop('resourceAttrs')));
-             console.log('cell struc type: ' + JSON.stringify(cell.prop('structuralType')));
-
-             var outboundLinks = graph.getConnectedLinks(cell, { outbound: true });
-
-             outboundLinks.forEach(function(outLink) {
-             console.log('\toutLink type: ' + outLink.get('type'));
-             console.log('\tlink source: ' + outLink.get('source').id);
-             console.log('\tlink target: ' + outLink.get('target').id);
-             console.log('\tlink relation: ' + JSON.stringify(outLink.prop('relation')));
-             console.log('\tlink operations: ' + JSON.stringify(outLink.prop('operations')));
-             console.log('\n');
-             });
-
-        }
-
-         if(cell.get('type') === 'link.RelationLink') {
-         console.log('cell type: ' + cell.get('type'));
-         console.log('link source: ' + cell.get('source').id);
-         console.log('link target: ' + cell.get('target').id);
-         }
-
-
-
-    });
-
-}
-
-function getJsonLdStringForNode(node) {
-
-    var context = {};
-
-    context['@type'] = sugSource.getPrefixIRIFromPrefix(node.prop('resourceName').prefix)
-        + node.prop('resourceName').value;
-
-    var resourceAttrs = node.prop('resourceAttrs');
-    if (resourceAttrs) {
-        resourceAttrs.forEach(function (attr) {
-            context[attr.value] = sugSource.getPrefixIRIFromPrefix(attr.prefix)
-                + attr.value;
-        });
-    }
-
-    var outboundLinks = graph.getConnectedLinks(cell, {outbound: true});
-
-    outboundLinks.forEach(function (outLink) {
-        console.log('\toutLink type: ' + outLink.get('type'));
-        console.log('\tlink source: ' + outLink.get('source').id);
-        console.log('\tlink target: ' + outLink.get('target').id);
-        console.log('\tlink relation: ' + JSON.stringify(outLink.prop('relation')));
-        console.log('\tlink operations: ' + JSON.stringify(outLink.prop('operations')));
-        console.log('\n');
-    });
-
-    //return JSON.stringify(context, null, '\t');
-    return JSON.stringify(context, null, 2);
-
-    }*/
 
 module.exports = HydraDocs;
