@@ -93,14 +93,14 @@ var AutocompleteView = Backbone.View.extend({
             }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
         }
 
-        return results.slice(0, 15); // max. 15 results
+        return results;
     },
 
     getSourceResAttribute: function(userInput, resourceNameValue, resourceNamePrefix) {
 
         var results = this.getSourceRdfProperties(userInput, resourceNameValue, resourceNamePrefix);
 
-        return results.slice(0, 15);// max. 15 results
+        return results;
     },
 
     getSourceLinkRelation: function(userInput, resourceNameValue, resourceNamePrefix) {
@@ -111,7 +111,7 @@ var AutocompleteView = Backbone.View.extend({
         var ianaRels = $.ui.autocomplete.filter(sugSource.getAllTermsFromVocab('iana'), userInput);
         results = results.concat(ianaRels);
 
-        return results.slice(0, 15);  // max. 15 results
+        return results;
 
     },
 
@@ -133,7 +133,7 @@ var AutocompleteView = Backbone.View.extend({
             }
         }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
 
-        return results.slice(0, 15); // max. 15 results
+        return results;
     },
 
     getSourceRdfProperties: function(userInput, resourceNameValue, resourceNamePrefix) {
@@ -183,17 +183,19 @@ var AutocompleteView = Backbone.View.extend({
     createInputField: function (value, prefix) {
         var self = this;
         new autocomplete({
-            minLength: 2,
+            minLength: 1,
             source: function(request, response) { // values to be suggested to user
 
                 var results = [];
+                // TODO get results only for one specific vocab
+                // TODO bug: error thrown when user types '['
 
                 if(self.id === 'resourceName') results = self.getSourceResName(request.term, value, prefix);
                 else if (self.id.match(/resourceAttr/)) results = self.getSourceResAttribute(request.term, value, prefix);
                 else if(self.id.match(/relation/)) results = self.getSourceLinkRelation(request.term, value, prefix);
                 else if(self.id.match(/action/)) results = self.getSourceOperation(request.term);
 
-                response(results);
+                response(results.slice(0,50)); // return max. 50 results
             },
 
             focus: function(event, ui) {
@@ -207,7 +209,7 @@ var AutocompleteView = Backbone.View.extend({
                 if(self.id.match(/action/) || self.id.match(/relation/)) self.updateMethodSuggestions(event.target.id, ui.item.value, prefix);
 
                 // refresh input fields for resources attributes (suggest only properties for selected resource name)
-                if(self.id === 'resourceName') self.trigger('resourceNameSelected', {value: ui.item.value, prefix: prefix});
+                //if(self.id === 'resourceName') self.trigger('resourceNameSelected', {value: ui.item.value, prefix: prefix});
 
                 // display complete IRI below autocomplete field
                 self.fillInputFieldIri(ui.item.label, ui.item.value);
@@ -217,6 +219,9 @@ var AutocompleteView = Backbone.View.extend({
 
                 // save prefix as attribute of input field
                 self.updateCurrentPrefix(prefix);
+
+                // deactivate change listener for value input field
+                self.unregisterTermValueChangeEvent();
             },
 
             close: function() {
@@ -282,19 +287,7 @@ var AutocompleteView = Backbone.View.extend({
         return superClasses;
     },
 
-    displayInputCustomTermDescr: function(evt) {
-        if($(evt.target).prop('checked')) {
-            $(evt.target).parent().parent().next().show();
-            // update IRI
-            this.setCustomIRI(this.id);
-        } else {
-            $(evt.target).parent().parent().next().hide();
-            // reset IRI
-            this.resetCustomIRI();
-        }
-        //$(evt.target).parent().parent().next().toggle(); --> bug
-    },
-
+    // TODO !!!
     updateMethodSuggestions: function(targetId, value, prefix) {
         // get options suggestions
         //.val('DELETE');
@@ -352,11 +345,24 @@ var AutocompleteView = Backbone.View.extend({
     },
 
     registerInputChangeEvents: function () {
-        $('#'+this.id).on('input', _.bind(this.handleChangeEventsForACField, this));
+        this.registerTermValueChangeEvent();
+        this.registerTermDescrChangeEvent();
+    },
+
+    registerTermValueChangeEvent: function () {
+        $('#'+this.id).on('input', _.bind(this.handleChangeEventsForValueField, this));
+    },
+
+    unregisterTermValueChangeEvent: function () {
+        $('#'+this.id).off('input');
+    },
+
+    registerTermDescrChangeEvent: function () {
         $('#'+this.id+'TermDescr').on('input', _.bind(this.handleChangeEventsForDescrField, this));
     },
 
-    handleChangeEventsForACField: function (evt) {
+
+    handleChangeEventsForValueField: function (evt) {
         var targetId = evt.target.id;
 
         this.setCustomIRI(targetId);
@@ -369,6 +375,7 @@ var AutocompleteView = Backbone.View.extend({
 
         this.setCustomIRI(targetId);
         this.setAsCustom(targetId);
+        this.registerTermValueChangeEvent();
     }
 });
 
