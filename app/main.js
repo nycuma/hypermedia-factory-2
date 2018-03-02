@@ -17,9 +17,11 @@ $(document).ready(function() {
     console.log('start application');
 
     var graph = new joint.dia.Graph;
-    new Paper({ model: graph });
-    new NavigationBar({model: graph});
+    var paper = new Paper({ model: graph });
+    var navBar = new NavigationBar({model: graph});
     new SidePanel({page: 'welcome'});
+
+    paper.listenTo(navBar, 'fileUploaded', paper.setNewGraph);
 
 
     //console.log(JSON.stringify(graph.toJSON()));
