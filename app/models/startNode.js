@@ -6,9 +6,8 @@
 
 var joint = require('jointjs');
 
-joint.shapes.custom = {};
+var StartNode = joint.shapes.basic.Rect.extend({
 
-joint.shapes.custom.StartNode = joint.shapes.basic.Rect.extend({
     defaults: joint.util.deepSupplement({
         type: 'custom.StartNode',
         size: { width: 50, height: 30 },
@@ -25,4 +24,4 @@ joint.shapes.custom.StartNode = joint.shapes.basic.Rect.extend({
     }, joint.shapes.basic.Rect.prototype.defaults)
 });
 
-module.exports = joint.shapes.custom;
+module.exports = StartNode;
