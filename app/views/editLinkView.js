@@ -18,6 +18,7 @@ var EditLinkView = Backbone.View.extend({
     template:  _.template($('#edit-link-template').html()),
 
     initialize: function(options){
+        this.options = options;
         $('#paper').css('pointer-events', 'none');
         this.render();
     },
@@ -26,7 +27,8 @@ var EditLinkView = Backbone.View.extend({
         'click .submitBtn': 'submit',
         'click .cancelBtn' : 'close',
         'click .addFieldBtn' : 'addOperationFieldSet',
-        'click input[name=collItemLinkCheckBox]' : 'toggleAllowFilterCheckbox'
+        'click input[name=collItemLinkCheckBox]' : 'toggleStrucTypeOptionsCheckbox',
+        'click input[name=embedItemsCheckBox]' : 'toggleDisableEditView'
     },
 
     render: function () {
@@ -35,6 +37,7 @@ var EditLinkView = Backbone.View.extend({
         this.addOperationFieldSet();
         this.fillInputFields();
         //this.setPrefixForAddButton();
+        if(this.options.isSelfReferencing === true) $('#linkOptions').hide();
         this.$el.show();
         return this;
     },
@@ -56,10 +59,13 @@ var EditLinkView = Backbone.View.extend({
             if(this.model.prop('allowFilter') === true) {
                 this.$el.find('input[name=allowFilterCheckBox]').prop('checked', true);
             }
+            if(this.model.prop('embedItems') === true) {
+                this.$el.find('input[name=embedItemsCheckBox]').prop('checked', true);
+            }
         }
-        this.toggleAllowFilterCheckbox();
         this.setInputFieldsOperations();
-
+        this.toggleStrucTypeOptionsCheckbox();
+        this.toggleDisableEditView();
     },
 
     /*
@@ -91,8 +97,13 @@ var EditLinkView = Backbone.View.extend({
                 $('#relation' + i + 'Iri').val('{myURL}/vocab#' + elem.value);
             } else {
                 // get description from vocab
-                var vocabDescription = sugSource.getDescriptionFromVocab(elem.iri, elem.prefix, elem.value);
-                $('#relation' + i +'TermDescr').val(vocabDescription);
+                if(elem.iri === sugSource.prefixes.hydra + 'member') {
+                    // quick fix: hard coded term description. TODO: parse Hydra vocabulary and get descripton from there
+                    $('#relation' + i +'TermDescr').val('A member of the collection');
+                } else {
+                    var vocabDescription = sugSource.getDescriptionFromVocab(elem.iri, elem.prefix, elem.value);
+                    $('#relation' + i +'TermDescr').val(vocabDescription);
+                }
                 $relField.attr({'isCustom': false, 'term-prefix': elem.prefix});
             }
 
@@ -132,6 +143,7 @@ var EditLinkView = Backbone.View.extend({
         });
 
         $('#action'+operationCount+'TermDescr').attr({'readonly': 'readonly', 'placeholder': ''});
+        return operationCount;
     },
 
     submit: function (evt) {
@@ -152,10 +164,14 @@ var EditLinkView = Backbone.View.extend({
             if(this.$el.find('input[name=allowFilterCheckBox]').prop('checked')) {
                 linkModel.prop('allowFilter', true);
             }
+            if(this.$el.find('input[name=embedItemsCheckBox]').prop('checked')) {
+                linkModel.prop('embedItems', true);
+            }
         } else {
             linkModel.unsetStructuralTypeAtNodes();
             linkModel.prop('isCollItemLink', false);
             linkModel.prop('allowFilter', false);
+            linkModel.prop('embedItems', false);
         }
     },
 
@@ -165,62 +181,112 @@ var EditLinkView = Backbone.View.extend({
 
         var self = this;
 
-        $('#operationFieldSetsWrapper').children('div').each(function() {
+        if(!this.$el.find('input[name=embedItemsCheckBox]').prop('checked')) {
 
-            // save relation
-            var $relWrapper = $(this).find('.relationInputWrapper').first();
+            $('#operationFieldSetsWrapper').children('div').each(function() {
 
-            var relVal = $relWrapper.find('.ui-autocomplete-input').val().trim();
-            var relIri = $relWrapper.find('input[name=inputFieldIri]').val();
-            var relIsCustom = Utils.checkIfCustom($relWrapper.find('.ui-autocomplete-input'));
-            var relCustomDescr;
+                // save relation
+                var $relWrapper = $(this).find('.relationInputWrapper').first();
 
-            if(relIsCustom === true) {
-                relCustomDescr = $relWrapper.find('textarea[name=termDescr]').val().trim();
-            } else {
-                var relPrefix = $relWrapper.find('.ui-autocomplete-input').attr('term-prefix');
-            }
+                var relVal = $relWrapper.find('.ui-autocomplete-input').val().trim();
+                var relIri = $relWrapper.find('input[name=inputFieldIri]').val();
+                var relIsCustom = Utils.checkIfCustom($relWrapper.find('.ui-autocomplete-input'));
+                var relCustomDescr;
 
-            // save action
-            var $actionWrapper = $(this).find('.actionInputWrapper').first();
+                if(relIsCustom === true) {
+                    relCustomDescr = $relWrapper.find('textarea[name=termDescr]').val().trim();
+                } else {
+                    var relPrefix = $relWrapper.find('.ui-autocomplete-input').attr('term-prefix');
+                }
 
-            var actionVal = $actionWrapper.find('.ui-autocomplete-input').val().trim();
-            var actionIri = $actionWrapper.find('input[name=inputFieldIri]').val();
-            var actionPrefix = $actionWrapper.find('.ui-autocomplete-input').attr('term-prefix');
+                // save action
+                var $actionWrapper = $(this).find('.actionInputWrapper').first();
 
-            // save method
-            var method = $(this).find('select[name=methodDropdown]').val();
+                var actionVal = $actionWrapper.find('.ui-autocomplete-input').val().trim();
+                var actionIri = $actionWrapper.find('input[name=inputFieldIri]').val();
+                var actionPrefix = $actionWrapper.find('.ui-autocomplete-input').attr('term-prefix');
 
-            console.log('saving operation... found input fields: '
-                + '\n\tRel value: ' + relVal
-                + '\n\tRel prefix: ' + relPrefix
-                + '\n\tRel IRI: ' + relIri
-                + '\n\tRel is custom: ' + relIsCustom
-                + '\n\tRel custom description: ' + relCustomDescr
-                + '\n\tAction value: ' + actionVal
-                + '\n\tAction prefix: ' + actionPrefix
-                + '\n\tAction IRI: ' + actionIri
-                + '\n\tMethod: ' + method);
+                // save method
+                var method = $(this).find('select[name=methodDropdown]').val();
 
-            if(relVal) {
-                linkModel.saveLink(method, relVal, relPrefix, relIri, relIsCustom, relCustomDescr, actionVal, actionPrefix, actionIri)
-            } else {
-                //TODO show error msg to user
-            }
-        });
+                console.log('saving operation... found input fields: '
+                    + '\n\tRel value: ' + relVal
+                    + '\n\tRel prefix: ' + relPrefix
+                    + '\n\tRel IRI: ' + relIri
+                    + '\n\tRel is custom: ' + relIsCustom
+                    + '\n\tRel custom description: ' + relCustomDescr
+                    + '\n\tAction value: ' + actionVal
+                    + '\n\tAction prefix: ' + actionPrefix
+                    + '\n\tAction IRI: ' + actionIri
+                    + '\n\tMethod: ' + method);
+
+                if(relVal) {
+                    linkModel.saveLink(method, relVal, relPrefix, relIri, relIsCustom, relCustomDescr, actionVal, actionPrefix, actionIri)
+                } else {
+                    //TODO show error msg to user
+                }
+            });
+        } else {
+            linkModel.setLabelAsEmbedded();
+        }
     },
 
-    toggleAllowFilterCheckbox: function() {
+    toggleStrucTypeOptionsCheckbox: function(evt) {
         if(this.$el.find('input[name=collItemLinkCheckBox]').prop('checked')) {
             this.$el.find('input[name=allowFilterCheckBox]').attr('disabled', false);
-            this.$el.find('.allowFilterText').css('color', '');
+            this.$el.find('input[name=embedItemsCheckBox]').attr('disabled', false);
+            this.$el.find('.collItemLinkOptionText').css('color', '');
 
-            // TODO this.setValueLinkRel(); set to 'member'
+            // adds a new or updates an existing RETRIEVE operation and sets link relation to 'hydra:member'
+            if(evt) this.setRetrieveOperationToMember();
 
         } else {
             this.$el.find('input[name=allowFilterCheckBox]').attr('disabled', true);
-            this.$el.find('.allowFilterText').css('color', '#b6afaf');
+            this.$el.find('input[name=embedItemsCheckBox]').attr('disabled', true);
+            this.$el.find('.collItemLinkOptionText').css('color', '#b6afaf');
         }
+    },
+
+    toggleDisableEditView: function () {
+
+        if(this.$el.find('input[name=embedItemsCheckBox]').prop('checked')) {
+            this.$el.find('#operationFieldSetsWrapper input, select, .addFieldBtn').each(function () {
+                $(this).attr('disabled', true);
+            });
+        } else {
+            this.$el.find('#operationFieldSetsWrapper input, select, .addFieldBtn').each(function () {
+                $(this).attr('disabled', false);
+            });
+        }
+    },
+
+    setRetrieveOperationToMember: function () {
+        // check in view if a RETRIEVE operation has already been set
+        var count = this.getFirstRetrieveMethodCount();
+        if(!count) count = this.addOperationFieldSet();
+
+        // update exisiting RETRIEVE operation or set values in new field set
+        $('#relation'+count).val('member').attr({'term-prefix': 'hydra', 'isCustom': false});
+        $('#relation'+count+'Iri').val(sugSource.prefixes.hydra + 'member');
+        $('#relation'+count+'TermDescr').val('A member of the collection');
+
+        $('#action'+count).val('ReadAction').attr({'term-prefix': 'schema', 'isCustom': false});
+        $('#action'+count+'Iri').val(sugSource.prefixes.schema + 'ReadAction');
+        $('#action'+count+'TermDescr').val(sugSource.getDescriptionFromVocab(sugSource.prefixes.schema + 'ReadAction'));
+    },
+
+    getFirstRetrieveMethodCount: function () {
+        var $methods = this.$el.find('select[name=methodDropdown]');
+        var count;
+        if($methods) {
+            $methods.each(function () {
+                if($(this).val() == 'RETRIEVE') {
+                    count =  $(this).attr('count');
+                    return false;
+                }
+            });
+        }
+        return count;
     },
 
     /*
