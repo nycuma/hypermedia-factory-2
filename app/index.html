@@ -40,6 +40,7 @@
       <!-- <button class="navItem opensSidePanel" id="optionsBtn">Options</button> -->
       <button class="navItem opensSidePanel" id="helpBtn">Help</button>
     </nav>
+    <input type="file" id="uploadInput">
   </script>
 
 
@@ -93,10 +94,6 @@
     <form>
       <table>
         <tr>
-          <td><input type="radio" name="profileFormat" value="jsonld"></td>
-          <td>JSON-LD contexts</td>
-        </tr>
-        <tr>
           <td><input type="radio" name="profileFormat" value="hydra"></td>
           <td>Hydra ApiDocs</td>
         </tr>
@@ -104,6 +101,13 @@
           <td><input type="radio" name="profileFormat" value="alps"></td>
           <td>ALPS</td>
         </tr>
+        <!--
+        <tr>
+          <td><input type="radio" name="profileFormat" value="jsonld"></td>
+          <td>JSON-LD contexts</td>
+        </tr>
+
+        -->
       </table>
       <button class="btn submitBtn" type="submit">Download</button>
     </form>
@@ -256,8 +260,9 @@
 
 
   <!-- Operation Request param Template -->
+  <!--
   <script type="text/template" id="request-param-template">
-    <!-- <tbody class="paramWrapper"> -->
+    <tbody class="paramWrapper">
     <tr>
       <td colspan="1">
         <input type="text" name="settingsAttribute" placeholder="TODO" value="<%= attrVal %>" readonly>
@@ -273,8 +278,9 @@
         <input type="checkbox" name="checkboxReadOnly" value="isReadOnly"><span class="textCustomTerm">read-only</span>
       </td>
     </tr>
-    <!--</tbody>-->
+    </tbody>
   </script>
+  -->
 
 
   <!-- Node Template -->
@@ -285,6 +291,14 @@
       <button class="delete">x</button>
       <div class="collectionLabel">&#8729; Collection &#8729;</div>
       <label></label>
+    </div>
+  </script>
+
+  <!-- Start Node Template -->
+  <script type="text/template" id="start-node-template">
+    <div class="html-element">
+      <button class="newLink"></button>
+      <label>START</label>
     </div>
   </script>
 
