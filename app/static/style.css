@@ -179,6 +179,10 @@ nav button:focus {
     background-color: #6a4848;
 }
 
+#uploadInput {
+    display: none;
+}
+
 
 /**
     Term description for suggestion items
