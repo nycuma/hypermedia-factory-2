@@ -15,21 +15,17 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     el: $('#paper'),
     width: 600,
     height: 400,
-    gridSize: 1,
-    startNodeId: '',
 
     initialize: function() {
         joint.dia.Paper.prototype.initialize.apply(this, arguments);
         this.setEvents();
-        this.initializeGraph(); // Demo graph
+        this.setDemoGraph2();
         this.calculatePaperSize();
     },
 
-    initializeGraph: function() {
-
+    setDemoGraph1: function () {
         // Nodes
         var start = new StartNode();
-        this.startNodeId = start.get('id');
         var elCollection = this.createNodeForDemo(15, 90, 'RecordCollection', undefined, '{myURL}/vocab#RecordCollection', true, 'A collection of music records');
         var elAlbum = this.createNodeForDemo(230, 90, 'MusicAlbum', 'schema', 'http://schema.org/MusicAlbum');
         elAlbum.saveAttribute('numTracks', 'schema', 'http://schema.org/numTracks', false, null, 'integer', false);
@@ -41,12 +37,10 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
         // Links
         var l1 = this.createStartLink(start.id, elCollection.id);
-        // TODO customize start link
 
         var l2 = this.createLinkForDemo(elCollection.id, elAlbum.id);
-        l2.saveLink('RETRIEVE', 'item', 'IANA', null, false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
-        l2.saveLink('CREATE', 'item', 'IANA', null, false, null, 'AddAction', 'schema', 'http://schema.org/AddAction');
-        // TODO IANA IRIs
+        l2.saveLink('RETRIEVE', 'item', 'iana', 'http://www.iana.org/assignments/relation/item', false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+        l2.saveLink('CREATE', 'item', 'iana', 'http://www.iana.org/assignments/relation/item', false, null, 'AddAction', 'schema', 'http://schema.org/AddAction');
 
         var l3 = this.createLinkForDemo(elAlbum.id, elAlbum.id);
         l3.set('vertices', [{ x: 240, y: 45 }, { x: 315, y: 45 }]);
@@ -74,6 +68,80 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         elAlbum.setStructuralType('collection');
         l2.prop('isCollItemLink', true);
         l4.prop('isCollItemLink', true);
+
+    },
+
+    setDemoGraph2: function () {
+        // Nodes
+        var start = new StartNode({position: { x: 27, y: 33 }});
+
+        var nodeTasks = this.createNodeForDemo(243, 18, 'Tasks', undefined, '{myURL}/vocab#Tasks', true, 'A collection of tasks');
+        nodeTasks.saveAttribute('numberOfTasks', null, '{myURL}/vocab#numberOfTasks', true, 'Total number of tasks in the system', 'integer', true);
+        var nodeComments = this.createNodeForDemo(376, 366, 'Comments', undefined, '{myURL}/vocab#Comments', true, 'A collection of comments');
+
+        var nodeTask = this.createNodeForDemo(370, 215, 'Task', undefined, '{myURL}/vocab#Task', true, 'Something to do');
+        nodeTask.saveAttribute('taskTitle', 'schema', 'http://schema.org/name', false, null, 'string', false);
+        nodeTask.saveAttribute('taskDescription', 'schema', 'http://schema.org/mainEntity', false, null, 'string', false);
+        nodeTask.saveAttribute('commentCount', 'schema', 'http://schema.org/commentCount', false, null, 'integer', true);
+
+        var nodeUser = this.createNodeForDemo(145, 215, 'User', 'schema', 'http://schema.org/Person');
+        nodeUser.saveAttribute('givenName', 'schema', 'http://schema.org/givenName', false, null, 'string', false);
+        nodeUser.saveAttribute('homepage', 'schema', 'http://schema.org/url', false, null, 'anyURI', false);
+
+        var nodeComment = this.createNodeForDemo(145, 366, 'Comment', 'schema', 'http://schema.org/Comment');
+        nodeComment.saveAttribute('postedOn', 'schema', 'http://schema.org/dateCreated', false, null, 'dateTime', true);
+        nodeComment.saveAttribute('content', 'schema', 'http://schema.org/commentText', false, null, 'string', false);
+
+        // Links
+        var startLink1 = this.createLinkForDemo(start.id, nodeTasks.id);
+        startLink1.saveLink('RETRIEVE', 'tasks', undefined, '{myURL}/vocab#tasks', true, 'Get all tasks', 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+
+        var startLink2 = this.createLinkForDemo(start.id, nodeUser.id);
+        startLink2.saveLink('CREATE', 'registerUser', undefined, '{myURL}/vocab#addUser', true, 'Add a new user', 'RegisterAction', 'schema', 'http://schema.org/RegisterAction');
+
+        var link3 = this.createLinkForDemo(nodeTasks.id, nodeTask.id);
+        link3.saveLink('RETRIEVE', 'member', 'hydra', 'http://www.w3.org/ns/hydra/core#member', false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+        link3.saveLink('CREATE', 'addTask', undefined, undefined, true, 'Add a new task', 'AddAction', 'schema', 'http://schema.org/AddAction');
+        link3.prop('isCollItemLink', true);
+        link3.prop('allowFilter', true);
+
+        var link4 = this.createLinkForDemo(nodeUser.id, nodeTasks.id);
+        link4.saveLink('RETRIEVE', 'tasksAssigned', undefined, undefined, true, 'Tasks assigned to the user', 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+
+        var link6 = this.createLinkForDemo(nodeTask.id, nodeUser.id);
+        link6.saveLink('RETRIEVE', 'assignedTo', undefined, undefined, true, 'User who is assigned to the task', 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+
+        var link7 = this.createLinkForDemo(nodeTask.id, nodeComments.id);
+        link7.saveLink('RETRIEVE', 'comment', 'schema', 'http://schema.org/comment', false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+
+        var link8 = this.createLinkForDemo(nodeComments.id, nodeComment.id);
+        link8.prop('isCollItemLink', true);
+        link8.prop('embedItems', true);
+        link8.setLabelAsEmbedded();
+
+        var link9 = this.createLinkForDemo(nodeComment.id, nodeUser.id);
+        link9.saveLink('RETRIEVE', 'author', 'schema', 'http://schema.org/author', false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+
+        var link10 = this.createLinkForDemo(nodeTask.id, nodeTask.id);
+        link10.set('vertices', [{"x": 540, "y": 207}, {"x": 483,"y": 146}]);
+        link10.saveLink('REPLACE', 'assignUser', null, null, true, 'Assigns the task to a user', 'AssignAction', 'schema', 'http://schema.org/AssignAction');
+        link10.saveLink('REPLACE', 'editTask', 'iana', 'http://www.iana.org/assignments/relation/edit', false, undefined, 'UpdateAction', 'schema', 'http://schema.org/UpdateAction');
+        link10.saveLink('DELETE', 'deleteTask', null, null, true, 'Deletes the task', 'DeleteAction', 'schema', 'http://schema.org/DeleteAction');
+
+        var link11 = this.createLinkForDemo(nodeUser.id, nodeUser.id);
+        link11.set('vertices', [{"x": 72, "y": 191}, {"x": 72, "y": 280}]);
+        link11.saveLink('REPLACE', 'updateUser', 'iana', 'http://www.iana.org/assignments/relation/edit', false, undefined, 'UpdateAction', 'schema', 'http://schema.org/UpdateAction');
+        link11.saveLink('DELETE', 'deleteUser', null, null, true, 'Deletes the user', 'DeleteAction', 'schema', 'http://schema.org/DeleteAction');
+
+        var link12 = this.createLinkForDemo(nodeComments.id, nodeComments.id);
+        link12.set('vertices', [{"x": 496, "y": 480}, {"x": 373, "y": 480}]);
+        link12.saveLink('CREATE', 'addComment', undefined, undefined, true, 'Add a new comment', 'AddAction', 'schema', 'http://schema.org/AddAction');
+
+        this.model.addCells([start, nodeTasks, nodeTask, nodeUser, nodeComments, nodeComment,
+            startLink1, startLink2, link3, link4, link6, link7, link8, link9, link10, link11, link12]);
+
+        nodeTasks.setStructuralType('collection');
+        nodeComments.setStructuralType('collection');
     },
 
     calculatePaperSize: function () {
@@ -133,16 +201,13 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     openEditView: function (cellView, evt, x, y) {
 
         if(cellView.model.isLink()) {
-            // TODO: don't display collItemLinkCheckBox if soure node == target node
-            //var isSelfReference = cellView.model.get('source').id == cellView.model.get('target').id;
-            // inform link model
+            // Don't display check boxes (link options) if soure node == target node
+            var isSelfReferencing = false;
+            if(cellView.model.get('source') && cellView.model.get('target')
+                && cellView.model.get('source').id == cellView.model.get('target').id) isSelfReferencing = true;
 
-            // only open view to edit links of link does not originate in start node
-            if(cellView.model.get('source').id != this.startNodeId) {
-                new EditLinkView({ model: cellView.model });
-            } else {
-                console.log('link originates in start node. No view to edit link.')
-            }
+            new EditLinkView({ model: cellView.model, isSelfReferencing: isSelfReferencing});
+
         }
         if(cellView.model.isElement()) {
             new EditResourceView({ model: cellView.model });
@@ -193,8 +258,9 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         return link;
     },
 
-    // TODO throws errors, not working
+    // TODO throws errors, parsing JSON not working
     setNewGraph: function (data) {
+        /**
         var dataStr = JSON.stringify(data.data);
         dataStr = dataStr.replace(/\\/g, '').replace(/class="label"/g, 'class=\\"label\\"' );
         if(dataStr.charAt(0) == '"') dataStr = dataStr.slice(1, -1);
@@ -205,6 +271,7 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
         this.model.clear();
         this.model.fromJSON(jsonStr);
+         */
     }
 });
 
