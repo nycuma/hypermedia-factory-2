@@ -26,6 +26,7 @@ var SuggestionSource = Backbone.Collection.extend({
 
     initialize: function () {
         var self = this;
+        self.prefixes.hydra = 'http://www.w3.org/ns/hydra/core#';
 
         var schemaOrgSource = new SchemaOrgSource();
         $.when(schemaOrgSource.fetch({parse: true})).then(function() {
@@ -98,10 +99,15 @@ var SuggestionSource = Backbone.Collection.extend({
         if(result) return result.get('descr');
     },
 
+    getValueFromIanaIri: function (ianaIri) {
+        return ianaIri.replace('http://www.iana.org/assignments/relation/', '');
+    },
+
     getDescriptionFromVocab: function(iri, prefix, value) {
         var descr = '';
-        if(prefix === 'iana' && value) {
-            descr = this.getDescriptionForNonRDFTerm(prefix, value);
+        if(prefix === 'iana' && iri) {
+            var ianaVal = this.getValueFromIanaIri(iri);
+            descr = this.getDescriptionForNonRDFTerm(prefix, ianaVal);
         } else {
             if(iri) {
                 var rdfComment = this.rdfStore.getObjectsByIRI(iri, 'http://www.w3.org/2000/01/rdf-schema#comment');
