@@ -214,6 +214,9 @@ var EditLinkView = Backbone.View.extend({
         if(this.$el.find('input[name=collItemLinkCheckBox]').prop('checked')) {
             this.$el.find('input[name=allowFilterCheckBox]').attr('disabled', false);
             this.$el.find('.allowFilterText').css('color', '');
+
+            // TODO this.setValueLinkRel(); set to 'member'
+
         } else {
             this.$el.find('input[name=allowFilterCheckBox]').attr('disabled', true);
             this.$el.find('.allowFilterText').css('color', '#b6afaf');
