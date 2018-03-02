@@ -3,10 +3,9 @@
  */
 
 var joint = require('jointjs');
-var V = require('jointjs').V;
 var $ = require('jquery');
 var Node = require('../views/nodeView').Node;
-var StartNode = require('../models/startNode').StartNode;
+var StartNode = require('../views/nodeView').StartNode;
 var Link = require('../views/linkView').RelationLink;
 var EditLinkView = require('../views/editLinkView');
 var EditResourceView = require('../views/editResourceView');
@@ -30,12 +29,15 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
         // Nodes
         var start = new StartNode();
+        this.startNodeId = start.get('id');
         var elCollection = this.createNodeForDemo(15, 90, 'RecordCollection', undefined, '{myURL}/vocab#RecordCollection', true, 'A collection of music records');
         var elAlbum = this.createNodeForDemo(230, 90, 'MusicAlbum', 'schema', 'http://schema.org/MusicAlbum');
-        elAlbum.saveAttribute('numTracks', 'schema', 'http://schema.org/numTracks');
-        elAlbum.saveAttribute('yearlyRevenue', 'schema', 'http://schema.org/yearlyRevenue');
+        elAlbum.saveAttribute('numTracks', 'schema', 'http://schema.org/numTracks', false, null, 'integer', false);
+        elAlbum.saveAttribute('yearlyRevenue', 'schema', 'http://schema.org/yearlyRevenue', false, null, 'decimal', false);
         var elTrack = this.createNodeForDemo(480, 90, 'MusicRecording', 'schema', 'http://schema.org/MusicRecording');
         var elArtist = this.createNodeForDemo(230, 220, 'MusicGroup', 'schema', 'http://schema.org/MusicGroup');
+        elArtist.saveAttribute('genre', 'schema', 'http://schema.org/genre', false, null, 'string', false);
+        elArtist.saveAttribute('imageBand', null, null, true, 'Photo of the band', 'anyURI', true);
 
         // Links
         var l1 = this.createStartLink(start.id, elCollection.id);
@@ -116,41 +118,35 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     },
 
     setEvents: function () {
-        var self = this;
 
         this.on('blank:pointerdblclick', this.addNode);
-        
+        this.on('cell:pointerdblclick', _.bind(this.openEditView, this));
+
+        /*
         this.on('blank:pointerclick', function (evt, x, y) {
             console.log('point [' + x + ', ' + y + ']');
             //console.log(JSON.stringify(this.model.toJSON()));
         });
+        */
+    },
 
-        this.on('cell:pointerdblclick',
-            function(cellView, evt, x, y) {
-                if(cellView.model.isLink()) {
-                    // TODO: don't display collItemLinkCheckBox if soure node == target node
-                    //var isSelfReference = cellView.model.get('source').id == cellView.model.get('target').id;
-                    // inform link model
+    openEditView: function (cellView, evt, x, y) {
 
-                    // only open view to edit links of link does not originate in start node
-                    if(cellView.model.get('source').id != self.startNodeId) {
-                        new EditLinkView({ model: cellView.model });
-                    } else {
-                        console.log('link originates in start node. No view to edit link.')
-                    }
+        if(cellView.model.isLink()) {
+            // TODO: don't display collItemLinkCheckBox if soure node == target node
+            //var isSelfReference = cellView.model.get('source').id == cellView.model.get('target').id;
+            // inform link model
 
-
-                }
-                if(cellView.model.isElement()) {
-                    new EditResourceView({ model: cellView.model });
-                }
+            // only open view to edit links of link does not originate in start node
+            if(cellView.model.get('source').id != this.startNodeId) {
+                new EditLinkView({ model: cellView.model });
+            } else {
+                console.log('link originates in start node. No view to edit link.')
             }
-        );
-
-        $('#linkLabelId').dblclick(function () {
-           console.log('double click on a label');
-
-        });
+        }
+        if(cellView.model.isElement()) {
+            new EditResourceView({ model: cellView.model });
+        }
     },
 
     addNode: function (evt, x, y) {
@@ -195,6 +191,20 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
             target: { id: targetId }
         });
         return link;
+    },
+
+    // TODO throws errors, not working
+    setNewGraph: function (data) {
+        var dataStr = JSON.stringify(data.data);
+        dataStr = dataStr.replace(/\\/g, '').replace(/class="label"/g, 'class=\\"label\\"' );
+        if(dataStr.charAt(0) == '"') dataStr = dataStr.slice(1, -1);
+
+        //console.log('setNewGraph 1:\n' + dataStr);
+        var jsonStr = JSON.parse(dataStr);
+        //console.log('setNewGraph 2:\n' + JSON.stringify(jsonStr));
+
+        this.model.clear();
+        this.model.fromJSON(jsonStr);
     }
 });
 
