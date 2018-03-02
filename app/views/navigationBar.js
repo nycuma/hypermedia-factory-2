@@ -41,7 +41,10 @@ var NavigationBarView = Backbone.View.extend({
     },
 
     triggerClick: function () {
-        $('#uploadInput').trigger('click');
+
+        alert('TODO');
+
+        //$('#uploadInput').trigger('click');
     },
 
     openGraphFromFile: function (event) {
