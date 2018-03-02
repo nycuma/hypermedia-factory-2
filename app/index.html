@@ -204,14 +204,18 @@
   <!-- Edit Link Template -->
   <script type="text/template" id="edit-link-template">
       <form>
-      <table>
+      <table id="linkOptions">
         <tr>
           <td><input type="checkbox" name="collItemLinkCheckBox"/></td>
           <td>This link connects a collection to an item.</td>
         </tr>
         <tr>
           <td></td>
-          <td><input type="checkbox" name="allowFilterCheckBox"/> <span class="allowFilterText">Allow filter queries.</span></td>
+          <td><input type="checkbox" name="allowFilterCheckBox"/> <span class="collItemLinkOptionText">Allow filter queries.</span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><input type="checkbox" name="embedItemsCheckBox"/> <span class="collItemLinkOptionText">Embed item data in collection.</span></td>
         </tr>
       </table>
         <br>
