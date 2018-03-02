@@ -48,14 +48,20 @@ var Utils = {
         return false;
     },
 
-    // generates a text file, packages it in a zip file and let's the user download it
-    downloadZip: function(fileName, content) {
+    // generates a text file, packages it in a zip file and lets the user download it
+    downloadZip: function(fileName, content, zipName) {
         var zip = new JSZip();
         zip.file(fileName, content);
         zip.generateAsync({type:'blob'})
             .then(function(content) {
-                FileSaver.saveAs(content, 'hydraAPI.zip');
+                FileSaver.saveAs(content, zipName+'.zip');
             });
+    },
+
+    // generates a text file and lets the user downoload it
+    downloadFile: function(content, fileName) {
+        var blob = new Blob([content], {type: 'application/json'});
+        FileSaver.saveAs(blob, fileName);
     }
 };
 
