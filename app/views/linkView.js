@@ -5,7 +5,6 @@
 'use strict';
 
 var joint = require('jointjs');
-var V = require('jointjs').V;
 var RelationLink = require('../models/link');
 
 joint.shapes.link = {};
