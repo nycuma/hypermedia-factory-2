@@ -19,7 +19,7 @@ var RelationLink = joint.dia.Link.extend({
 
         labelMarkup: '<g class="label"><rect/><text /></g>',
         labels: [{
-            position: .4,
+            position: .3,
             attrs: {
                 rect: { fill: '#f5f5ef', 'fill-opacity': .8 },
                 text: {
@@ -46,7 +46,7 @@ var RelationLink = joint.dia.Link.extend({
 
     initialize: function () {
         joint.dia.Link.prototype.initialize.apply(this, arguments);
-        this.on('change:source', _.bind(this.changedSourceHandler, this));
+        //this.on('change:source', _.bind(this.changedSourceHandler, this));
     },
     changedSourceHandler: function (evt) {
         var newSourceNode = this.graph.getCell(this.get('source').id);
@@ -75,6 +75,11 @@ var RelationLink = joint.dia.Link.extend({
         }, '');
 
         this.prop('labels/0/attrs/text/text', methodLabel);
+    },
+
+    setLabelAsEmbedded: function () {
+        this.prop('labels/0/attrs/text/text', '');
+        this.prop('labels/1/attrs/text/text', 'embedded');
     },
 
     // TODO merge setStructuralTypeAtNodes and unsetStructuralTypeAtNodes
@@ -131,8 +136,23 @@ var RelationLink = joint.dia.Link.extend({
         this.renderLabelOperations();
         this.renderLabelRelations();
 
-    }
+    },
 
+    retrieveOperationExists: function () {
+        var operations = this.prop('operations');
+
+        if(operations) {
+            operations.forEach(function(op) {
+                if(op.method === 'RETRIEVE') return op;
+            });
+        }
+        return false;
+    },
+
+    addOperation: function(operation) {
+        var operations = this.prop('operations') || [];
+        operations.push(operation);
+    }
 });
 
 
