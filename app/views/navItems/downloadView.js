@@ -8,9 +8,7 @@ var Backbone = require('backbone');
 var _ = require('underscore');
 var $ = require('jquery');
 Backbone.$ = $;
-var JSZip = require("jszip");
-var FileSaver = require('file-saver');
-var JsonLdGenerator = require('../../util/jsonLdGenerator');
+var HydraDocs = require('../../util/hydraGenerator');
 
 var DownloadView = Backbone.View.extend({
     el: '#sidePanelContent',
@@ -21,8 +19,7 @@ var DownloadView = Backbone.View.extend({
     },
 
     events: {
-        'click .submitBtn': 'submit',
-        'click #btnTestZipFile' : 'downloadZip'
+        'click .submitBtn': 'submit'
     },
 
     render: function () {
@@ -32,24 +29,15 @@ var DownloadView = Backbone.View.extend({
 
     submit: function (evt) {
         evt.preventDefault();
-    },
-
-    downloadZip: function () {
-        console.log('downloadZip called');
 
         var namespace = 'http://myapi.com/vocab#';
-        JsonLdGenerator.downloadHydraAPI(this.model, namespace);
+        var baseUrl = 'http://myapi.com/';
+        var descr = 'This is my demo API';
+        var title = 'Demo API';
+        var docs = new HydraDocs(this.model, namespace, baseUrl, title, descr);
+        docs.downloadHydraAPIDocs();
 
-
-        /*
-        var zip = new JSZip();
-        zip.file("Hello.txt", "Hello World\n\tA tab\n\t\ttwo tabs");
-        zip.file("folder/Hello2.txt", "Hello 2");
-        zip.generateAsync({type:"blob"})
-            .then(function(content) {
-                FileSaver.saveAs(content, "example2.zip");
-            });
-            */
+        //TODO info for user: place docs in root folder
     }
 });
 
