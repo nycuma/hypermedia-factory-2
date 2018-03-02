@@ -4,6 +4,7 @@
 
 'use strict';
 
+var $ = require('jquery');
 var joint = require('jointjs');
 var Utils = require('../util/utils');
 
