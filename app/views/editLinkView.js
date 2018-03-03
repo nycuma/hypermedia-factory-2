@@ -44,7 +44,9 @@ var EditLinkView = Backbone.View.extend({
 
     getResNameSourceNode: function () {
         var sourceNode = this.model.getSourceNode();
-        return [sourceNode.getResourceNameVal(), sourceNode.getResourceNamePrefix()];
+        if(sourceNode.get('type') === 'html.Node') {
+            return [sourceNode.getResourceNameVal(), sourceNode.getResourceNamePrefix()];
+        }
     },
 
     getNextOperationID: function() {
@@ -52,7 +54,13 @@ var EditLinkView = Backbone.View.extend({
     },
 
     fillInputFields: function () {
+        this.setCheckMarksForLinkOptions();
+        this.setInputFieldsOperations();
+        this.toggleStrucTypeOptionsCheckbox();
+        this.toggleDisableEditView();
+    },
 
+    setCheckMarksForLinkOptions: function () {
         // set check mark if link connects collection and item
         if(this.model.prop('isCollItemLink') === true) {
             this.$el.find('input[name=collItemLinkCheckBox]').prop('checked', true);
@@ -63,18 +71,7 @@ var EditLinkView = Backbone.View.extend({
                 this.$el.find('input[name=embedItemsCheckBox]').prop('checked', true);
             }
         }
-        this.setInputFieldsOperations();
-        this.toggleStrucTypeOptionsCheckbox();
-        this.toggleDisableEditView();
     },
-
-    /*
-    setPrefixForAddButton: function() {
-        var prefix = this.getResNameSourceNode()[1];
-        $('.addFieldBtn').attr('term-prefix', prefix);
-        console.log('editResourceView: updatePrefixForAddButton. Prefix: ' + prefix);
-    },
-    */
 
     setInputFieldsOperations: function () {
         var operations = this.model.prop('operations');
@@ -107,13 +104,20 @@ var EditLinkView = Backbone.View.extend({
                 $relField.attr({'isCustom': false, 'term-prefix': elem.prefix});
             }
 
-
-            // set fields for action and method
-            $('#action' + i).val(elem.actionValue).attr('term-prefix', elem.prefix);
-            $('#action' + i + 'Iri').val(elem.actionIri);
-            $('#action' + i +'TermDescr').val(sugSource.getDescriptionFromVocab(elem.actionIri));
+            // method dropdown
             $('#methodDropdown' + i).val(elem.method);
+            // fields for action
 
+
+            if (elem.prefix == 'iana') {
+
+            } else {
+                $('#action' + i).val(elem.actionValue).attr('term-prefix', elem.prefix);
+                $('#action' + i + 'Iri').val(elem.actionIri);
+                $('#action' + i + 'TermDescr').val(sugSource.getDescriptionFromVocab(elem.actionIri));
+
+                $('#actionInputWrapper' + i).show();
+            }
         }, this));
     },
 
@@ -132,8 +136,8 @@ var EditLinkView = Backbone.View.extend({
             el: this.$el.find('.relationInputWrapper').last(),
             id: 'relation'+operationCount,
             label: 'Relation:',
-            resourceNameValue: resNameSource[0],
-            resourceNamePrefix: resNameSource[1]
+            resourceNameValue: resNameSource ? resNameSource[0] : undefined,
+            resourceNamePrefix: resNameSource ? resNameSource[1] : undefined
         });
 
         new AutocompleteView({
