@@ -1,38 +1,24 @@
 {
   "vocabularies" : [
     {
-      "IANA": {
-        "about": {
-          "available": [
-            "RETRIEVE"
-          ],
-          "default": "RETRIEVE"
-        },
-        "collection": {
-          "available": [
-            "RETRIEVE"
-          ],
-          "default": "RETRIEVE"
-        },
-        "edit": {
-          "available": [
-            "REPLACE",
-            "DELETE"
-          ],
-          "default": "REPLACE"
-        },
-        "item": {
-          "available": [
-            "RETRIEVE"
-          ],
-          "default": "RETRIEVE"
-        },
-        "stylesheet": {
-          "available": [
-            "RETRIEVE"
-          ],
-          "default": "RETRIEVE"
-        }
+      "iana": {
+        "about": { "available": [ "RETRIEVE"], "default": "RETRIEVE" },
+        "collection": {"available": ["RETRIEVE"], "default": "RETRIEVE" },
+        "edit": {"available": ["REPLACE", "DELETE"], "default": "REPLACE" },
+        "item": {"available": ["RETRIEVE"], "default": "RETRIEVE" },
+        "stylesheet": {"available": ["RETRIEVE"], "default": "RETRIEVE" }
+      }
+    },
+    {
+      "schema": {
+        "AddAction": { "available": [ "CREATE"], "default": "CREATE" },
+        "AssignAction": { "available": [ "CREATE", "REPLACE"], "default": "REPLACE" },
+        "CookAction": { "available": [ "CREATE", "REPLACE", "RETRIEVE"], "default": "CREATE" },
+        "CreateAction": { "available": [ "CREATE"], "default": "CREATE" },
+        "DeleteAction": { "available": [ "DELETE"], "default": "DELETE" },
+        "ReadAction": { "available": [ "RETRIEVE"], "default": "RETRIEVE" },
+        "RegisterAction": { "available": [ "CREATE"], "default": "CREATE" },
+        "UpdateAction": { "available": [ "CREATE", "REPLACE"], "default": "REPLACE" }
       }
     }
     ]
