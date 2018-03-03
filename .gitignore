@@ -1,15 +1,5 @@
 *.*~
 
-# JS Bundle
-app/static/bundle.js
-webpack.config.js
-
-# external CSS libraries
-app/static/joint.css
-app/static/jquery-ui-theme-humanity.css
-
-#Vocabularies
-app/static/vocabs/
 
 # Playground
 playground/
