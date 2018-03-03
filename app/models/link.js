@@ -91,7 +91,7 @@ var RelationLink = joint.dia.Link.extend({
         if(sourceNode && targetNode && (sourceNode != targetNode)) {
             sourceNode.setStructuralType('collection');
 
-            if(targetNode.getStructuralType() !== 'collection') {
+            if(!targetNode.getStructuralType() || targetNode.getStructuralType() !== 'collection') {
                 targetNode.setStructuralType('item');
             }
         }
