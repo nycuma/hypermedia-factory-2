@@ -19,11 +19,11 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     initialize: function() {
         joint.dia.Paper.prototype.initialize.apply(this, arguments);
         this.setEvents();
-        this.setDemoGraph2();
+        this.setDemoGraphTasks();
         this.calculatePaperSize();
     },
 
-    setDemoGraph1: function () {
+    setDemoGraphMusic: function () {
         // Nodes
         var start = new StartNode();
         var elCollection = this.createNodeForDemo(15, 90, 'RecordCollection', undefined, '{myURL}/vocab#RecordCollection', true, 'A collection of music records');
@@ -71,7 +71,7 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
     },
 
-    setDemoGraph2: function () {
+    setDemoGraphTasks: function () {
         // Nodes
         var start = new StartNode({position: { x: 27, y: 33 }});
 
@@ -142,6 +142,8 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
         nodeTasks.setStructuralType('collection');
         nodeComments.setStructuralType('collection');
+        nodeTask.setStructuralType('item');
+        nodeComment.setStructuralType('item');
     },
 
     calculatePaperSize: function () {
