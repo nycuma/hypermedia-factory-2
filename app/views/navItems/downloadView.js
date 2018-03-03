@@ -34,10 +34,23 @@ var DownloadView = Backbone.View.extend({
         var baseUrl = 'http://myapi.com/';
         var descr = 'This is my demo API';
         var title = 'Demo API';
-        var docs = new HydraDocs(this.model, namespace, baseUrl, title, descr);
-        docs.downloadHydraAPIDocs();
 
-        //TODO info for user: place docs in root folder
+        /*
+        var baseUrl = $('#exportBaseUrl').val();
+        var namespace = $('#exportNamespace').val();
+        var title = $('#exportApiTitle').val();
+        var descr = $('#exportApiDescr').val();
+        */
+
+        if($('input[name=exportFormat]:checked').val() == 'alps') {
+            alert('ALPS is comming soon...\nPlease select Hydra');
+        } else {
+
+            var docs = new HydraDocs(this.model, namespace, baseUrl, title, descr);
+            docs.downloadHydraAPIDocs();
+        }
+
+        //TODO info for user: place docs in root folder and add link to HTTP header
     }
 });
 
