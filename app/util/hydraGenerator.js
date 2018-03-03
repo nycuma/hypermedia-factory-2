@@ -80,6 +80,8 @@ HydraDocs.prototype = {
         context['expects'] = {'@id': 'hydra:expects', '@type': '@id'};
         context['returns'] = {'@id': 'hydra:returns', '@type': '@id'};
 
+        // TODO get prefixes from SuggestionSource
+
         return context;
     },
 
@@ -89,12 +91,12 @@ HydraDocs.prototype = {
         entryPoint['@id'] = 'http://schema.org/EntryPoint';
         entryPoint['@type'] = 'hydra:Class';
         entryPoint['label'] = 'EntryPoint';
-        //entryPoint['supportedOperation'] = GET to resource itself TODO
-        entryPoint['supportedProperty'] = this.getLinksFromEntryPoint(startNode);
+        entryPoint['supportedProperty'] = this.getSupportedLinkProperties(startNode);
 
         return entryPoint;
     },
 
+    /*
     getLinksFromEntryPoint: function (startNode) {
 
         var supportedProps = [];
@@ -124,6 +126,7 @@ HydraDocs.prototype = {
         }
         return supportedProps;
     },
+    */
 
     getSupportedOperationFromEntryPoint: function(resourceName) {
         var supportedOps = [];
@@ -150,8 +153,8 @@ HydraDocs.prototype = {
         classObj['hydra:supportedProperty'] = this.getSupportedProperties(cell);
 
         // only for links pointing back to the same resource
-        var returningLinks = this.getReturningLinks(cell);
-        classObj['hydra:supportedOperation'] = this.getSupportedOperationsForClass(cell, returningLinks);
+        var selfReferecingLinks = this.getSelfReferencingLinks(cell);
+        classObj['hydra:supportedOperation'] = this.getSupportedOperationsForClass(cell, selfReferecingLinks);
 
 
         return classObj;
@@ -188,10 +191,23 @@ HydraDocs.prototype = {
             });
         }
 
+        var supportedLinkProps = this.getSupportedLinkProperties(cell);
+        return supportedPropsArr.concat(supportedLinkProps);
+    },
 
+    // get link relations of outgoing links
+    // (They have type hydra:Link and indicate to client that value is a dereferencable URL)
+    getSupportedLinkProperties: function (cell) {
 
-        // get link relations of outgoing links
-        // (They have type hydra:Link and indicate to client that value is a dereferencable URL)
+        var supportedLinkPropsArr = [];
+        var resourceName = '', domain = '';
+        if(cell.prop('resourceName')) {
+            domain = resourceName.isCustom ? 'vocab:' + resourceName.value : resourceName.iri;
+        } else {
+            // cell is the start node
+            domain = 'http://schema.org/EntryPoint';
+        }
+
         var outboundLinks = this._graph.getConnectedLinks(cell, {outbound: true});
         var self = this;
 
@@ -199,6 +215,7 @@ HydraDocs.prototype = {
             outboundLinks.forEach(function (link) {
 
                 var linkOperations = link.prop('operations');
+
                 if (linkOperations && linkOperations.length > 0) {
 
                     linkOperations.forEach(function (op) {
@@ -208,10 +225,8 @@ HydraDocs.prototype = {
                         hydraPropLink['@type'] = 'hydra:Link';
                         hydraPropLink['rdfs:label'] = op.value;
                         if (op.isCustom) hydraPropLink['rdfs:comment'] = op.customDescr;
-                        hydraPropLink['domain'] = resourceName.isCustom ? 'vocab:' + resourceName.value : resourceName.iri;
-                        hydraPropLink['range'] = self.getResNameTargetNode(link);
-
-
+                        hydraPropLink['domain'] = domain;
+                        hydraPropLink['range'] = self.getResourcenNameOfTarget(link);
 
                         hydraPropLink['hydra:supportedOperation'] = self.getSupportedOperationsForProperty(link, op);
 
@@ -219,22 +234,80 @@ HydraDocs.prototype = {
                         supportedPropLink['hydra:title'] = op.value;
                         supportedPropLink['hydra:description'] = op.isCustom ? op.customDescr : sugSource.getDescriptionFromVocab(op.iri);
                         supportedPropLink['hydra:required'] = 'null';
-                        supportedPropLink['hydra:readonly'] =  op.method === 'RETRIEVE' ? true : false;
+                        supportedPropLink['hydra:readonly'] =  'true';
 
-                        supportedPropsArr.push(supportedPropLink);
+                        supportedLinkPropsArr.push(supportedPropLink);
                     });
                 }
             });
         }
 
-        return supportedPropsArr;
+        return supportedLinkPropsArr;
     },
 
+    // Only deals with links where targetNode != sourceNode
     getSupportedOperationsForProperty: function (link, operation) {
-        var operationsForPropObj = {};
-        // TODO id?
 
-        return operationsForPropObj;
+        if (!this.checkLinkIsSelfReferencing(link)) {
+
+            var operationsForPropObj = {}, expects = '', returns = '';
+            var source = this.getSource(link);
+            var target = this.getTarget(link);
+
+            if (operation.method == 'RETRIVE') {
+                expects = null;
+                returns = this.getResourcenNameOfTarget(link);
+            }
+            else if (operation.method = 'CREATE') {
+
+                if (this.checkLinkIsSelfReferencing(link)) {
+                    // case 1: SourceNode = Collection and TargetNode = Collection // TODO this method should not deal with self-referencing links
+                    if (this.checkNodeIsCollection(source) && this.checkNodeIsCollection(target)) {
+                        //get corresponding item node for collection node
+                        var itemNodeS = this.getItemNode(source);
+                        expects = returns = itemNodeS;
+                    }
+                } else {
+                    // case 2: SourceNode = Collection and TargetNode = Item
+                    if (this.checkNodeIsCollection(source) && this.checkNodeIsItem(target)) {
+                        expects = returns = this.getResourcenNameOfTarget(link);
+                    }
+                    // case 3: SourceNode = some other Node and TargetNode = Collection
+                    else if (this.checkNodeIsCollection(target)) {
+                        //get corresponding item node for collection node
+                        var itemNodeT = this.getItemNode(target);
+                        expects = returns = itemNodeT;
+                    }
+                }
+            }
+            else if (operation.method = 'REPLACE') {
+
+                if (this.checkLinkIsSelfReferencing(link)) {
+                    // case 1: link is self referencing // TODO this method should not deal with self-referencing links
+                    expects = returns = this.getResourcenNameOfSource(link);
+
+                } else {
+                    // case 2: link is not self referencing (then we assume that target node is supposed to be replaced)
+                    expects = returns = this.getResourcenNameOfTarget(link);
+                }
+            }
+            else if (operation.method == 'DELETE') {
+                expects = null;
+                returns = 'owl:Nothing';
+            }
+
+            // TODO @id ??
+            operationsForPropObj['@type'] = operation.actionPrefix && operation.actionValue ?
+                            operation.actionPrefix + ':' + operation.actionValue : 'hydra:Operation';
+            operationsForPropObj['hydra:method'] = operation.method ? operation.method : 'RETRIEVE';
+            operationsForPropObj['expects'] = expects;
+            operationsForPropObj['returns'] = returns;
+
+            return operationsForPropObj;
+        }
+
+
+
 
         /**
          *{
@@ -248,20 +321,24 @@ HydraDocs.prototype = {
                                 "statusCodes": []
                             }
          */
+
+
     },
 
+    // Deals with link where targetNode = sourceNode
     getSupportedOperationsForClass: function (cell, returningLinks) {
-        var operationsForClassArr = [];
+        var operationsForClassArr = [], operationForClass = {};
+
 
         return operationsForClassArr;
     },
 
 
-    /**
-     * Returns an array with all links for <cell> whose source node and target node are the same
-     * TODO do we need that?
-     */
-    getReturningLinks: function (cell) {
+
+     //Returns an array with all links for <cell> whose source node and target node are the same
+      //TODO do we need that?
+
+    getSelfReferencingLinks: function (cell) {
 
         var outgoingLinks = this._graph.getConnectedLinks(cell, {outbound: true});
         var incomingLinks = this._graph.getConnectedLinks(cell, {inbound: true});
@@ -282,11 +359,60 @@ HydraDocs.prototype = {
         return returningLinks;
     },
 
-    getResNameTargetNode: function(link) {
-        var targetNodeResName = this._graph.getCell(link.get('target').id).prop('resourceName');
+    getResourcenNameOfTarget: function(link) {
+        var target = this.getTarget(link);
+        var targetNodeResName = target.prop('resourceName');
         return targetNodeResName.isCustom ? 'vocab:'+targetNodeResName.value : targetNodeResName.iri;
-    }
+    },
 
+    getResourcenNameOfSource: function(link) {
+        var source = this.getSource(link);
+        var targetNodeResName = source.prop('resourceName');
+        if(targetNodeResName)
+            return targetNodeResName.isCustom ? 'vocab:'+targetNodeResName.value : targetNodeResName.iri;
+    },
+
+    checkNodeIsItem: function (cell) {
+         return (cell.prop('structuralType') && cell.prop('structuralType') == 'item');
+    },
+    
+    checkNodeIsCollection: function (cell) {
+        return (cell.prop('structuralType') && cell.prop('structuralType') == 'collection');
+    },
+
+    getSource: function (link) {
+        var node = link.get('source');
+        if(node) return this._graph.getCell(node.id);
+    },
+
+    getTarget: function (link) {
+        var node = link.get('target');
+        if(node) return this._graph.getCell(node.id);
+    },
+    
+    checkLinkIsSelfReferencing: function (link) {
+        var source = this.getSource(link);
+        var target = this.getTarget(link);
+        if(source && target)
+            return source.id == target.id;
+    },
+
+    // returns corresponding item node for a collection node
+    getItemNode: function (collectionNode) {
+        // get all outgoing links
+        var outgoingLinks = this._graph.getConnectedLinks(collectionNode, {outbound: true});
+
+        if(outgoingLinks) {
+            outgoingLinks.forEach(_.bind(function (link) {
+                // get the link that has isCollItemLink set to true
+                if(link.prop('isCollItemLink') && link.prop('isCollItemLink') === true) {
+                    // get target node of that link
+                    return this.getTarget(link);
+                }
+            }, this));
+        }
+    }
 };
 
 module.exports = HydraDocs;
+
