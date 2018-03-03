@@ -12,7 +12,6 @@ Backbone.$ = $;
 var WelcomeView = require('./navItems/welcomeView');
 var AboutView = require('./navItems/aboutView');
 var DownloadView = require('./navItems/downloadView');
-var OptionsView = require('./navItems/optionsView');
 var HelpView = require('./navItems/helpView');
 
 var SidePanelView = Backbone.View.extend({
@@ -31,10 +30,7 @@ var SidePanelView = Backbone.View.extend({
         switch (this.options.page) {
             case 'welcome' : new WelcomeView({}); break;
             case 'aboutBtn' : new AboutView({}); break;
-            //case 'openBtn' : new OpenView({}); break;
-            //case 'saveBtn' : new SaveView({}); break;
             case 'downloadBtn' : new DownloadView({model: this.model}); break;
-            //case 'optionsBtn' : new OptionsView({}); break;
             case 'helpBtn' : new HelpView({}); break;
         }
         this.$el.fadeIn(200);
