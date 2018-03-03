@@ -18,6 +18,13 @@ var Utils = require('../util/utils');
 var AutocompleteView = Backbone.View.extend({
     template: _.template($('#autocomplete-input-template').html()),
 
+    methodMap: {
+        'RETRIEVE': 'retrieve (safe)',
+        'CREATE': 'create (not idemportent)',
+        'REPLACE': 'replace (idempotent)',
+        'DELETE': 'delete (idempotent)'
+    },
+
     initialize: function(options){
         //_.bindAll(this, 'render');
 
@@ -206,7 +213,8 @@ var AutocompleteView = Backbone.View.extend({
                 var prefix = sugSource.getPrefixFromLabel(ui.item.label);
 
                 // update method suggestions depending on selected relation and action
-                if(self.id.match(/action/) || self.id.match(/relation/)) self.updateMethodSuggestions(event.target.id, ui.item.value, prefix);
+                if(self.id.match(/relation/)) self.updateVisibilityActionAndMethods(event, ui.item.value, prefix);
+                if(self.id.match(/action/)) self.updateMethodSuggestions(null, event, ui.item.value, prefix);
 
                 // refresh input fields for resources attributes (suggest only properties for selected resource name)
                 //if(self.id === 'resourceName') self.trigger('resourceNameSelected', {value: ui.item.value, prefix: prefix});
@@ -287,31 +295,39 @@ var AutocompleteView = Backbone.View.extend({
         return superClasses;
     },
 
-    // TODO !!!
-    updateMethodSuggestions: function(targetId, value, prefix) {
-        // get options suggestions
-        //.val('DELETE');
-        //var $dropdown = $('#methodDropdown' + targetId.substring(targetId.length-1));
+    // called when selection a new link relation
+    // if selected relation is an IANA link relation, the input fields for Action are hidden
+    // and the method options are updated according to the selected relation
+    updateVisibilityActionAndMethods: function (evt, value, prefix) {
+        var $parent = $(evt.target).closest('table');
+        var $action = $parent.find('.actionInputWrapper');
+        var $method = $parent.find('select[name=methodDropdown]');
 
-        //$dropdown.empty();
+        if(prefix === 'iana') {
+            $action.hide('slow');
+            // update method suggestions
+            this.updateMethodSuggestions($method, null, value, prefix);
+        } else {
+            // show Action Input Field
+            $action.show('slow');
+        }
+    },
 
-        //var methods = methodsSugs.getMethodSuggestion(value, prefix);
+    // updates the available methods to choose from, according to the info from the model data
+    // (see modelData/methodSuggestions.json)
+    updateMethodSuggestions: function(methodDropdownElement, evt, value, prefix) {
 
-        //console.log('updateMethodSuggs: methods: ' + JSON.stringify(methods));
+        var methods = methodsSugs.getMethodSuggestion(value, prefix);
+        var $dropdown = methodDropdownElement ? methodDropdownElement :
+                $(evt.target).closest('table').find('select[name=methodDropdown]');
 
-        /*
-        $.when(methodsSugs.fetch({parse: true})).then(function() {
-            JSON.stringify('updateMethodSuggestions')
-        });
-        */
-
-        /*
-         $.each(newOptions, function(key,value) {
-         $el.append($("<option></option>")
-         .attr("value", value).text(key));
-         });
-         */
-
+        if($dropdown && methods) {
+            $dropdown.empty();
+            methods.available.forEach(_.bind(function (method) {
+                $dropdown.append($('<option></option>').attr('value', method).text(this.methodMap[method]));
+            }, this));
+            $dropdown.val(methods.default);
+        }
     },
 
     fillInputFieldIri: function(label, value) {

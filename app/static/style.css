@@ -67,7 +67,7 @@ nav {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 20vw;
+    width: 25vw;
     background-color: #f5f5ef;
     border-left: 2px dashed #6a4848;
     z-index: 10;
@@ -120,6 +120,19 @@ nav {
 #sidePanelContent h2 {
     font-weight: bold;
     font-size: large;
+}
+
+#sidePanelContent table {
+    width: 100%;
+}
+
+#sidePanelContent table input[type=text] {
+    width: 100%;
+}
+#sidePanelContent table textarea {
+    width: 100%;
+    font-size: small;
+    resize: none;
 }
 
 .btn {
@@ -292,6 +305,12 @@ nav button:focus {
 #editResource input[type=text] {
     width: 93%;
 }
+
+#editLink .actionInputWrapper {
+    display: none;
+}
+
+
 
 
 hr {
