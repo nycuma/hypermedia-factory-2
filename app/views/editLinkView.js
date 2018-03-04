@@ -66,6 +66,7 @@ var EditLinkView = Backbone.View.extend({
             this.$el.find('input[name=collItemLinkCheckBox]').prop('checked', true);
             if(this.model.prop('allowFilter') === true) {
                 this.$el.find('input[name=allowFilterCheckBox]').prop('checked', true);
+                this.$el.find('input[name=allowFilterParams]').val(this.model.prop('allowFilterParams'));
             }
             if(this.model.prop('embedItems') === true) {
                 this.$el.find('input[name=embedItemsCheckBox]').prop('checked', true);
@@ -167,6 +168,7 @@ var EditLinkView = Backbone.View.extend({
             linkModel.prop('isCollItemLink', true);
             if(this.$el.find('input[name=allowFilterCheckBox]').prop('checked')) {
                 linkModel.prop('allowFilter', true);
+                linkModel.prop('allowFilterParams', this.$el.find('input[name=allowFilterParams]').val());
             }
             if(this.$el.find('input[name=embedItemsCheckBox]').prop('checked')) {
                 linkModel.prop('embedItems', true);
@@ -237,16 +239,16 @@ var EditLinkView = Backbone.View.extend({
 
     toggleStrucTypeOptionsCheckbox: function(evt) {
         if(this.$el.find('input[name=collItemLinkCheckBox]').prop('checked')) {
-            this.$el.find('input[name=allowFilterCheckBox]').attr('disabled', false);
-            this.$el.find('input[name=embedItemsCheckBox]').attr('disabled', false);
+            this.$el.find('input[name=allowFilterCheckBox], input[name=embedItemsCheckBox], ' +
+                'input[name=allowFilterParams]').attr('disabled', false);
             this.$el.find('.collItemLinkOptionText').css('color', '');
 
             // adds a new or updates an existing RETRIEVE operation and sets link relation to 'hydra:member'
-            //if(evt) this.setRetrieveOperationToMember();
+            if(evt) this.setRetrieveOperationToMember();
 
         } else {
-            this.$el.find('input[name=allowFilterCheckBox]').attr('disabled', true);
-            this.$el.find('input[name=embedItemsCheckBox]').attr('disabled', true);
+            this.$el.find('input[name=allowFilterCheckBox], input[name=embedItemsCheckBox], ' +
+                'input[name=allowFilterParams]').attr('disabled', true);
             this.$el.find('.collItemLinkOptionText').css('color', '#b6afaf');
         }
     },
