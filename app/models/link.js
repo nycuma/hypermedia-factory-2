@@ -83,25 +83,26 @@ var RelationLink = joint.dia.Link.extend({
     },
 
     // TODO merge setStructuralTypeAtNodes and unsetStructuralTypeAtNodes
-    setStructuralTypeAtNodes: function() {
+    setStructuralTypeAtNodes: function () {
 
         var sourceNode = this.getSourceNode();
         var targetNode = this.getTargetNode();
 
-        if(sourceNode && targetNode && (sourceNode != targetNode)) {
+        if (sourceNode && sourceNode.get('type') != 'custom.StartNode'
+            && targetNode && (sourceNode != targetNode)) {
             sourceNode.setStructuralType('collection');
 
-            if(!targetNode.getStructuralType() || targetNode.getStructuralType() !== 'collection') {
+            if (!targetNode.getStructuralType() || targetNode.getStructuralType() !== 'collection') {
                 targetNode.setStructuralType('item');
             }
         }
     },
-    unsetStructuralTypeAtNodes: function() {
+    unsetStructuralTypeAtNodes: function () {
 
         var sourceNode = this.getSourceNode();
         var targetNode = this.getTargetNode();
 
-        if(sourceNode && targetNode) {
+        if (sourceNode && targetNode && sourceNode.get('type') != 'custom.StartNode') {
             sourceNode.setStructuralType(null);
             targetNode.setStructuralType(null);
         }
@@ -116,6 +117,9 @@ var RelationLink = joint.dia.Link.extend({
     },
 
     saveLink: function(method, value, prefix, iri, isCustom, customDescr, actionValue, actionPrefix, actionIri) {
+
+        //console.log('saveLink: value: ' +value + ', method: ' + method);
+
         var operations = this.prop('operations') || [];
 
         value = isCustom ? Utils.getCamelCase(value) : value;
