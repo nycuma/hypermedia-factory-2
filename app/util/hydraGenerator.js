@@ -84,7 +84,7 @@ HydraDocs.prototype = {
         context['owl'] = 'http://www.w3.org/2002/07/owl#';
         context['domain'] = {"@id": "rdfs:domain", "@type": "@id"};
         context['range'] = {'@id': 'rdfs:range', '@type': '@id'};
-        //context['subClassOf'] = { '@id': 'rdfs:subClassOf', '@type': '@id' };
+        context['subClassOf'] = { '@id': 'rdfs:subClassOf', '@type': '@id' };
         context['expects'] = {'@id': 'hydra:expects', '@type': '@id'};
         context['returns'] = {'@id': 'hydra:returns', '@type': '@id'};
 
@@ -103,38 +103,6 @@ HydraDocs.prototype = {
 
         return entryPoint;
     },
-
-    /*
-    getLinksFromEntryPoint: function (startNode) {
-
-        var supportedProps = [];
-        // get links from StartNode
-        var startLinks = this._graph.getConnectedLinks(startNode, {outbound: true});
-        var self = this;
-
-        if(startLinks) {
-            startLinks.forEach(function(link) {
-                var linkProp = {}, hydraProp = {};
-                var targetNode = link.get('target').id;
-                var resourceName = self._graph.getCell(targetNode).prop('resourceName');
-
-                hydraProp['@id'] = resourceName.value.charAt(0).toLowerCase() + resourceName.value.slice(1);
-                hydraProp['@type'] = 'hydra:Link';
-                hydraProp['domain'] = 'http://schema.org/EntryPoint';
-                hydraProp['range'] = resourceName.isCustom ? 'vocab:' + resourceName.value : resourceName.iri;
-                hydraProp['supportedOperation'] = self.getSupportedOperationFromEntryPoint(resourceName);
-
-                linkProp['hydra:property'] = hydraProp;
-                linkProp['hydra:title'] = resourceName.value;
-                linkProp['hydra:description'] = resourceName.isCustom ? resourceName.customDescr : sugSource.getDescriptionFromVocab(resourceName.iri);
-
-
-                supportedProps.push(linkProp);
-            });
-        }
-        return supportedProps;
-    },
-    */
 
     getSupportedOperationFromEntryPoint: function(resourceName) {
         var supportedOps = [];
@@ -155,6 +123,7 @@ HydraDocs.prototype = {
         var classObj = {};
         classObj['@id'] = resourceName.isCustom ? 'vocab:' + resourceName.value : resourceName.iri;
         classObj['@type'] = 'hydra:Class';
+        if(cell.prop('structuralType') && cell.prop('structuralType') == 'collection') classObj['subClassOf'] = 'hydra:Collection';
         if (resourceName.isCustom) classObj['rdfs:comment'] = resourceName.customDescr;
         classObj['rdfs:label'] = cell.prop('value');
         classObj['hydra:description'] = resourceName.isCustom ? resourceName.customDescr : sugSource.getDescriptionFromVocab(resourceName.iri);
@@ -198,6 +167,27 @@ HydraDocs.prototype = {
             });
         }
 
+        //if Node is a Collection and Items are embedded in Collection: add standard property 'hydra:member'
+        if(this.checkNodeIsCollection(cell)) {
+
+            var linkToItem = this.getLinkToItemNode(cell);
+            if(linkToItem.prop('embedItems') && linkToItem.prop('embedItems') === true) {
+                var memberProp =
+                    {
+                        'hydra:property': {
+                            '@id' : 'hydra:member',
+                            '@type' : 'rdf:Property',
+                            'domain': this.getResourceNameOfNode(cell),
+                            'range': this.getResourcenNameOfTarget(linkToItem)
+                        },
+                        'hydra:title' : 'members',
+                        'hydra:description' : 'The members of this collection.'
+                };
+
+                supportedPropsArr.push(memberProp);
+            }
+        }
+
         var supportedLinkProps = this.getSupportedLinkProperties(cell);
         return supportedPropsArr.concat(supportedLinkProps);
     },
@@ -218,7 +208,7 @@ HydraDocs.prototype = {
         var outboundLinks = this._graph.getConnectedLinks(cell, {outbound: true});
         var self = this;
 
-        if(outboundLinks) {
+        if (outboundLinks) {
             outboundLinks.forEach(_.bind(function (link) {
 
                 if (!this.checkLinkIsSelfReferencing(link)) {
@@ -249,8 +239,17 @@ HydraDocs.prototype = {
                         });
                     }
                 }
+
+                // if TragetNode is a Collection and link prop 'Allow filter queries' is checked: add filter operation
+                if (this.checkNodeIsCollection(this.getTarget(link))) {
+                    var filterLinkProp = this.getFilterLinkPropIfRequired(link);
+                    if (filterLinkProp) supportedLinkPropsArr.push(filterLinkProp);
+                }
+
             }, this));
         }
+
+
 
         return supportedLinkPropsArr;
     },
@@ -258,9 +257,11 @@ HydraDocs.prototype = {
     // Only deals with links where targetNode != sourceNode
     getSupportedOperationsForProperty: function (link, operation) {
 
+        var supportedOpsForPropArr = [];
+
         if (!this.checkLinkIsSelfReferencing(link)) {
 
-            var operationsForPropObj = {}, expects = '', returns = '';
+            var operationForPropObj = {}, expects = '', returns = '';
             var source = this.getSource(link);
             var target = this.getTarget(link);
 
@@ -314,32 +315,15 @@ HydraDocs.prototype = {
             }
 
             // TODO @id ??
-            operationsForPropObj['@type'] = this.getActionType(operation);
-            if(operation.isCustom) operationsForPropObj['rdfs:comment'] = operation.customDescr;
-            operationsForPropObj['hydra:method'] = this.getOperationMethod(operation);
-            operationsForPropObj['expects'] = expects;
-            operationsForPropObj['returns'] = returns;
+            operationForPropObj['@type'] = this.getActionType(operation);
+            if(operation.isCustom) operationForPropObj['rdfs:comment'] = operation.customDescr;
+            operationForPropObj['hydra:method'] = this.getOperationMethod(operation);
+            operationForPropObj['expects'] = expects;
+            operationForPropObj['returns'] = returns;
 
-            return operationsForPropObj;
+            supportedOpsForPropArr.push(operationForPropObj);
         }
-
-
-
-
-        /**
-         *{
-                                "@id": "_:user_retrieve",
-                                "@type": "hydra:Operation",
-                                "method": "GET",
-                                "label": "Retrieves a User entity",
-                                "description": null,
-                                "expects": null,
-                                "returns": "vocab:User",
-                                "statusCodes": []
-                            }
-         */
-
-
+        return supportedOpsForPropArr;
     },
 
     // Deals with link where targetNode = sourceNode
@@ -347,8 +331,6 @@ HydraDocs.prototype = {
 
         var operationsForClassArr = [],
             selfLink = this.getSelfReferencingLink(cell);
-
-        console.log('getSupportedOperationsForClass selfLink: ' + JSON.stringify(selfLink));
 
         if (selfLink) {
             var linkOperations = selfLink.prop('operations');
@@ -362,9 +344,11 @@ HydraDocs.prototype = {
                         expects = null;
                         returns = this.getResourceNameOfNode(cell);
 
+                        /*
                         console.log('LINK PROPS FOR CLASS. ' + operation.method + '. link: ' + operation.value);
                         console.log('\texpects: ' + expects);
                         console.log('\treturns: ' + returns);
+                        */
                     }
                     else if (operation.method == 'CREATE' || operation.method == 'REPLACE') {
 
@@ -374,16 +358,20 @@ HydraDocs.prototype = {
                             var linkToItem = this.getLinkToItemNode(cell);
                             expects = returns = this.getResourcenNameOfTarget(linkToItem);
 
+                            /*
                             console.log('LINK PROPS FOR CLASS. ' + operation.method + ' case 1. link: ' + operation.value);
                             console.log('\texpects: ' + expects);
                             console.log('\treturns: ' + returns);
+                            */
                         } else {
                             //default: a resource of the type of the node itself is supposed to be created / replaced
                             expects = returns = this.getResourceNameOfNode(cell);
 
+                            /*
                             console.log('LINK PROPS FOR CLASS. ' + operation.method + '  case default. link: ' + operation.value);
                             console.log('\texpects: ' + expects);
                             console.log('\treturns: ' + returns);
+                            */
                         }
 
                     } else if (operation.method == 'DELETE') {
@@ -399,35 +387,84 @@ HydraDocs.prototype = {
                     operationForClass['returns'] = returns;
 
                     operationsForClassArr.push(operationForClass);
+
                 }, this));
-            }
-        }
-
-        /*
-
-        {
-                    "@id": "_:user_replace",
-                    "@type": "hydra:Operation",
-                    "method": "PUT",
-                    "label": "Replaces an existing User entity",
-                    "description": null,
-                    "expects": "vocab:User",
-                    "returns": "vocab:User",
-                    "statusCodes": [
-
-                    ]
-                },
-         */
-
-
-
-
-
-
+            } // operations
+        } // SelfLink
         return operationsForClassArr;
     },
 
+    getFilterLinkPropIfRequired: function (linkToCollection) {
 
+        var target = this.getTarget(linkToCollection);
+        var linkToItem = this.getLinkToItemNode(target);
+
+        console.log('link to item: ' + JSON.stringify(linkToItem, null, 2));
+
+        if(linkToItem && linkToItem.prop('allowFilter') && linkToItem.prop('allowFilter') === true) {
+
+            var paramsStr = linkToItem.prop('allowFilterParams'), paramsArr = [];
+            if(paramsStr && paramsStr.trim().length > 0) {
+                paramsStr = paramsStr.replace(/\s/g, '');
+                paramsArr = paramsStr.split(',');
+            } else {
+                paramsStr = 'query';
+                paramsArr.push('query');
+            }
+
+            var urlTemplate = this.checkLinkIsSelfReferencing(linkToCollection) ? '/{?' + paramsStr + '}' :
+                            '/'+this.getRelationValueForFilterLink(linkToCollection)+'{?' + paramsStr + '}';
+
+            var mappings = [];
+            paramsArr.forEach(function (param) {
+                mappings.push({
+                    '@type': 'IriTemplateMapping',
+                    'variable': param,
+                    'property': 'hydra:freetextQuery'
+                });
+            });
+
+            var filterOperation = [
+                {
+                    'method': 'GET',
+                    'expects': null,
+                    'returns' : this.getResourceNameOfNode(target)
+                }];
+
+
+            var filterLinkProp = {
+                '@type': 'IriTemplate',
+                'rdfs:label': 'Filter for ' + this.getResourceNameOfNode(target),
+                'range': this.getResourceNameOfNode(target),
+                'template': urlTemplate,
+                'variableRepresentation': 'BasicRepresentation',
+                'mapping': mappings,
+                'operation' : filterOperation
+            };
+           // console.log('getFilterOperationIfRequired: ' + JSON.stringify(filterLinkProp, null, 2));
+            return filterLinkProp;
+        } // allowFilter = true
+    },
+
+    getRelationValueForFilterLink: function (linkToCollection) {
+
+        var hasRetrieveOp = false, retrieveOpVal;
+
+        linkToCollection.prop('operations').forEach(function (op) {
+            if(op.method == 'RETRIEVE') {
+                hasRetrieveOp = true;
+                retrieveOpVal = op.value;
+            }
+        });
+
+        // if the link already has a RETRIEVE operation: take the same relation value
+        if(hasRetrieveOp == true) {
+            return retrieveOpVal;
+        } else {
+            // else take lowercase collection name
+            return this.getResourcenNameOfTarget(linkToCollection);
+        }
+    },
 
      // Looks for links whose source node and target node are the same (= <cell> )
     // returns the first link that was found for the given node
@@ -509,8 +546,9 @@ HydraDocs.prototype = {
     },
 
     getActionType: function (operation) {
+        var actionTypes = ['hydra:Operation'];
         return operation.actionPrefix && operation.actionValue ?
-                        operation.actionPrefix + ':' + operation.actionValue : 'hydra:Operation';
+                        actionTypes.push(operation.actionPrefix + ':' + operation.actionValue) : actionTypes;
     },
 
     getOperationMethod: function (operation) {
