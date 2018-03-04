@@ -24,6 +24,13 @@ function HydraDocs(graph, namespace, baseURL, apiTitle, apiDescr) {
     this._apiDescr = apiDescr;
 
     this._id = this._baseURL + 'docs.jsonld';
+
+    this._mapHttpMethods = {
+        RETRIEVE: 'GET',
+        CREATE: 'POST',
+        REPLACE: 'PUT',
+        DELETE: 'DELETE'
+    };
 }
 
 HydraDocs.prototype = {
@@ -32,8 +39,9 @@ HydraDocs.prototype = {
     downloadHydraAPIDocs: function () {
         var completeDocs = this.generateHydraObj();
 
-        //Utils.downloadZip('docs.jsonld', JSON.stringify(completeDocs, null, 2), 'hydraAPI');
-        console.log('COMPLETE DOCS:\n' + JSON.stringify(completeDocs, null, 2));
+        //Utils.downloadZip('docs.jsonld', JSON.stringify(completeDocs, null, '\t'), 'hydraAPI');
+        Utils.downloadFile(JSON.stringify(completeDocs, null, '\t'), 'hydraApiDocs.json');
+        //console.log('COMPLETE DOCS:\n' + JSON.stringify(completeDocs, null, 2));
     },
 
     generateHydraObj: function () {
@@ -153,8 +161,7 @@ HydraDocs.prototype = {
         classObj['hydra:supportedProperty'] = this.getSupportedProperties(cell);
 
         // only for links pointing back to the same resource
-        var selfReferecingLinks = this.getSelfReferencingLinks(cell);
-        classObj['hydra:supportedOperation'] = this.getSupportedOperationsForClass(cell, selfReferecingLinks);
+        classObj['hydra:supportedOperation'] = this.getSupportedOperationsForClass(cell);
 
 
         return classObj;
@@ -212,34 +219,37 @@ HydraDocs.prototype = {
         var self = this;
 
         if(outboundLinks) {
-            outboundLinks.forEach(function (link) {
+            outboundLinks.forEach(_.bind(function (link) {
 
-                var linkOperations = link.prop('operations');
+                if (!this.checkLinkIsSelfReferencing(link)) {
 
-                if (linkOperations && linkOperations.length > 0) {
+                    var linkOperations = link.prop('operations');
 
-                    linkOperations.forEach(function (op) {
-                        var supportedPropLink = {}, hydraPropLink = {};
+                    if (linkOperations && linkOperations.length > 0) {
 
-                        hydraPropLink['@id'] = op.isCustom ? 'vocab:' + op.value : op.iri;
-                        hydraPropLink['@type'] = 'hydra:Link';
-                        hydraPropLink['rdfs:label'] = op.value;
-                        if (op.isCustom) hydraPropLink['rdfs:comment'] = op.customDescr;
-                        hydraPropLink['domain'] = domain;
-                        hydraPropLink['range'] = self.getResourcenNameOfTarget(link);
+                        linkOperations.forEach(function (op) {
+                            var supportedPropLink = {}, hydraPropLink = {};
 
-                        hydraPropLink['hydra:supportedOperation'] = self.getSupportedOperationsForProperty(link, op);
+                            hydraPropLink['@id'] = op.isCustom ? 'vocab:' + op.value : op.iri;
+                            hydraPropLink['@type'] = 'hydra:Link';
+                            hydraPropLink['rdfs:label'] = op.value;
+                            if (op.isCustom) hydraPropLink['rdfs:comment'] = op.customDescr;
+                            hydraPropLink['domain'] = domain;
+                            hydraPropLink['range'] = self.getResourcenNameOfTarget(link);
 
-                        supportedPropLink['hydra:property'] = hydraPropLink;
-                        supportedPropLink['hydra:title'] = op.value;
-                        supportedPropLink['hydra:description'] = op.isCustom ? op.customDescr : sugSource.getDescriptionFromVocab(op.iri);
-                        supportedPropLink['hydra:required'] = 'null';
-                        supportedPropLink['hydra:readonly'] =  'true';
+                            hydraPropLink['hydra:supportedOperation'] = self.getSupportedOperationsForProperty(link, op);
 
-                        supportedLinkPropsArr.push(supportedPropLink);
-                    });
+                            supportedPropLink['hydra:property'] = hydraPropLink;
+                            supportedPropLink['hydra:title'] = op.value;
+                            supportedPropLink['hydra:description'] = op.isCustom ? op.customDescr : sugSource.getDescriptionFromVocab(op.iri);
+                            supportedPropLink['hydra:required'] = 'null';
+                            supportedPropLink['hydra:readonly'] = 'true';
+
+                            supportedLinkPropsArr.push(supportedPropLink);
+                        });
+                    }
                 }
-            });
+            }, this));
         }
 
         return supportedLinkPropsArr;
@@ -254,42 +264,49 @@ HydraDocs.prototype = {
             var source = this.getSource(link);
             var target = this.getTarget(link);
 
-            if (operation.method == 'RETRIVE') {
+            if (operation.method == 'RETRIEVE') {
                 expects = null;
                 returns = this.getResourcenNameOfTarget(link);
             }
-            else if (operation.method = 'CREATE') {
+            else if (operation.method == 'CREATE') {
 
-                if (this.checkLinkIsSelfReferencing(link)) {
-                    // case 1: SourceNode = Collection and TargetNode = Collection // TODO this method should not deal with self-referencing links
-                    if (this.checkNodeIsCollection(source) && this.checkNodeIsCollection(target)) {
-                        //get corresponding item node for collection node
-                        var itemNodeS = this.getItemNode(source);
-                        expects = returns = itemNodeS;
-                    }
-                } else {
-                    // case 2: SourceNode = Collection and TargetNode = Item
-                    if (this.checkNodeIsCollection(source) && this.checkNodeIsItem(target)) {
-                        expects = returns = this.getResourcenNameOfTarget(link);
-                    }
-                    // case 3: SourceNode = some other Node and TargetNode = Collection
-                    else if (this.checkNodeIsCollection(target)) {
-                        //get corresponding item node for collection node
-                        var itemNodeT = this.getItemNode(target);
-                        expects = returns = itemNodeT;
-                    }
-                }
-            }
-            else if (operation.method = 'REPLACE') {
-
-                if (this.checkLinkIsSelfReferencing(link)) {
-                    // case 1: link is self referencing // TODO this method should not deal with self-referencing links
-                    expects = returns = this.getResourcenNameOfSource(link);
-
-                } else {
-                    // case 2: link is not self referencing (then we assume that target node is supposed to be replaced)
+                // case 2: SourceNode = Collection and TargetNode = Item
+                if (this.checkNodeIsCollection(source) && this.checkNodeIsItem(target)) {
                     expects = returns = this.getResourcenNameOfTarget(link);
+
+                    /*
+                     console.log('LINK PROPS. create case 2. link: ' + link.prop('operations')[0].value);
+                     console.log('\texpects: ' + expects);
+                     console.log('\treturns: ' + returns);
+                     */
                 }
+                // case 3: SourceNode = some other Node and TargetNode = Collection
+                else if (this.checkNodeIsCollection(target)) {
+                    //get corresponding item node for collection node
+                    var linkToItemT = this.getLinkToItemNode(target);
+                    expects = returns = this.getResourcenNameOfTarget(linkToItemT);
+
+                    /*
+                     console.log('LINK PROPS. create case 3. link: ' + link.prop('operations')[0].value);
+                     console.log('\texpects: ' + expects);
+                     console.log('\treturns: ' + returns);
+                     */
+                }
+                // default case: (assumption: TargetNode is the Type to be created)
+                else {
+                    expects = returns = this.getResourcenNameOfTarget(link);
+
+                    /*
+                     console.log('LINK PROPS. create case default. link: ' + link.prop('operations')[0].value);
+                     console.log('\texpects: ' + expects);
+                     console.log('\treturns: ' + returns);
+                     */
+                }
+
+            }
+            else if (operation.method == 'REPLACE') {
+                // if link is not self referencing, then assumption is: target node is supposed to be replaced)
+                expects = returns = this.getResourcenNameOfTarget(link);
             }
             else if (operation.method == 'DELETE') {
                 expects = null;
@@ -297,9 +314,9 @@ HydraDocs.prototype = {
             }
 
             // TODO @id ??
-            operationsForPropObj['@type'] = operation.actionPrefix && operation.actionValue ?
-                            operation.actionPrefix + ':' + operation.actionValue : 'hydra:Operation';
-            operationsForPropObj['hydra:method'] = operation.method ? operation.method : 'RETRIEVE';
+            operationsForPropObj['@type'] = this.getActionType(operation);
+            if(operation.isCustom) operationsForPropObj['rdfs:comment'] = operation.customDescr;
+            operationsForPropObj['hydra:method'] = this.getOperationMethod(operation);
             operationsForPropObj['expects'] = expects;
             operationsForPropObj['returns'] = returns;
 
@@ -326,8 +343,85 @@ HydraDocs.prototype = {
     },
 
     // Deals with link where targetNode = sourceNode
-    getSupportedOperationsForClass: function (cell, returningLinks) {
-        var operationsForClassArr = [], operationForClass = {};
+    getSupportedOperationsForClass: function (cell) {
+
+        var operationsForClassArr = [],
+            selfLink = this.getSelfReferencingLink(cell);
+
+        console.log('getSupportedOperationsForClass selfLink: ' + JSON.stringify(selfLink));
+
+        if (selfLink) {
+            var linkOperations = selfLink.prop('operations');
+            if (linkOperations && linkOperations.length > 0) {
+
+                linkOperations.forEach(_.bind(function (operation) {
+
+                    var operationForClass = {}, expects = '', returns = '';
+
+                    if (operation.method == 'RETRIEVE') {
+                        expects = null;
+                        returns = this.getResourceNameOfNode(cell);
+
+                        console.log('LINK PROPS FOR CLASS. ' + operation.method + '. link: ' + operation.value);
+                        console.log('\texpects: ' + expects);
+                        console.log('\treturns: ' + returns);
+                    }
+                    else if (operation.method == 'CREATE' || operation.method == 'REPLACE') {
+
+                        // case: Node is a Collection
+                        if (this.checkNodeIsCollection(cell)) {
+                            //get corresponding item node for collection node
+                            var linkToItem = this.getLinkToItemNode(cell);
+                            expects = returns = this.getResourcenNameOfTarget(linkToItem);
+
+                            console.log('LINK PROPS FOR CLASS. ' + operation.method + ' case 1. link: ' + operation.value);
+                            console.log('\texpects: ' + expects);
+                            console.log('\treturns: ' + returns);
+                        } else {
+                            //default: a resource of the type of the node itself is supposed to be created / replaced
+                            expects = returns = this.getResourceNameOfNode(cell);
+
+                            console.log('LINK PROPS FOR CLASS. ' + operation.method + '  case default. link: ' + operation.value);
+                            console.log('\texpects: ' + expects);
+                            console.log('\treturns: ' + returns);
+                        }
+
+                    } else if (operation.method == 'DELETE') {
+                        expects = null;
+                        returns = 'owl:Nothing';
+                    }
+
+
+                    operationForClass['@type'] = this.getActionType(operation);
+                    if(operation.isCustom) operationForClass['rdfs:comment'] = operation.customDescr;
+                    operationForClass['hydra:method'] = this.getOperationMethod(operation);
+                    operationForClass['expects'] = expects;
+                    operationForClass['returns'] = returns;
+
+                    operationsForClassArr.push(operationForClass);
+                }, this));
+            }
+        }
+
+        /*
+
+        {
+                    "@id": "_:user_replace",
+                    "@type": "hydra:Operation",
+                    "method": "PUT",
+                    "label": "Replaces an existing User entity",
+                    "description": null,
+                    "expects": "vocab:User",
+                    "returns": "vocab:User",
+                    "statusCodes": [
+
+                    ]
+                },
+         */
+
+
+
+
 
 
         return operationsForClassArr;
@@ -335,10 +429,9 @@ HydraDocs.prototype = {
 
 
 
-     //Returns an array with all links for <cell> whose source node and target node are the same
-      //TODO do we need that?
-
-    getSelfReferencingLinks: function (cell) {
+     // Looks for links whose source node and target node are the same (= <cell> )
+    // returns the first link that was found for the given node
+    getSelfReferencingLink: function (cell) {
 
         var outgoingLinks = this._graph.getConnectedLinks(cell, {outbound: true});
         var incomingLinks = this._graph.getConnectedLinks(cell, {inbound: true});
@@ -356,20 +449,22 @@ HydraDocs.prototype = {
             });
         }
         //console.log('found returning links for node ' + cell.prop('resourceName').value + ': ' + JSON.stringify(returningLinks));
-        return returningLinks;
+        if(returningLinks.length > 0) return returningLinks[0];
+    },
+
+    getResourceNameOfNode: function (cell) {
+        var resName = cell.prop('resourceName');
+        if(resName) return resName.isCustom ? 'vocab:'+resName.value : resName.iri;
     },
 
     getResourcenNameOfTarget: function(link) {
         var target = this.getTarget(link);
-        var targetNodeResName = target.prop('resourceName');
-        return targetNodeResName.isCustom ? 'vocab:'+targetNodeResName.value : targetNodeResName.iri;
+        return this.getResourceNameOfNode(target);
     },
 
     getResourcenNameOfSource: function(link) {
         var source = this.getSource(link);
-        var targetNodeResName = source.prop('resourceName');
-        if(targetNodeResName)
-            return targetNodeResName.isCustom ? 'vocab:'+targetNodeResName.value : targetNodeResName.iri;
+        return this.getResourceNameOfNode(source);
     },
 
     checkNodeIsItem: function (cell) {
@@ -397,20 +492,29 @@ HydraDocs.prototype = {
             return source.id == target.id;
     },
 
-    // returns corresponding item node for a collection node
-    getItemNode: function (collectionNode) {
+    // returns the link that connects the collection node to the target node
+    getLinkToItemNode: function (collectionNode) {
         // get all outgoing links
         var outgoingLinks = this._graph.getConnectedLinks(collectionNode, {outbound: true});
-
+        var linkToItemNode;
         if(outgoingLinks) {
             outgoingLinks.forEach(_.bind(function (link) {
                 // get the link that has isCollItemLink set to true
                 if(link.prop('isCollItemLink') && link.prop('isCollItemLink') === true) {
-                    // get target node of that link
-                    return this.getTarget(link);
+                    linkToItemNode = link;
                 }
             }, this));
         }
+        return linkToItemNode;
+    },
+
+    getActionType: function (operation) {
+        return operation.actionPrefix && operation.actionValue ?
+                        operation.actionPrefix + ':' + operation.actionValue : 'hydra:Operation';
+    },
+
+    getOperationMethod: function (operation) {
+        return operation.method ? this._mapHttpMethods[operation.method] : 'GET';
     }
 };
 
