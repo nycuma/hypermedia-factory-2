@@ -399,8 +399,6 @@ HydraDocs.prototype = {
         var target = this.getTarget(linkToCollection);
         var linkToItem = this.getLinkToItemNode(target);
 
-        console.log('link to item: ' + JSON.stringify(linkToItem, null, 2));
-
         if(linkToItem && linkToItem.prop('allowFilter') && linkToItem.prop('allowFilter') === true) {
 
             var paramsStr = linkToItem.prop('allowFilterParams'), paramsArr = [];
@@ -547,8 +545,9 @@ HydraDocs.prototype = {
 
     getActionType: function (operation) {
         var actionTypes = ['hydra:Operation'];
-        return operation.actionPrefix && operation.actionValue ?
-                        actionTypes.push(operation.actionPrefix + ':' + operation.actionValue) : actionTypes;
+        if(operation.actionPrefix && operation.actionValue)
+                        actionTypes.push(operation.actionPrefix + ':' + operation.actionValue);
+        return actionTypes;
     },
 
     getOperationMethod: function (operation) {
