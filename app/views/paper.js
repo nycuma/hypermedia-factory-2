@@ -101,7 +101,7 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         startLink2.saveLink('CREATE', 'registerUser', undefined, '{myURL}/vocab#addUser', true, 'Add a new user', 'RegisterAction', 'schema', 'http://schema.org/RegisterAction');
 
         var link3 = this.createLinkForDemo(nodeTasks.id, nodeTask.id);
-        link3.saveLink('RETRIEVE', 'item', 'iana', 'http://www.iana.org/assignments/relation/item', false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+        link3.saveLink('RETRIEVE', 'member', 'hydra', 'http://www.w3.org/ns/hydra/core#member', false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
         link3.saveLink('CREATE', 'addTask', undefined, undefined, true, 'Add a new task', 'AddAction', 'schema', 'http://schema.org/AddAction');
         link3.prop('isCollItemLink', true);
         link3.prop('allowFilter', true);
