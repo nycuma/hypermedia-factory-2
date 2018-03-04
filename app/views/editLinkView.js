@@ -36,8 +36,8 @@ var EditLinkView = Backbone.View.extend({
 
         this.addOperationFieldSet();
         this.fillInputFields();
-        //this.setPrefixForAddButton();
-        if(this.options.isSelfReferencing === true) $('#linkOptions').hide();
+        if(this.options.isSelfReferencing === true || this.model.getSourceNode().get('type') == 'custom.StartNode')
+            $('#linkOptions').hide();
         this.$el.show();
         return this;
     },
@@ -242,7 +242,7 @@ var EditLinkView = Backbone.View.extend({
             this.$el.find('.collItemLinkOptionText').css('color', '');
 
             // adds a new or updates an existing RETRIEVE operation and sets link relation to 'hydra:member'
-            if(evt) this.setRetrieveOperationToMember();
+            //if(evt) this.setRetrieveOperationToMember();
 
         } else {
             this.$el.find('input[name=allowFilterCheckBox]').attr('disabled', true);
@@ -293,58 +293,6 @@ var EditLinkView = Backbone.View.extend({
         return count;
     },
 
-    /*
-    updateSettingsIcon: function (evt, count) {
-
-        var dropdown, dropdownCount;
-
-        if(evt) {
-            dropdown = $(evt.target);
-            dropdownCount = dropdown.attr('count');
-        } else {
-            dropdown = $('#methodDropdown'+count);
-            dropdownCount = count;
-        }
-
-        if(dropdown.val() === 'REPLACE' || dropdown.val() === 'CREATE') {
-            dropdown.parent().next().find('.settingsIcon')
-                .attr({src: 'static/img/icon_settings.png', title: 'Options for request parameters', count: dropdownCount})
-                .addClass('displayIcon');
-        } else {
-            dropdown.parent().next().find('.settingsIcon')
-                .attr({src: 'static/img/icon_no_settings.png', title: '', count: ''})
-                .removeClass('displayIcon');
-        }
-    },
-
-
-    toggleOptionsRequestParams: function(evt) {
-
-        var optionsOnDisplay = $(evt.target).parent().parent().parent().parent().find('.requestParamsOptionsWrapper');
-
-        console.log('displayOptionsRequestParams size: ' + optionsOnDisplay.length);
-
-        if(optionsOnDisplay.length > 0) {
-            optionsOnDisplay.remove();
-        } else {
-            if($(evt.target).hasClass('displayIcon')) {
-                var count = $(evt.target).attr('count');
-                var attrs = this.model.getTargetNode().getResourceAttrsValues();
-
-                attrs.forEach(function(attr) {
-                    var paramTemplate =_.template($('#request-param-template').html());
-                    var tbody = $(paramTemplate({attrVal: attr})).wrap('<tbody></tbody>').addClass('requestParamsOptionsWrapper');
-                    $('#operationFieldSet'+count+' table').append(tbody);
-
-                });
-
-            }
-        }
-
-
-    },
-    */
-
     close: function (evt) {
         if(evt) evt.preventDefault();
         this.remove();
@@ -352,17 +300,6 @@ var EditLinkView = Backbone.View.extend({
         $('body').append('<div id="editLink" class="editGraphElement"></div>');
     }
 
-    /*
-    registerDropdownChangeEvent: function (count) {
-        $('#methodDropdown'+count).change(_.bind(function(evt) {
-            this.updateSettingsIcon(evt);
-        }, this));
-
-        $('#methodDropdown'+count).parent().next().find('.settingsIcon').click(_.bind(function(evt) {
-            this.toggleOptionsRequestParams(evt);
-        }, this));
-    }
-    */
 });
 
 module.exports = EditLinkView;
