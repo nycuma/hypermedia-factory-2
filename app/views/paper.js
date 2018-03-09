@@ -26,7 +26,7 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     setDemoGraphMusic: function () {
         // Nodes
         var start = new StartNode();
-        var elCollection = this.createNodeForDemo(15, 90, 'RecordCollection', undefined, '{myURL}/vocab#RecordCollection', true, 'A collection of music records');
+        var elCollection = this.createNodeForDemo(15, 90, 'RecordCollection', undefined, undefined, true, 'A collection of music records');
         var elAlbum = this.createNodeForDemo(230, 90, 'MusicAlbum', 'schema', 'http://schema.org/MusicAlbum');
         elAlbum.saveAttribute('numTracks', 'schema', 'http://schema.org/numTracks', false, null, 'integer', false);
         elAlbum.saveAttribute('yearlyRevenue', 'schema', 'http://schema.org/yearlyRevenue', false, null, 'decimal', false);
@@ -75,11 +75,11 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         // Nodes
         var start = new StartNode({position: { x: 27, y: 33 }});
 
-        var nodeTasks = this.createNodeForDemo(243, 18, 'Tasks', undefined, '{myURL}/vocab#Tasks', true, 'A collection of tasks');
-        nodeTasks.saveAttribute('numberOfTasks', null, '{myURL}/vocab#numberOfTasks', true, 'Total number of tasks in the system', 'integer', true);
-        var nodeComments = this.createNodeForDemo(376, 366, 'Comments', undefined, '{myURL}/vocab#Comments', true, 'A collection of comments');
+        var nodeTasks = this.createNodeForDemo(243, 18, 'Tasks', undefined, undefined, true, 'A collection of tasks');
+        nodeTasks.saveAttribute('numberOfTasks', null, undefined, true, 'Total number of tasks in the system', 'integer', true);
+        var nodeComments = this.createNodeForDemo(376, 366, 'Comments', undefined, undefined, true, 'A collection of comments');
 
-        var nodeTask = this.createNodeForDemo(370, 215, 'Task', undefined, '{myURL}/vocab#Task', true, 'Something to do');
+        var nodeTask = this.createNodeForDemo(370, 215, 'Task', undefined, undefined, true, 'Something to do');
         nodeTask.saveAttribute('taskTitle', 'schema', 'http://schema.org/name', false, null, 'string', false);
         nodeTask.saveAttribute('taskDescription', 'schema', 'http://schema.org/mainEntity', false, null, 'string', false);
         nodeTask.saveAttribute('commentCount', 'schema', 'http://schema.org/commentCount', false, null, 'integer', true);
@@ -94,11 +94,11 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
 
         // Links
         var startLink1 = this.createLinkForDemo(start.id, nodeTasks.id);
-        startLink1.saveLink('RETRIEVE', 'tasks', undefined, '{myURL}/vocab#tasks', true, 'Get all tasks', 'ReadAction', 'schema', 'http://schema.org/ReadAction');
-        startLink1.saveLink('CREATE', 'addTask', undefined, '{myURL}/vocab#addTask', true, 'Add a new task', 'AddAction', 'schema', 'http://schema.org/AddAction');
+        startLink1.saveLink('RETRIEVE', 'tasks', undefined, undefined, true, 'Get all tasks', 'ReadAction', 'schema', 'http://schema.org/ReadAction');
+        startLink1.saveLink('CREATE', 'addTask', undefined, undefined, true, 'Add a new task', 'AddAction', 'schema', 'http://schema.org/AddAction');
 
         var startLink2 = this.createLinkForDemo(start.id, nodeUser.id);
-        startLink2.saveLink('CREATE', 'registerUser', undefined, '{myURL}/vocab#addUser', true, 'Add a new user', 'RegisterAction', 'schema', 'http://schema.org/RegisterAction');
+        startLink2.saveLink('CREATE', 'registerUser', undefined, undefined, true, 'Add a new user', 'RegisterAction', 'schema', 'http://schema.org/RegisterAction');
 
         var link3 = this.createLinkForDemo(nodeTasks.id, nodeTask.id);
         link3.saveLink('RETRIEVE', 'member', 'hydra', 'http://www.w3.org/ns/hydra/core#member', false, null, 'ReadAction', 'schema', 'http://schema.org/ReadAction');
