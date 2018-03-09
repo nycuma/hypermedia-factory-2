@@ -33,7 +33,6 @@ var Node = joint.shapes.basic.Rect.extend({
         this.set('label', Utils.getLabelWithLineBreaks(nameVal));
     },
 
-    //TODO add custom identifier for value
     saveAttribute: function(attrVal, attrPrefix, iri, isCustom, customDescr, dataType, isReadonly) {
 
         attrVal = isCustom ? Utils.getCamelCase(attrVal) : attrVal;
