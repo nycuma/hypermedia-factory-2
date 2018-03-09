@@ -16,6 +16,7 @@ var Utils = require('../util/utils');
 var EditLinkView = Backbone.View.extend({
     el: '#editLink',
     template:  _.template($('#edit-link-template').html()),
+    operationCount: 0,
 
     initialize: function(options){
         this.options = options;
@@ -34,18 +35,19 @@ var EditLinkView = Backbone.View.extend({
     render: function () {
         this.$el.html(this.template);
 
-        this.addOperationFieldSet();
-        this.fillInputFields();
+        var modelDataFound = this.fillInputFields();
+        console.log('editLinkView render: found model data: ' + modelDataFound);
+        if(!modelDataFound) this.addOperationFieldSet();
         if(this.options.isSelfReferencing === true || this.model.getSourceNode().get('type') == 'custom.StartNode')
             $('#linkOptions').hide();
         this.$el.show();
         return this;
     },
 
-    getResNameSourceNode: function () {
+    getResNameIRISourceNode: function () {
         var sourceNode = this.model.getSourceNode();
         if(sourceNode.get('type') === 'html.Node') {
-            return [sourceNode.getResourceNameVal(), sourceNode.getResourceNamePrefix()];
+            return sourceNode.getResourceNameIri();
         }
     },
 
@@ -53,11 +55,12 @@ var EditLinkView = Backbone.View.extend({
         return this.$el.find('#operationFieldSetsWrapper').children('div').length;
     },
 
+    // returns false if operations were found in model data
     fillInputFields: function () {
         this.setCheckMarksForLinkOptions();
-        this.setInputFieldsOperations();
         this.toggleStrucTypeOptionsCheckbox();
         this.toggleDisableEditView();
+        return this.setInputFieldsOperations();
     },
 
     setCheckMarksForLinkOptions: function () {
@@ -74,52 +77,64 @@ var EditLinkView = Backbone.View.extend({
         }
     },
 
+    // returns false if operations were found in model data
     setInputFieldsOperations: function () {
         var operations = this.model.prop('operations');
-        if(!operations) return;
+        if (!operations || operations.length === 0) {
+            console.log('setInputFieldsOperations: no model data found');
+            return false;
+        } else {
 
-        operations.forEach(_.bind(function(elem, i) {
-            if (i !== 0) this.addOperationFieldSet();
+            operations.forEach(_.bind(function (elem, i) {
 
-            var $relField = $('#relation' + i);
-            // set fields for relation
-            $relField.val(elem.value);
-            $('#relation' + i + 'Iri').val(elem.iri);
+                var autocompleteRel = this.addOperationFieldSet();
+
+                var $relField = $('#relation' + i);
+                // set fields for relation
+                $relField.val(elem.value);
+                $('#relation' + i + 'Iri').val(elem.iri);
 
 
-            if(elem.isCustom) {
-                $relField.attr('isCustom', true);
-                // set custom description
-                $('#relation' + i +'TermDescr').val(elem.customDescr);
-                // update IRI field
-                $('#relation' + i + 'Iri').val('{myURL}/vocab#' + elem.value);
-            } else {
-                // get description from vocab
-                if(elem.iri === sugSource.prefixes.hydra + 'member') {
-                    // quick fix: hard coded term description. TODO: parse Hydra vocabulary and get descripton from there
-                    $('#relation' + i +'TermDescr').val('A member of the collection');
+                if (elem.isCustom) {
+                    $relField.attr('isCustom', true);
+                    // set custom description
+                    $('#relation' + i + 'TermDescr').val(elem.customDescr);
+                    // update IRI field
+                    $('#relation' + i + 'Iri').val('{myURL}/vocab#' + elem.value);
                 } else {
-                    var vocabDescription = sugSource.getDescriptionFromVocab(elem.iri, elem.prefix, elem.value);
-                    $('#relation' + i +'TermDescr').val(vocabDescription);
+                    // get description from vocab
+                    if (elem.iri === sugSource.prefixes.hydra + 'member') {
+                        // quick fix: hard coded term description. TODO: parse Hydra vocabulary and get descripton from there
+                        $('#relation' + i + 'TermDescr').val('A member of the collection');
+                    } else {
+                        var vocabDescription = sugSource.getDescriptionFromVocab(elem.iri, elem.prefix, elem.value);
+                        $('#relation' + i + 'TermDescr').val(vocabDescription);
+                    }
+                    $relField.attr({'isCustom': false, 'term-prefix': elem.prefix});
+                    autocompleteRel.unregisterTermValueChangeEvent();
                 }
-                $relField.attr({'isCustom': false, 'term-prefix': elem.prefix});
-            }
 
-            // method dropdown
-            $('#methodDropdown' + i).val(elem.method);
-            // fields for action
+                // method dropdown
+                $('#methodDropdown' + i).val(elem.method);
+                // fields for action
 
 
-            if (elem.prefix == 'iana') {
+                if (elem.prefix == 'iana') {
 
-            } else {
-                $('#action' + i).val(elem.actionValue).attr('term-prefix', elem.prefix);
-                $('#action' + i + 'Iri').val(elem.actionIri);
-                $('#action' + i + 'TermDescr').val(sugSource.getDescriptionFromVocab(elem.actionIri));
+                } else {
+                    var actionValue = sugSource.getTermFromIRI(elem.actionIri);
+                    $('#action' + i).val(actionValue).attr('term-prefix', elem.prefix);
+                    $('#action' + i + 'Iri').val(elem.actionIri);
+                    $('#action' + i + 'TermDescr').val(sugSource.getDescriptionFromVocab(elem.actionIri));
 
-                $('#actionInputWrapper' + i).show();
-            }
-        }, this));
+                    $('#actionInputWrapper' + i).show();
+                }
+            }, this));
+
+            return true;
+        }
+
+
     },
 
     addOperationFieldSet: function (evt) {
@@ -132,13 +147,12 @@ var EditLinkView = Backbone.View.extend({
         var operationTemplate =_.template($('#operation-template').html());
         $('#operationFieldSetsWrapper').append(operationTemplate({idSet: operationCount}));
 
-        var resNameSource = this.getResNameSourceNode();
-        new AutocompleteView({
+        var resNameSource = this.getResNameIRISourceNode();
+        var acRelation = new AutocompleteView({
             el: this.$el.find('.relationInputWrapper').last(),
             id: 'relation'+operationCount,
             label: 'Relation:',
-            resourceNameValue: resNameSource ? resNameSource[0] : undefined,
-            resourceNamePrefix: resNameSource ? resNameSource[1] : undefined
+            resourceNameIri: resNameSource ? resNameSource : undefined
         });
 
         new AutocompleteView({
@@ -148,7 +162,8 @@ var EditLinkView = Backbone.View.extend({
         });
 
         $('#action'+operationCount+'TermDescr').attr({'readonly': 'readonly', 'placeholder': ''});
-        return operationCount;
+        this.operationCount = operationCount;
+        return acRelation;
     },
 
     submit: function (evt) {
@@ -191,17 +206,18 @@ var EditLinkView = Backbone.View.extend({
 
             $('#operationFieldSetsWrapper').children('div').each(function() {
 
+                var relCustomDescr, relIri;
                 // save relation
                 var $relWrapper = $(this).find('.relationInputWrapper').first();
 
                 var relVal = $relWrapper.find('.ui-autocomplete-input').val().trim();
-                var relIri = $relWrapper.find('input[name=inputFieldIri]').val();
                 var relIsCustom = Utils.checkIfCustom($relWrapper.find('.ui-autocomplete-input'));
-                var relCustomDescr;
+
 
                 if(relIsCustom === true) {
                     relCustomDescr = $relWrapper.find('textarea[name=termDescr]').val().trim();
                 } else {
+                    relIri = $relWrapper.find('input[name=inputFieldIri]').val();
                     var relPrefix = $relWrapper.find('.ui-autocomplete-input').attr('term-prefix');
                 }
 
@@ -226,7 +242,7 @@ var EditLinkView = Backbone.View.extend({
                     + '\n\tAction IRI: ' + actionIri
                     + '\n\tMethod: ' + method);
 
-                if(relVal) {
+                if((relVal && relIri) || (relVal && relIsCustom)) {
                     linkModel.saveLink(method, relVal, relPrefix, relIri, relIsCustom, relCustomDescr, actionVal, actionPrefix, actionIri)
                 } else {
                     //TODO show error msg to user
@@ -268,8 +284,8 @@ var EditLinkView = Backbone.View.extend({
 
     setRetrieveOperationToMember: function () {
         // check in view if a RETRIEVE operation has already been set
-        var count = this.getFirstRetrieveMethodCount();
-        if(!count) count = this.addOperationFieldSet();
+        var count = this.getNumOfFirstRetrieveMethod();
+        if(!count) count = this.operationCount;
 
         // update exisiting RETRIEVE operation or set values in new field set
         $('#relation'+count).val('member').attr({'term-prefix': 'hydra', 'isCustom': false});
@@ -281,7 +297,7 @@ var EditLinkView = Backbone.View.extend({
         $('#action'+count+'TermDescr').val(sugSource.getDescriptionFromVocab(sugSource.prefixes.schema + 'ReadAction'));
     },
 
-    getFirstRetrieveMethodCount: function () {
+    getNumOfFirstRetrieveMethod: function () {
         var $methods = this.$el.find('select[name=methodDropdown]');
         var count;
         if($methods) {
