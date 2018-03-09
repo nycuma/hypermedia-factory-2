@@ -46,13 +46,6 @@ var RelationLink = joint.dia.Link.extend({
 
     initialize: function () {
         joint.dia.Link.prototype.initialize.apply(this, arguments);
-        //this.on('change:source', _.bind(this.changedSourceHandler, this));
-    },
-    changedSourceHandler: function (evt) {
-        var newSourceNode = this.graph.getCell(this.get('source').id);
-        if(newSourceNode && newSourceNode.get('type') === 'custom.StartNode') {
-            this.prop('labels', []);
-        }
     },
 
     renderLabelRelations: function () {
