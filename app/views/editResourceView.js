@@ -36,12 +36,13 @@ var EditResourceView = Backbone.View.extend({
         this.$el.html(this.template());
 
         // add autocomplete input field for resource name
-        var avResName = new AutocompleteView({
+        var acResName = new AutocompleteView({
             el: '#resourceNameInputWrapper',
             id: 'resourceName',
             label: ''
         });
-        this.listenTo(avResName, 'resourceNameSelected', this.refreshAttrField);
+        this.listenTo(acResName, 'resourceNameSelected', this.refreshAttrField);
+        if(this.model.prop('resourceName') && !this.model.prop('resourceName').isCustom) acResName.unregisterTermValueChangeEvent();
 
         if(this.model.get('label') == 'new resource') {
             this.addAttrFieldSet();
@@ -53,28 +54,12 @@ var EditResourceView = Backbone.View.extend({
         return this;
     },
 
-    addAttrFieldSet: function(evt, nameVal, namePrefix) {
+    addAttrFieldSet: function(evt, nameIri) {
 
-        var resourceNameValue, resourceNamePrefix;
+        if(evt) evt.preventDefault();
 
-        if(evt) { // case if PLUS button is clicked by user
-            evt.preventDefault();
-
-            var $resName = $('#resourceName');
-            if(Utils.checkIfCustom($resName) === false) {
-                resourceNameValue = $resName.val();
-                resourceNamePrefix = $resName.attr('term-prefix');
-            }
-
-            console.log('addAttrFieldSet via PLUS button ' +
-                    '\n\tterm-value: ' + resourceNameValue +
-                    '\n\tterm-prefix: ' + resourceNamePrefix);
-
-        } else if(nameVal && namePrefix) {
-            resourceNameValue = nameVal;
-            resourceNamePrefix = namePrefix;
-        }
-
+        var iriVal = $('#resourceNameIri').val();
+        var resourceNameIri = nameIri ? nameIri : (iriVal.indexOf('{myURL}/vocab#') === 0 ? undefined : iriVal);
         var attrCount = this.getNextAttrID();
 
         console.log('editResourceView addAttrFieldSet attrCount: ' + attrCount);
@@ -82,13 +67,14 @@ var EditResourceView = Backbone.View.extend({
         var attrTemplate =_.template($('#resource-attribute-template').html());
         $('#resourceAttrsWrapper').append(attrTemplate({idSet: attrCount}));
 
-        new AutocompleteView({
-            //el: '#resourceAttrInputWrapper',
+        var acAttr = new AutocompleteView({
             el: this.$el.find('.resourceAttrInputWrapper').last(),
             id: 'resourceAttr' + attrCount,
             label: '',
-            resourceNameValue: resourceNameValue,
-            resourceNamePrefix: resourceNamePrefix });
+            resourceNameIri: resourceNameIri
+        });
+
+        return acAttr;
     },
 
     getNextAttrID: function() {
@@ -98,8 +84,8 @@ var EditResourceView = Backbone.View.extend({
     fillInputFields: function () {
         var resName = this.model.prop('resourceName');
         this.fillInputFieldResName(resName);
-        this.fillInputFieldsResAttrs(resName.value, resName.prefix);
-        console.log('fillInputFields: resourceName: ' + resName.value + ', ' + resName.prefix);
+        this.fillInputFieldsResAttrs(resName.iri);
+        console.log('fillInputFields: resourceName: ' + resName.iri);
     },
 
     fillInputFieldResName: function(resNameData) {
@@ -128,26 +114,18 @@ var EditResourceView = Backbone.View.extend({
         }
     },
 
-    fillInputFieldsResAttrs: function(resNameVal, resNamePrefix) {
-        var attrsData = this.model.prop('resourceAttrs');
-
-        /*
-        var resNameVal, resNamePrefix, $resName = $('#resourceName');
-        if(!$resName.attr('isCustom')) {
-            resNameVal = $resName.val();
-            resNamePrefix = $resName.attr('term-prefix');
-        }
-        */
+    fillInputFieldsResAttrs: function(resNameIri) {
+        var acAttr, attrsData = this.model.prop('resourceAttrs');
 
         if(!attrsData || attrsData.length === 0) {
             // show empty field set if no attributes are found in model data
             console.log('not attr data found');
-            this.addAttrFieldSet(null, resNameVal, resNamePrefix);
+            this.addAttrFieldSet(null, resNameIri);
             return;
         }
 
         attrsData.forEach(_.bind(function(modelData, i) {
-            this.addAttrFieldSet(null, resNameVal, resNamePrefix);
+            acAttr = this.addAttrFieldSet(null, resNameIri);
             /*
             console.log('loading resource attribute... found model data: '
                 + '\n\tAttr value: ' + modelData.value
@@ -168,6 +146,7 @@ var EditResourceView = Backbone.View.extend({
                 $('#resourceAttr'+i+'Iri').val(modelData.iri);
                 $('#resourceAttr'+i+'TermDescr').val(sugSource.getDescriptionFromVocab(modelData.iri, modelData.prefix, modelData.value));
                 $attrField.attr({'isCustom': false, 'term-prefix': modelData.prefix});
+                acAttr.unregisterTermValueChangeEvent();
             }
 
             $('#datatypeDropdown'+i).val(modelData.dataType);
@@ -190,20 +169,7 @@ var EditResourceView = Backbone.View.extend({
         $('#resourceAttrsWrapper').empty();
 
         // add input field that suggests only properties for entered resource name
-        this.addAttrFieldSet(null, data.value, data.prefix);
-
-        /*
-        // add input field that suggests only properties for entered resource name
-        new AutocompleteView({el: '#resourceAttrInputWrapper',
-                                id: 'resourceAttr0',
-                                label: 'Attributes',
-                                resourceNameValue: data.value,
-                                resourceNamePrefix: data.prefix});
-                                */
-
-
-        // refresh PLUS button that adds new attr fields
-        //$('.addFieldBtn').attr({'term-value': data.value, 'term-prefix': data.prefix});
+        this.addAttrFieldSet(null, data.iri);
     },
 
     submit: function (evt) {
@@ -220,13 +186,13 @@ var EditResourceView = Backbone.View.extend({
         var $resName = $('#resourceName');
 
         var nameVal = $resName.val().trim();
-        var iri = $('#resourceNameIri').val();
         var isCustom = Utils.checkIfCustom($resName);
-        var customDescr;
+        var customDescr, iri;
 
         if(isCustom === true) {
             customDescr = $('#resourceNameTermDescr').val();
         } else {
+            iri = $('#resourceNameIri').val();
             var namePrefix = $resName.attr('term-prefix');
         }
 
@@ -237,7 +203,7 @@ var EditResourceView = Backbone.View.extend({
             + '\n\tisCustom: ' + isCustom
             + '\n\tCustom description: ' + customDescr);
 
-        if((nameVal && namePrefix) || (nameVal && isCustom)) {
+        if((nameVal && iri) || (nameVal && isCustom)) {
             this.model.saveName(nameVal, namePrefix, iri, isCustom, customDescr);
             return true;
         } else {
@@ -253,18 +219,18 @@ var EditResourceView = Backbone.View.extend({
         $('#resourceAttrsWrapper .resourceAttrSet').each(function() {
 
             // save attribute
-            var $resAttr = $(this).find('.ui-autocomplete-input');
-            var attrVal = $resAttr.val().trim();
-            var iri = $(this).find('input[name=inputFieldIri]').val();
+            var iri, customDescr,
+                $resAttr = $(this).find('.ui-autocomplete-input'),
+                attrVal = $resAttr.val().trim();
 
-            if(attrVal && iri) {
+            if(attrVal) {
                 var isCustom = Utils.checkIfCustom($resAttr);
-                var customDescr = '';
 
                 if (isCustom) {
                     customDescr = $(this).find('textarea[name=termDescr]').val().trim();
                 } else {
                     var attrPrefix = $resAttr.attr('term-prefix');
+                    iri = $(this).find('input[name=inputFieldIri]').val();
                 }
 
                 var dataType = $(this).find('select[name=datatypeDropdown]').val();
@@ -280,7 +246,7 @@ var EditResourceView = Backbone.View.extend({
                     + '\n\tReadonly: ' + readonly
                 );
 
-                if ((attrVal && attrPrefix) || (attrVal && isCustom)) {
+                if ((attrVal && iri) || (attrVal && isCustom)) {
                     self.model.saveAttribute(attrVal, attrPrefix, iri, isCustom, customDescr, dataType, readonly);
                     return true;
                 } else {
