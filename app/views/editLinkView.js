@@ -11,12 +11,21 @@ Backbone.$ = $;
 var AutocompleteView = require('./autocompleteView');
 var sugSource;
 sugSource = require('../collections/suggestionSource');
+var methodsSugs;
+methodsSugs = require('../collections/methodSuggestions');
 var Utils = require('../util/utils');
 
 var EditLinkView = Backbone.View.extend({
     el: '#editLink',
     template:  _.template($('#edit-link-template').html()),
     operationCount: 0,
+
+    methodMap: {
+        'RETRIEVE': 'retrieve (safe)',
+        'CREATE': 'create (not idemportent)',
+        'REPLACE': 'replace (idempotent)',
+        'DELETE': 'delete (idempotent)'
+    },
 
     initialize: function(options){
         this.options = options;
@@ -77,7 +86,7 @@ var EditLinkView = Backbone.View.extend({
         }
     },
 
-    // returns false if operations were found in model data
+    // returns false if no operations were found in model data
     setInputFieldsOperations: function () {
         var operations = this.model.prop('operations');
         if (!operations || operations.length === 0) {
@@ -90,6 +99,7 @@ var EditLinkView = Backbone.View.extend({
                 var autocompleteRel = this.addOperationFieldSet();
 
                 var $relField = $('#relation' + i);
+                var $methodDropdown = $('#methodDropdown' + i);
                 // set fields for relation
                 $relField.val(elem.value);
                 $('#relation' + i + 'Iri').val(elem.iri);
@@ -112,23 +122,30 @@ var EditLinkView = Backbone.View.extend({
                     }
                     $relField.attr({'isCustom': false, 'term-prefix': elem.prefix});
                     autocompleteRel.unregisterTermValueChangeEvent();
+
                 }
 
-                // method dropdown
-                $('#methodDropdown' + i).val(elem.method);
-                // fields for action
-
-
                 if (elem.prefix == 'iana') {
+                    // input fields for Action stay hidden
+                    // update options for method dropdown
+                    var termValue = sugSource.getTermFromIRI(elem.iri);
+                    this.updateMethodSuggestions(null, $methodDropdown, termValue, elem.prefix);
 
                 } else {
+                    // fields for action
                     var actionValue = sugSource.getTermFromIRI(elem.actionIri);
-                    $('#action' + i).val(actionValue).attr('term-prefix', elem.prefix);
+                    $('#action' + i).val(actionValue).attr('term-prefix', elem.actionPrefix);
                     $('#action' + i + 'Iri').val(elem.actionIri);
                     $('#action' + i + 'TermDescr').val(sugSource.getDescriptionFromVocab(elem.actionIri));
 
+                    // update options for method dropdown
+                    this.updateMethodSuggestions(null, $methodDropdown, actionValue, 'schema');
                     $('#actionInputWrapper' + i).show();
                 }
+
+                // set method
+                $methodDropdown.val(elem.method);
+
             }, this));
 
             return true;
@@ -154,16 +171,72 @@ var EditLinkView = Backbone.View.extend({
             label: 'Relation:',
             resourceNameIri: resNameSource ? resNameSource : undefined
         });
+        this.listenTo(acRelation, 'relationSelected', this.updateVisibilityActionAndMethods);
 
-        new AutocompleteView({
+        var acAction = new AutocompleteView({
             el: this.$el.find('.actionInputWrapper').last(),
             id: 'action'+operationCount,
             label: 'Action:'
         });
+        this.listenTo(acAction, 'actionSelected', this.updateMethodSuggestions);
 
         $('#action'+operationCount+'TermDescr').attr({'readonly': 'readonly', 'placeholder': ''});
         this.operationCount = operationCount;
         return acRelation;
+    },
+
+    /**
+     * Called when selecting a new link relation:
+     * If selected relation is an IANA link relation, the input fields for Action are hidden
+     * and the method options are updated according to the selected relation
+     * @param data object with params from event target (target, prefix, value)
+     */
+    updateVisibilityActionAndMethods: function (data) {
+
+        var $parent = this.$el.find('#'+data.target).closest('table');
+        var $action = $parent.find('.actionInputWrapper');
+        var $method = $parent.find('select[name=methodDropdown]');
+
+        if(data.prefix === 'iana') {
+            $action.hide('slow');
+            // update method suggestions
+            this.updateMethodSuggestions(null, $method, data.value, data.prefix);
+        } else {
+            // show Action Input Field
+            $action.show('slow');
+        }
+
+    },
+
+    /**
+     * updates the available methods to choose from, according to the info from the model data
+     * (see static/modelData/methodSuggestions.json)
+     */
+    updateMethodSuggestions: function(data, dropdownElement, value, prefix) {
+        var methods, defaultMethod;
+        if(data) methods = methodsSugs.getMethodSuggestion(data.value, data.prefix);
+        else if(value && prefix) methods = methodsSugs.getMethodSuggestion(value, prefix);
+
+        var $dropdown = dropdownElement ? dropdownElement :
+                this.$el.find('#'+data.target).closest('table').find('select[name=methodDropdown]');
+
+        if($dropdown) {
+
+            if(methods) {
+                defaultMethod = methods.default;
+                methods = methods.available;
+            } else {
+                // if no suggested methods found, all methods are available
+                methods = Object.keys(this.methodMap);
+                defaultMethod = 'RETRIEVE';
+            }
+
+            $dropdown.empty();
+            methods.forEach(_.bind(function (method) {
+                $dropdown.append($('<option></option>').attr('value', method).text(this.methodMap[method]));
+            }, this));
+            $dropdown.val(defaultMethod);
+        }
     },
 
     submit: function (evt) {
