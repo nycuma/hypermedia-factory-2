@@ -25,6 +25,15 @@ var AutocompleteView = Backbone.View.extend({
         'DELETE': 'delete (idempotent)'
     },
 
+    iriConstants : {
+        rdfsDomain: 'http://www.w3.org/2000/01/rdf-schema#domain',
+        rdfsRange: 'http://www.w3.org/2000/01/rdf-schema#range',
+        rdfsClass: 'http://www.w3.org/2000/01/rdf-schema#Class',
+        rdfProperty: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property',
+        schemaAction: 'http://schema.org/Action'
+    },
+
+
     initialize: function(options){
         //_.bindAll(this, 'render');
 
@@ -35,55 +44,36 @@ var AutocompleteView = Backbone.View.extend({
     render: function () {
         this.$el.append(this.template({label: this.options.label, idAC: this.id}));
 
-        if(this.id === 'resourceName') {
+        if(this.id === 'resourceName' || this.id.match(/action/)) {
             this.createInputField();
 
-        } else if (this.id.match(/resourceAttr/)) {
+        } else if (this.id.match(/resourceAttr/) || this.id.match(/relation/)) {
 
-            console.log('new AutocompleteView (Attribute) with suggestions for...' +
-                '\n\t value: ' + this.options.resourceNameValue +
-                '\n\t prefix: ' + this.options.resourceNamePrefix);
+            console.log('new AutocompleteView for '+this.id+' with suggestions for...' +
+                '\n\t iri: ' + this.options.resourceNameIri);
 
-            this.createInputField(this.options.resourceNameValue, this.options.resourceNamePrefix);
-
-        } else if(this.id.match(/relation/)) {
-
-            console.log('new AutocompleteView (Relation) with suggestions for...' +
-                '\n\t value: ' + this.options.resourceNameValue +
-                '\n\t prefix: ' + this.options.resourceNamePrefix);
-
-            this.createInputField(this.options.resourceNameValue, this.options.resourceNamePrefix);
-
-        } else if(this.id.match(/action/)) {
-            this.createInputField();
+            this.createInputField(this.options.resourceNameIri);
         }
-
-
-        return this;
     },
 
-    getSourceResName: function(userInput, propValue, propPrefix) {
+    getSourceResName: function(userInput, propIri) {
 
         var results = [];
         var regExUserInput = new RegExp(userInput, 'i'); // characters entered by user
         var self = this;
 
-        if(propValue && propPrefix) { // get only RDF classes in the range of this property
-
-            var prefixIRI = sugSource.getPrefixIRIFromPrefix(propPrefix);
-
-            sugSource.rdfStore.forObjectsByIRI(function(object) {
-
+        if(propIri) { // get only RDF classes in the range of this property
+           sugSource.rdfStore.forObjectsByIRI(function(object) {
                 var val = sugSource.getTermFromIRI(object);
 
                 if(val.match(regExUserInput)) {
                     results.push({
                         value: val,
-                        label: propPrefix+': '+ self.getRDFTypeHierarchyAsString(object, 'http://schema.org/Thing')
+                        label: sugSource.getPrefixFromIRI(object)+': '+ self.getRDFTypeHierarchyAsString(object, 'http://schema.org/Thing')
                     });
                 }
 
-            }, prefixIRI+propValue,'http://schema.org/rangeIncludes'); //TODO RDF IRI for rangeIncludes?
+            }, propIri, self.iriConstants.rdfsRange);
 
 
         } else { //get all RDF classes matching entered characters
@@ -97,22 +87,22 @@ var AutocompleteView = Backbone.View.extend({
                         label: sugSource.getPrefixFromIRI(subject)+': '+self.getRDFTypeHierarchyAsString(subject, 'http://schema.org/Thing')
                     });
                 }
-            }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
+            }, null, self.iriConstants.rdfsClass);
         }
 
         return results;
     },
 
-    getSourceResAttribute: function(userInput, resourceNameValue, resourceNamePrefix) {
+    getSourceResAttribute: function(userInput, resourceNameIri) {
 
-        var results = this.getSourceRdfProperties(userInput, resourceNameValue, resourceNamePrefix);
+        var results = this.getSourceRdfProperties(userInput, resourceNameIri);
 
         return results;
     },
 
-    getSourceLinkRelation: function(userInput, resourceNameValue, resourceNamePrefix) {
+    getSourceLinkRelation: function(userInput, resourceNameIri) {
 
-        var results = this.getSourceRdfProperties(userInput, resourceNameValue, resourceNamePrefix);
+        var results = this.getSourceRdfProperties(userInput, resourceNameIri);
 
         // add IANA link relations to suggestion list
         var ianaRels = $.ui.autocomplete.filter(sugSource.getAllTermsFromVocab('iana'), userInput);
@@ -122,7 +112,8 @@ var AutocompleteView = Backbone.View.extend({
 
     },
 
-    getSourceOperation: function(userInput) {
+    // currently searches only for Actions from Schema.org vocab
+    getSourceActions: function(userInput) {
 
         var results = [];
         var regExUserInput = new RegExp(userInput, 'i');
@@ -135,40 +126,37 @@ var AutocompleteView = Backbone.View.extend({
             if(val.match(regExUserInput) && val.match(/Action/)) {
                 results.push({
                     value: val,
-                    label: sugSource.getPrefixFromIRI(subject)+': '+self.getRDFTypeHierarchyAsString(subject, 'http://schema.org/Action')
+                    label: sugSource.getPrefixFromIRI(subject)+': '+self.getRDFTypeHierarchyAsString(subject, self.iriConstants.schemaAction)
                 });
             }
-        }, null, 'http://www.w3.org/2000/01/rdf-schema#Class');
+        }, null, self.iriConstants.rdfsClass);
 
         return results;
     },
 
-    getSourceRdfProperties: function(userInput, resourceNameValue, resourceNamePrefix) {
+    getSourceRdfProperties: function(userInput, resourceNameIri) {
 
         var results = [];
         var regExUserInput = new RegExp(userInput, 'i');
+        var self = this;
 
-        if(resourceNameValue && resourceNamePrefix) { // get RDF properties only for entered resource name and its super types
+        if (resourceNameIri) { // get RDF properties only for entered resource name and its super types
 
-            var prefixIRI = sugSource.getPrefixIRIFromPrefix(resourceNamePrefix);
-
-            var typesAsIri = this.getRDFSuperClasses(prefixIRI+resourceNameValue);
-            //console.log('TYPES AS IRI: ' + JSON.stringify(typesAsIri));
+            var typesAsIri = this.getRDFSuperClasses(resourceNameIri);
+            var self = this;
 
             typesAsIri.forEach(function (typeIri) {
 
                 sugSource.rdfStore.forSubjectsByIRI(function (subject) {
                     var val = sugSource.getTermFromIRI(subject);
-                    if(val.match(regExUserInput)) {
+                    if (val.match(regExUserInput)) {
                         results.push({
                             value: val,
-                            label: resourceNamePrefix + ': ' + val
+                            label: sugSource.getLabelFromIRI(subject)
                         });
                     }
-                }, 'http://schema.org/domainIncludes', typeIri);
-
+                }, self.iriConstants.rdfsDomain, typeIri);
             });
-
 
         } else { // get all RDF properties that match entered characters
 
@@ -181,13 +169,13 @@ var AutocompleteView = Backbone.View.extend({
                         label: sugSource.getLabelFromIRI(subject)
                     });
                 }
-            }, null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property');
+            }, null, self.iriConstants.rdfProperty);
         }
 
         return results;
     },
 
-    createInputField: function (value, prefix) {
+    createInputField: function (iri) {
         var self = this;
         new autocomplete({
             minLength: 1,
@@ -197,10 +185,10 @@ var AutocompleteView = Backbone.View.extend({
                 // TODO get results only for one specific vocab
                 // TODO bug: error thrown when user types '['
 
-                if(self.id === 'resourceName') results = self.getSourceResName(request.term, value, prefix);
-                else if (self.id.match(/resourceAttr/)) results = self.getSourceResAttribute(request.term, value, prefix);
-                else if(self.id.match(/relation/)) results = self.getSourceLinkRelation(request.term, value, prefix);
-                else if(self.id.match(/action/)) results = self.getSourceOperation(request.term);
+                if(self.id === 'resourceName') results = self.getSourceResName(request.term, iri);
+                else if (self.id.match(/resourceAttr/)) results = self.getSourceResAttribute(request.term, iri);
+                else if(self.id.match(/relation/)) results = self.getSourceLinkRelation(request.term, iri);
+                else if(self.id.match(/action/)) results = self.getSourceActions(request.term);
 
                 response(results.slice(0,50)); // return max. 50 results
             },
@@ -211,13 +199,14 @@ var AutocompleteView = Backbone.View.extend({
 
             select: function(event, ui) {
                 var prefix = sugSource.getPrefixFromLabel(ui.item.label);
+                var prefixIri = sugSource.getPrefixIRIFromLabel(ui.item.label);
 
                 // update method suggestions depending on selected relation and action
                 if(self.id.match(/relation/)) self.updateVisibilityActionAndMethods(event, ui.item.value, prefix);
                 if(self.id.match(/action/)) self.updateMethodSuggestions(null, event, ui.item.value, prefix);
 
                 // refresh input fields for resources attributes (suggest only properties for selected resource name)
-                //if(self.id === 'resourceName') self.trigger('resourceNameSelected', {value: ui.item.value, prefix: prefix});
+                if(self.id === 'resourceName') self.trigger('resourceNameSelected', { iri: prefixIri + ui.item.value});
 
                 // display complete IRI below autocomplete field
                 self.fillInputFieldIri(ui.item.label, ui.item.value);
@@ -282,6 +271,9 @@ var AutocompleteView = Backbone.View.extend({
 
     },
 
+    // returns an array with the class itself and all super classes of an RDF class
+    // example: calling the mothod with 'http://schema.org/School'
+    //          returns ['http://schema.org/School', 'http://schema.org/EducationalOrganization', 'http://schema.org/Organization', 'http://schema.org/Thing']
     getRDFSuperClasses: function(typeIri) {
         var localType = typeIri;
         var superClasses = [localType];
