@@ -30,27 +30,18 @@ var DownloadView = Backbone.View.extend({
     submit: function (evt) {
         evt.preventDefault();
 
-        var namespace = 'http://myapi.com/vocab#';
-        var baseUrl = 'http://myapi.com/';
-        var descr = 'This is my demo API';
-        var title = 'Demo API';
+        var baseUrl = $('#exportBaseUrl').val().trim();
+        var namespace = $('#exportNamespace').val().trim();
+        var title = $('#exportApiTitle').val().trim();
+        var descr = $('#exportApiDescr').val().trim();
 
-        /*
-        var baseUrl = $('#exportBaseUrl').val();
-        var namespace = $('#exportNamespace').val();
-        var title = $('#exportApiTitle').val();
-        var descr = $('#exportApiDescr').val();
-        */
+        namespace = namespace ? namespace : 'http://mysite.org/api/vocab#';
+        baseUrl = baseUrl ? baseUrl : 'http://mysite.org/api';
 
-        if($('input[name=exportFormat]:checked').val() == 'alps') {
-            alert('ALPS is comming soon...\nPlease select Hydra');
-        } else {
+        var docs = new HydraDocs(this.model, namespace, baseUrl, title, descr);
+        docs.downloadHydraAPIDocs();
 
-            var docs = new HydraDocs(this.model, namespace, baseUrl, title, descr);
-            docs.downloadHydraAPIDocs();
-        }
-
-        //TODO info for user: place docs in root folder and add link to HTTP header
+        //TODO info for user in Download View: place docs in root folder and add link to HTTP header
     }
 });
 
