@@ -18,18 +18,13 @@ var Utils = require('../util/utils');
 var AutocompleteView = Backbone.View.extend({
     template: _.template($('#autocomplete-input-template').html()),
 
-    methodMap: {
-        'RETRIEVE': 'retrieve (safe)',
-        'CREATE': 'create (not idemportent)',
-        'REPLACE': 'replace (idempotent)',
-        'DELETE': 'delete (idempotent)'
-    },
-
     iriConstants : {
         rdfsDomain: 'http://www.w3.org/2000/01/rdf-schema#domain',
         rdfsRange: 'http://www.w3.org/2000/01/rdf-schema#range',
         rdfsClass: 'http://www.w3.org/2000/01/rdf-schema#Class',
         rdfProperty: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property',
+        rdfsSubClass: 'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+        rdfsComment:'http://www.w3.org/2000/01/rdf-schema#comment',
         schemaAction: 'http://schema.org/Action'
     },
 
@@ -67,9 +62,12 @@ var AutocompleteView = Backbone.View.extend({
                 var val = sugSource.getTermFromIRI(object);
 
                 if(val.match(regExUserInput)) {
+                    var prefix = sugSource.getPrefixFromIRI(object);
+                    var ignore = sugSource.ignoreTypeHierarchyFrom[prefix];
+
                     results.push({
                         value: val,
-                        label: sugSource.getPrefixFromIRI(object)+': '+ self.getRDFTypeHierarchyAsString(object, 'http://schema.org/Thing')
+                        label: prefix+': '+ self.getRDFTypeHierarchyAsString(object, ignore)
                     });
                 }
 
@@ -82,9 +80,13 @@ var AutocompleteView = Backbone.View.extend({
 
                 var val = sugSource.getTermFromIRI(subject);
                 if(val.match(regExUserInput)) {
+
+                    var prefix = sugSource.getPrefixFromIRI(subject);
+                    var ignore = sugSource.ignoreTypeHierarchyFrom[prefix];
+
                     results.push({
                         value: val,
-                        label: sugSource.getPrefixFromIRI(subject)+': '+self.getRDFTypeHierarchyAsString(subject, 'http://schema.org/Thing')
+                        label: sugSource.getPrefixFromIRI(subject)+': '+self.getRDFTypeHierarchyAsString(subject, ignore)
                     });
                 }
             }, null, self.iriConstants.rdfsClass);
@@ -142,7 +144,7 @@ var AutocompleteView = Backbone.View.extend({
 
         if (resourceNameIri) { // get RDF properties only for entered resource name and its super types
 
-            var typesAsIri = this.getRDFSuperClasses(resourceNameIri);
+            var typesAsIri = sugSource.getRDFSuperClasses(resourceNameIri);
             var self = this;
 
             typesAsIri.forEach(function (typeIri) {
@@ -202,11 +204,11 @@ var AutocompleteView = Backbone.View.extend({
                 var prefixIri = sugSource.getPrefixIRIFromLabel(ui.item.label);
 
                 // update method suggestions depending on selected relation and action
-                if(self.id.match(/relation/)) self.updateVisibilityActionAndMethods(event, ui.item.value, prefix);
-                if(self.id.match(/action/)) self.updateMethodSuggestions(null, event, ui.item.value, prefix);
+                if(self.id.match(/relation/)) self.trigger('relationSelected', { target: self.id, value: ui.item.value, prefix: prefix });
+                if(self.id.match(/action/)) self.trigger('actionSelected', { target: self.id, value: ui.item.value, prefix: prefix });
 
                 // refresh input fields for resources attributes (suggest only properties for selected resource name)
-                if(self.id === 'resourceName') self.trigger('resourceNameSelected', { iri: prefixIri + ui.item.value});
+                if(self.id === 'resourceName') self.trigger('resourceNameSelected', { iri: prefixIri + ui.item.value });
 
                 // display complete IRI below autocomplete field
                 self.fillInputFieldIri(ui.item.label, ui.item.value);
@@ -238,13 +240,14 @@ var AutocompleteView = Backbone.View.extend({
         $('#termDesc').html(termDescr).css(position).show();
     },
 
+    // TODO move this method to suggestionSource and merge with getDescriptionFromVocab()
     getTermDescription: function(ui) {
         var descr = '';
         if(ui.item.descr) {
             descr = ui.item.descr;
         } else {
             var prefixIRI = sugSource.getPrefixIRIFromLabel(ui.item.label);
-            var rdfComment = sugSource.rdfStore.getObjectsByIRI(prefixIRI+ui.item.value, 'http://www.w3.org/2000/01/rdf-schema#comment');
+            var rdfComment = sugSource.rdfStore.getObjectsByIRI(prefixIRI+ui.item.value, this.iriConstants.rdfsComment);
 
             if(rdfComment && rdfComment[0]) {
                 descr = rdfComment[0].substr(1, rdfComment[0].length-2);
@@ -253,13 +256,19 @@ var AutocompleteView = Backbone.View.extend({
         return descr;
     },
 
-    // goes up the class hierarchy until 'ignore'
+    /**
+     * TODO move this method to suggestionSource and merge with getRDFSuperClasses()
+     * Goes up the class hierarchy until 'ignore' and returns a string with all types separated by >
+     * @param typeIri
+     * @param ignore Going up the hierarchy until this IRI
+     * @return a string with super types, for example 'Organization > EducationalOrganization > School > Preschool'
+     */
     getRDFTypeHierarchyAsString: function(typeIri, ignore) {
         var localType = typeIri;
         var typeHierString = sugSource.getTermFromIRI(typeIri);
 
         while(localType && localType != ignore) {
-            var superType = sugSource.rdfStore.getObjectsByIRI(localType, 'http://www.w3.org/2000/01/rdf-schema#subClassOf');
+            var superType = sugSource.rdfStore.getObjectsByIRI(localType, this.iriConstants.rdfsSubClass);
 
             if(superType && superType[0] != null && superType[0] != ignore) {
                 typeHierString = sugSource.getTermFromIRI(superType[0]) + ' > ' + typeHierString;
@@ -271,56 +280,7 @@ var AutocompleteView = Backbone.View.extend({
 
     },
 
-    // returns an array with the class itself and all super classes of an RDF class
-    // example: calling the mothod with 'http://schema.org/School'
-    //          returns ['http://schema.org/School', 'http://schema.org/EducationalOrganization', 'http://schema.org/Organization', 'http://schema.org/Thing']
-    getRDFSuperClasses: function(typeIri) {
-        var localType = typeIri;
-        var superClasses = [localType];
 
-        while(localType) {
-            var superType = sugSource.rdfStore.getObjectsByIRI(localType, 'http://www.w3.org/2000/01/rdf-schema#subClassOf');
-            if(superType && superType[0] != null) { superClasses.push(superType[0]); }
-            localType = superType[0];
-        }
-
-        return superClasses;
-    },
-
-    // called when selection a new link relation
-    // if selected relation is an IANA link relation, the input fields for Action are hidden
-    // and the method options are updated according to the selected relation
-    updateVisibilityActionAndMethods: function (evt, value, prefix) {
-        var $parent = $(evt.target).closest('table');
-        var $action = $parent.find('.actionInputWrapper');
-        var $method = $parent.find('select[name=methodDropdown]');
-
-        if(prefix === 'iana') {
-            $action.hide('slow');
-            // update method suggestions
-            this.updateMethodSuggestions($method, null, value, prefix);
-        } else {
-            // show Action Input Field
-            $action.show('slow');
-        }
-    },
-
-    // updates the available methods to choose from, according to the info from the model data
-    // (see modelData/methodSuggestions.json)
-    updateMethodSuggestions: function(methodDropdownElement, evt, value, prefix) {
-
-        var methods = methodsSugs.getMethodSuggestion(value, prefix);
-        var $dropdown = methodDropdownElement ? methodDropdownElement :
-                $(evt.target).closest('table').find('select[name=methodDropdown]');
-
-        if($dropdown && methods) {
-            $dropdown.empty();
-            methods.available.forEach(_.bind(function (method) {
-                $dropdown.append($('<option></option>').attr('value', method).text(this.methodMap[method]));
-            }, this));
-            $dropdown.val(methods.default);
-        }
-    },
 
     fillInputFieldIri: function(label, value) {
         var prefixIRI = sugSource.getPrefixIRIFromLabel(label);
@@ -368,7 +328,6 @@ var AutocompleteView = Backbone.View.extend({
     registerTermDescrChangeEvent: function () {
         $('#'+this.id+'TermDescr').on('input', _.bind(this.handleChangeEventsForDescrField, this));
     },
-
 
     handleChangeEventsForValueField: function (evt) {
         var targetId = evt.target.id;
