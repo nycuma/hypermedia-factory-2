@@ -19,8 +19,8 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
     initialize: function() {
         joint.dia.Paper.prototype.initialize.apply(this, arguments);
         this.setEvents();
-        this.setDemoGraphTasks();
         this.calculatePaperSize();
+        this.setDemoGraphTasks();
     },
 
     setDemoGraphMusic: function () {
@@ -105,6 +105,7 @@ joint.dia.CustomPaper = joint.dia.Paper.extend({
         link3.saveLink('CREATE', 'addTask', undefined, undefined, true, 'Add a new task', 'AddAction', 'schema', 'http://schema.org/AddAction');
         link3.prop('isCollItemLink', true);
         link3.prop('allowFilter', true);
+        link3.prop('allowFilterParams', 'taskTitle, taskDescription');
 
         var link4 = this.createLinkForDemo(nodeUser.id, nodeTasks.id);
         link4.saveLink('RETRIEVE', 'tasksAssigned', undefined, undefined, true, 'Tasks assigned to the user', 'ReadAction', 'schema', 'http://schema.org/ReadAction');
