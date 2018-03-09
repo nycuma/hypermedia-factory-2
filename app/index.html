@@ -77,10 +77,10 @@
       <strong>Credits:</strong>
       <br>Logo designed by: <a href="http://franziskanebel.de/" target="_blank">Franziska Nebel</a>
       <br>Font 'Greyscale' from: <a href="https://www.fontsquirrel.com/fonts/Greyscale-Basic?filter[license][0]=web" target="_blank">FontSquirrel</a>
-      <br>Framework library: <a href="http://backbonejs.org/" target="_blank">Backbone.js</a>
+      <br>Framework: <a href="http://backbonejs.org/" target="_blank">Backbone.js</a>
       <br>Graph library: <a href="https://www.jointjs.com/opensource" target="_blank">Joint.js</a>
-      <br>Zip File library: <a href="https://stuk.github.io/jszip/" target="_blank">JSZip</a>
-      <br>File Saving library: <a href="https://github.com/eligrey/FileSaver.js" target="_blank">FileSaver.js</a>
+      <br>RDF library: <a href="https://github.com/RubenVerborgh/N3.js" target="_blank">N3.js</a>
+      <br>Autocomplete widget: <a href="http://jqueryui.com/autocomplete/" target="_blank">jQuery UI</a>
     </p>
   </script>
 
@@ -101,12 +101,12 @@
           <td><input type="radio" name="profileFormat" value="jsonld"></td>
           <td>JSON-LD contexts</td>
         </tr>
+        <tr>
+          <td><input type="radio" name="exportFormat" value="alps"> ALPS</td>
+        </tr>
         -->
         <tr>
           <td><input type="radio" name="exportFormat" value="hydra" checked> Hydra ApiDocs</td>
-        </tr>
-        <tr>
-          <td><input type="radio" name="exportFormat" value="alps"> ALPS</td>
         </tr>
         <tr>
           <td>&nbsp;</td>
@@ -115,13 +115,13 @@
           <td>Base URL of API:</td>
         </tr>
         <tr>
-          <td><input type="text" id="exportBaseUrl" placeholder="http://mysite.com/api"></td>
+          <td><input type="text" id="exportBaseUrl" placeholder="http://mysite.com/api" required></td>
         </tr>
         <tr>
           <td>Namespace for customized vocabulary:</td>
         </tr>
         <tr>
-          <td><input type="text" id="exportNamespace" placeholder="http://mysite.com/api#vocab"></td>
+          <td><input type="text" id="exportNamespace" placeholder="http://mysite.com/api#vocab" required></td>
         </tr>
         <tr>
           <td>API title:</td>
