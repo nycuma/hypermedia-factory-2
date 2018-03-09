@@ -25,6 +25,8 @@ var EditResourceView = Backbone.View.extend({
         this.render();
     },
 
+    attrCount: -1,
+
     events: {
         'click .submitBtn': 'submit',
         'click .cancelBtn' : 'close',
@@ -41,7 +43,7 @@ var EditResourceView = Backbone.View.extend({
             id: 'resourceName',
             label: ''
         });
-        this.listenTo(acResName, 'resourceNameSelected', this.refreshAttrField);
+        this.listenTo(acResName, 'resourceNameSelected', this.refreshAttrFields);
         if(this.model.prop('resourceName') && !this.model.prop('resourceName').isCustom) acResName.unregisterTermValueChangeEvent();
 
         if(this.model.get('label') == 'new resource') {
@@ -54,6 +56,10 @@ var EditResourceView = Backbone.View.extend({
         return this;
     },
 
+    /**
+     * @param evt
+     * @param nameIri IRI of the resource name
+     */
     addAttrFieldSet: function(evt, nameIri) {
 
         if(evt) evt.preventDefault();
@@ -61,6 +67,7 @@ var EditResourceView = Backbone.View.extend({
         var iriVal = $('#resourceNameIri').val();
         var resourceNameIri = nameIri ? nameIri : (iriVal.indexOf('{myURL}/vocab#') === 0 ? undefined : iriVal);
         var attrCount = this.getNextAttrID();
+
 
         console.log('editResourceView addAttrFieldSet attrCount: ' + attrCount);
 
@@ -74,6 +81,7 @@ var EditResourceView = Backbone.View.extend({
             resourceNameIri: resourceNameIri
         });
 
+        this.attrCount = attrCount;
         return acAttr;
     },
 
@@ -125,7 +133,7 @@ var EditResourceView = Backbone.View.extend({
         }
 
         attrsData.forEach(_.bind(function(modelData, i) {
-            acAttr = this.addAttrFieldSet(null, resNameIri);
+            var acView = this.addAttrFieldSet(null, resNameIri);
             /*
             console.log('loading resource attribute... found model data: '
                 + '\n\tAttr value: ' + modelData.value
@@ -135,18 +143,18 @@ var EditResourceView = Backbone.View.extend({
                 + '\n\tCustom description: ' + modelData.customDescr);
                 */
 
-            var $attrField = $('#resourceAttr' + i);
+            var $attrField = acView.$el.find('.ui-autocomplete-input');
             $attrField.val(modelData.value);
 
             if(modelData.isCustom) {
-                $('#resourceAttr'+i+'Iri').val('{myURL}/vocab#' + modelData.value);
-                $('#resourceAttr'+i+'TermDescr').val(modelData.customDescr);
+                acView.$el.find('input[name=inputFieldIri]').val('{myURL}/vocab#' + modelData.value);
+                acView.$el.find('textarea[name=termDescr]').val(modelData.customDescr);
                 $attrField.attr('isCustom', true);
             } else {
-                $('#resourceAttr'+i+'Iri').val(modelData.iri);
-                $('#resourceAttr'+i+'TermDescr').val(sugSource.getDescriptionFromVocab(modelData.iri, modelData.prefix, modelData.value));
+                acView.$el.find('input[name=inputFieldIri]').val(modelData.iri);
+                acView.$el.find('textarea[name=termDescr]').val(sugSource.getDescriptionFromVocab(modelData.iri, modelData.prefix, modelData.value));
                 $attrField.attr({'isCustom': false, 'term-prefix': modelData.prefix});
-                acAttr.unregisterTermValueChangeEvent();
+                acView.unregisterTermValueChangeEvent();
             }
 
             $('#datatypeDropdown'+i).val(modelData.dataType);
@@ -157,20 +165,61 @@ var EditResourceView = Backbone.View.extend({
     },
 
     /**
-     * When user selects a new resource name (= new RDF class), all previously
-     * selected resource attributes (RDF properties) are deleted. A new autocomplete
-     * input field is generated which suggests only properties whose domain include the new
-     * resource name
-     * @param data : prefix and value of the RDF class of resource name
+     * When the user selects a new resource name (= new RDF class), the terms that are supposed
+     * to be suggested in the attributes fields below change (depending on the associated domain of
+     * the RDF property). Since the Autocomplete widget is imported via 'required', I was not
+     * able yet to figure out how to change the source (= possible values to be suggested) of an
+     * autocomplete input field AFTER the field was created. That is why the values from the
+     * attribute input fields are temporarily saved, the old autocomplete input fields are removed,
+     * and new ones are appended with the updated source. Finally the temporarily saved attribute data
+     * is filled into the new fields, but only if the attribute is custom or if the new resource name
+     * (or any of its super classes) is still in the domain of that attribute. Other attributes are discarded.
+     *
+     * @param data : object with IRI of the resource name
      */
-    refreshAttrField: function(data) {
-        console.log('refresh attr fields');
+    refreshAttrFields: function(data) {
+        var attributes = [];
+        // get current attribute input values
+        $('#resourceAttrsWrapper .resourceAttrSet').each(function() {
+
+            var $resAttr = $(this).find('.ui-autocomplete-input');
+            var isCustom = Utils.checkIfCustom($resAttr);
+            var iri = $(this).find('input[name=inputFieldIri]').val();
+
+            // add attribute only if it is custom or if the new RDF class is in the attribute's domain
+            if(isCustom || (!isCustom && sugSource.checkIfClassInDomainOfProp(data.iri, iri))) {
+                attributes.push({
+                    value: $resAttr.val().trim(),
+                    prefix: $resAttr.attr('term-prefix'),
+                    iri: iri,
+                    isCustom: isCustom,
+                    descr: $(this).find('textarea[name=termDescr]').val().trim(),
+                    dataType: $(this).find('select[name=datatypeDropdown]').val(),
+                    isReadonly: $(this).find('input[name=readonlyCheckBox]').prop('checked')
+                });
+            }
+        });
         // remove all existing input fields for resource attributes
         $('#resourceAttrsWrapper').empty();
+        this.attrCount = -1;
 
-        // add input field that suggests only properties for entered resource name
-        this.addAttrFieldSet(null, data.iri);
+        attributes.forEach(_.bind(function (attr, i) {
+            // add updated autocomplete input field and fill with data
+            var acView = this.addAttrFieldSet(null, data.iri);
+            var $acField = acView.$el.find('.ui-autocomplete-input');
+            $acField.val(attr.value).attr({'term-prefix': attr.prefix, 'isCustom': attr.isCustom});
+            acView.$el.find('input[name=inputFieldIri]').val(attr.iri);
+            acView.$el.find('textarea[name=termDescr]').val(attr.descr);
+            $('#datatypeDropdown' + i).val(attr.dataType);
+            if (attr.isReadonly) $('#readonlyCheckBox' + i).prop('checked', true);
+
+            if(!attr.isCustom) acView.unregisterTermValueChangeEvent();
+
+        }, this));
+
+        if(this.attrCount < 0) this.addAttrFieldSet(null, data.iri);
     },
+
 
     submit: function (evt) {
         evt.preventDefault();
