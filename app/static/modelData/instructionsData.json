@@ -10,9 +10,6 @@
       "explanation" : "Move mouse to the lower right of the node and double-click on the icon."
     },
     {
-      "title" : "Resize canvas"
-    },
-    {
       "title" : "Edit resource props",
       "explanation" : "Double-click on resource."
     },

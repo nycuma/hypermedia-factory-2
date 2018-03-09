@@ -9,9 +9,9 @@ var MethodSuggestionVocab = require('../models/methodSuggestionVocab');
 
 var MethodSuggestions = Backbone.Collection.extend({
     model: MethodSuggestionVocab,
-    // PRODUCTION: url: '../modelData/methodSuggestions.json',
+    // PRODUCTION: url: '../static/modelData/methodSuggestions.json',
     // DEV:
-    url: '../app/modelData/methodSuggestions.json',
+    url: '../app/static/modelData/methodSuggestions.json',
 
     initialize: function () {
         this.fetch({parse: true});
