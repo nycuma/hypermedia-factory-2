@@ -58,7 +58,8 @@ var Node = joint.shapes.basic.Rect.extend({
     // the structural type is either 'collection', 'item' or null/undefined
     setStructuralType: function (structuralType) {
         this.prop('structuralType', structuralType);
-        console.log('structural type of node ' + this.prop('resourceName').value + ' set to: ' + this.prop('structuralType'));
+        var resName = this.prop('resourceName') ? this.prop('resourceName').value : '[no resource name for node '+this.get('id')+' found]';
+        console.log('structural type of node ' + resName + ' set to: ' + this.prop('structuralType'));
         // trigger event to change view of source node
         this.trigger('strucTypeChanged', {type: structuralType});
     },
