@@ -24,6 +24,20 @@ var SuggestionSource = Backbone.Collection.extend({
     rdfStore: N3.Store(),
     prefixes: {},
 
+    /**
+     * saves an RDF class for each vocab that will be ignored when displaying the type hierarchy in the suggestions
+     * (all superclasses will be ignored too)
+     * example: setting ignoreTypeHierarchyFrom.schema = 'http://schema.org/Thing'
+     *          when user types 'School'
+     *              suggestion shows: 'schema: Organization > EducationalOrganization > School'
+     *              instead of: 'schema: Thing > Organization > EducationalOrganization > School'
+     */
+    ignoreTypeHierarchyFrom: {},
+
+    rdfsComment:'http://www.w3.org/2000/01/rdf-schema#comment',
+    rdfsDomain: 'http://www.w3.org/2000/01/rdf-schema#domain',
+    rdfsSubClass: 'http://www.w3.org/2000/01/rdf-schema#subClassOf',
+
     initialize: function () {
         var self = this;
         self.prefixes.hydra = 'http://www.w3.org/ns/hydra/core#';
@@ -32,6 +46,7 @@ var SuggestionSource = Backbone.Collection.extend({
         $.when(schemaOrgSource.fetch({parse: true})).then(function() {
             self.rdfStore.addTriples(schemaOrgSource.store.getTriples());
             self.prefixes.schema = 'http://schema.org/';
+            self.ignoreTypeHierarchyFrom.schema = 'http://schema.org/Thing'
         });
 
         // non-RDF vocabulary is saved in local model
@@ -42,6 +57,39 @@ var SuggestionSource = Backbone.Collection.extend({
             ianaLinkRelsSource.reset();
         });
 
+    },
+
+
+    /**
+     * Checks whether the given RDF class classIri or any of its super-classes
+     * is the domain of the RDF property propIri
+     * @param classIri
+     * @param propIri
+     */
+    checkIfClassInDomainOfProp: function (classIri, propIri) {
+
+        var typesAsIri = this.getRDFSuperClasses(classIri);
+
+        return typesAsIri.some(_.bind(function (typeIri) {
+            var tripleCount = this.rdfStore.countTriplesByIRI(propIri, this.rdfsDomain, typeIri);
+            return (tripleCount > 0);
+        }, this));
+    },
+
+     // returns an array with the class itself and all super classes of an RDF class
+    // example: calling the mothod with 'http://schema.org/School'
+    //          returns ['http://schema.org/School', 'http://schema.org/EducationalOrganization', 'http://schema.org/Organization', 'http://schema.org/Thing']
+    getRDFSuperClasses: function(classIri) {
+        var localClass = classIri;
+        var superClasses = [localClass];
+
+        while(localClass) {
+            var superType = this.rdfStore.getObjectsByIRI(localClass, this.rdfsSubClass);
+            if(superType && superType[0] != null) { superClasses.push(superType[0]); }
+            localClass = superType[0];
+        }
+
+        return superClasses;
     },
 
     getPrefixIRIFromPrefix: function(prefix) {
@@ -74,7 +122,6 @@ var SuggestionSource = Backbone.Collection.extend({
             if (this.prefixes.hasOwnProperty(key)) {
 
                 if(iri.indexOf(this.prefixes[key]) === 0) { //check with which prefixIRI the IRI starts with
-                    //console.log('getPrefixFromIRI ' + iri + ': ' + key);
                     return key;
                 }
             }
@@ -110,43 +157,12 @@ var SuggestionSource = Backbone.Collection.extend({
             descr = this.getDescriptionForNonRDFTerm(prefix, ianaVal);
         } else {
             if(iri) {
-                var rdfComment = this.rdfStore.getObjectsByIRI(iri, 'http://www.w3.org/2000/01/rdf-schema#comment');
+                var rdfComment = this.rdfStore.getObjectsByIRI(iri, this.rdfsComment);
                 if(rdfComment && rdfComment[0]) descr = rdfComment[0].substr(1, rdfComment[0].length-2);
             }
         }
         return Utils.getStringFromHTML(descr);
     },
-
-
-    /*
-    getRDFClasses: function() {
-
-        //var result = this.filter(function (term) {
-        //    return term.get('isRdfClass');
-        //});
-        //var result = this.where({isRdfClass: true, isAction: false});
-        //return result;
-
-
-
-        return this.reduce(function (filteredColl, term) {
-            if (term.get('isRdfClass') && !term.get('isAction')) {
-                filteredColl.push(term.toJSON());
-            }
-            return filteredColl;
-        }, []);
-
-    },
-
-    getRDFProps: function() {
-        return this.reduce(function (filteredColl, term) {
-            if (term.get('isRdfProperty')) {
-                filteredColl.push(term.toJSON());
-            }
-            return filteredColl;
-        }, []);
-    },
-*/
 
     getActions: function () {
         return this.reduce(function (filteredColl, term) {
