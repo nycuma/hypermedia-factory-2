@@ -40,7 +40,7 @@ HydraDocs.prototype = {
         var completeDocs = this.generateHydraObj();
 
         //Utils.downloadZip('docs.jsonld', JSON.stringify(completeDocs, null, '\t'), 'hydraAPI');
-        Utils.downloadFile(JSON.stringify(completeDocs, null, '\t'), 'hydraApiDocs.json');
+        Utils.downloadFile(JSON.stringify(completeDocs, null, '\t'), 'docs.json');
         //console.log('COMPLETE DOCS:\n' + JSON.stringify(completeDocs, null, 2));
     },
 
@@ -180,8 +180,8 @@ HydraDocs.prototype = {
                             'domain': this.getResourceNameOfNode(cell),
                             'range': this.getResourcenNameOfTarget(linkToItem)
                         },
-                        'hydra:title' : 'members',
-                        'hydra:description' : 'The members of this collection.'
+                        'hydra:title' : 'member',
+                        'hydra:description' : 'A member of the collection.'
                 };
 
                 supportedPropsArr.push(memberProp);
@@ -218,7 +218,12 @@ HydraDocs.prototype = {
                     if (linkOperations && linkOperations.length > 0) {
 
                         linkOperations.forEach(function (op) {
-                            var supportedPropLink = {}, hydraPropLink = {};
+                            var supportedPropLink = {}, hydraPropLink = {}, descr;
+                            if(op.iri === 'http://www.w3.org/ns/hydra/core#member') {
+                                descr = 'A member of the collection'; // TODO this is just a quick fix, Hydra vocab should be parsed
+                            } else {
+                                descr = op.isCustom ? op.customDescr : sugSource.getDescriptionFromVocab(op.iri);
+                            }
 
                             hydraPropLink['@id'] = op.isCustom ? 'vocab:' + op.value : op.iri;
                             hydraPropLink['@type'] = 'hydra:Link';
@@ -231,7 +236,7 @@ HydraDocs.prototype = {
 
                             supportedPropLink['hydra:property'] = hydraPropLink;
                             supportedPropLink['hydra:title'] = op.value;
-                            supportedPropLink['hydra:description'] = op.isCustom ? op.customDescr : sugSource.getDescriptionFromVocab(op.iri);
+                            supportedPropLink['hydra:description'] = descr;
                             supportedPropLink['hydra:required'] = 'null';
                             supportedPropLink['hydra:readonly'] = 'true';
 
@@ -274,39 +279,22 @@ HydraDocs.prototype = {
                 // case 2: SourceNode = Collection and TargetNode = Item
                 if (this.checkNodeIsCollection(source) && this.checkNodeIsItem(target)) {
                     expects = returns = this.getResourcenNameOfTarget(link);
-
-                    /*
-                     console.log('LINK PROPS. create case 2. link: ' + link.prop('operations')[0].value);
-                     console.log('\texpects: ' + expects);
-                     console.log('\treturns: ' + returns);
-                     */
                 }
                 // case 3: SourceNode = some other Node and TargetNode = Collection
                 else if (this.checkNodeIsCollection(target)) {
                     //get corresponding item node for collection node
                     var linkToItemT = this.getLinkToItemNode(target);
-                    expects = returns = this.getResourcenNameOfTarget(linkToItemT);
-
-                    /*
-                     console.log('LINK PROPS. create case 3. link: ' + link.prop('operations')[0].value);
-                     console.log('\texpects: ' + expects);
-                     console.log('\treturns: ' + returns);
-                     */
+                    expects = this.getResourcenNameOfTarget(linkToItemT);
+                    returns = this.getResourcenNameOfTarget(link);
                 }
                 // default case: (assumption: TargetNode is the Type to be created)
                 else {
                     expects = returns = this.getResourcenNameOfTarget(link);
-
-                    /*
-                     console.log('LINK PROPS. create case default. link: ' + link.prop('operations')[0].value);
-                     console.log('\texpects: ' + expects);
-                     console.log('\treturns: ' + returns);
-                     */
                 }
 
             }
             else if (operation.method == 'REPLACE') {
-                // if link is not self referencing, then assumption is: target node is supposed to be replaced)
+                // if link is not self referencing, then assumption is that target node is supposed to be replaced
                 expects = returns = this.getResourcenNameOfTarget(link);
             }
             else if (operation.method == 'DELETE') {
@@ -343,12 +331,6 @@ HydraDocs.prototype = {
                     if (operation.method == 'RETRIEVE') {
                         expects = null;
                         returns = this.getResourceNameOfNode(cell);
-
-                        /*
-                        console.log('LINK PROPS FOR CLASS. ' + operation.method + '. link: ' + operation.value);
-                        console.log('\texpects: ' + expects);
-                        console.log('\treturns: ' + returns);
-                        */
                     }
                     else if (operation.method == 'CREATE' || operation.method == 'REPLACE') {
 
@@ -356,22 +338,12 @@ HydraDocs.prototype = {
                         if (this.checkNodeIsCollection(cell)) {
                             //get corresponding item node for collection node
                             var linkToItem = this.getLinkToItemNode(cell);
-                            expects = returns = this.getResourcenNameOfTarget(linkToItem);
+                            expects = this.getResourcenNameOfTarget(linkToItem);
+                            returns = this.getResourceNameOfNode(cell);
 
-                            /*
-                            console.log('LINK PROPS FOR CLASS. ' + operation.method + ' case 1. link: ' + operation.value);
-                            console.log('\texpects: ' + expects);
-                            console.log('\treturns: ' + returns);
-                            */
                         } else {
                             //default: a resource of the type of the node itself is supposed to be created / replaced
                             expects = returns = this.getResourceNameOfNode(cell);
-
-                            /*
-                            console.log('LINK PROPS FOR CLASS. ' + operation.method + '  case default. link: ' + operation.value);
-                            console.log('\texpects: ' + expects);
-                            console.log('\treturns: ' + returns);
-                            */
                         }
 
                     } else if (operation.method == 'DELETE') {
@@ -394,6 +366,7 @@ HydraDocs.prototype = {
         return operationsForClassArr;
     },
 
+    // creates a standard property whose values (that will be served by the server) are templated links
     getFilterLinkPropIfRequired: function (linkToCollection) {
 
         var target = this.getTarget(linkToCollection);
@@ -401,47 +374,17 @@ HydraDocs.prototype = {
 
         if(linkToItem && linkToItem.prop('allowFilter') && linkToItem.prop('allowFilter') === true) {
 
-            var paramsStr = linkToItem.prop('allowFilterParams'), paramsArr = [];
-            if(paramsStr && paramsStr.trim().length > 0) {
-                paramsStr = paramsStr.replace(/\s/g, '');
-                paramsArr = paramsStr.split(',');
-            } else {
-                paramsStr = 'query';
-                paramsArr.push('query');
-            }
-
-            var urlTemplate = this.checkLinkIsSelfReferencing(linkToCollection) ? '/{?' + paramsStr + '}' :
-                            '/'+this.getRelationValueForFilterLink(linkToCollection)+'{?' + paramsStr + '}';
-
-            var mappings = [];
-            paramsArr.forEach(function (param) {
-                mappings.push({
-                    '@type': 'IriTemplateMapping',
-                    'variable': param,
-                    'property': 'hydra:freetextQuery'
-                });
-            });
-
-            var filterOperation = [
-                {
-                    'method': 'GET',
-                    'expects': null,
-                    'returns' : this.getResourceNameOfNode(target)
-                }];
-
-
-            var filterLinkProp = {
-                '@type': 'IriTemplate',
-                'rdfs:label': 'Filter for ' + this.getResourceNameOfNode(target),
-                'range': this.getResourceNameOfNode(target),
-                'template': urlTemplate,
-                'variableRepresentation': 'BasicRepresentation',
-                'mapping': mappings,
-                'operation' : filterOperation
+            return {
+                'hydra:property' : {
+                    '@id' : 'hydra:search',
+                    '@type' : 'hydra:TemplatedLink',
+                    'rdfs:label': 'A IRI template that can be used to query a collection.' // TODO parse Hydra vocab
+                },
+                'hydra:title': 'Search',
+                'hydra:description' : 'Filter items of the collection',
+                'hydra:readonly': true
             };
-           // console.log('getFilterOperationIfRequired: ' + JSON.stringify(filterLinkProp, null, 2));
-            return filterLinkProp;
-        } // allowFilter = true
+        }
     },
 
     getRelationValueForFilterLink: function (linkToCollection) {
