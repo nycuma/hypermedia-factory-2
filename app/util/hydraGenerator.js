@@ -9,9 +9,6 @@ var Utils = require('./utils');
 var sugSource;
 sugSource = require('../collections/suggestionSource');
 
-// TODO sonderfall: when resource == collection, dann type: hydra:Collection
-// TODO TemplatedLinks for filter operations
-
 function HydraDocs(graph, namespace, baseURL, apiTitle, apiDescr) {
     if (!(this instanceof HydraDocs)) {
         return new HydraDocs();
@@ -38,10 +35,7 @@ HydraDocs.prototype = {
 
     downloadHydraAPIDocs: function () {
         var completeDocs = this.generateHydraObj();
-
-        //Utils.downloadZip('docs.jsonld', JSON.stringify(completeDocs, null, '\t'), 'hydraAPI');
         Utils.downloadFile(JSON.stringify(completeDocs, null, '\t'), 'docs.json');
-        //console.log('COMPLETE DOCS:\n' + JSON.stringify(completeDocs, null, 2));
     },
 
     generateHydraObj: function () {
@@ -98,8 +92,8 @@ HydraDocs.prototype = {
         var entryPoint = {};
         entryPoint['@id'] = 'http://schema.org/EntryPoint';
         entryPoint['@type'] = 'hydra:Class';
-        entryPoint['label'] = 'EntryPoint';
-        entryPoint['supportedProperty'] = this.getSupportedLinkProperties(startNode);
+        entryPoint['hydra:label'] = 'EntryPoint';
+        entryPoint['hydra:supportedProperty'] = this.getSupportedLinkProperties(startNode);
 
         return entryPoint;
     },
@@ -237,7 +231,7 @@ HydraDocs.prototype = {
                             supportedPropLink['hydra:property'] = hydraPropLink;
                             supportedPropLink['hydra:title'] = op.value;
                             supportedPropLink['hydra:description'] = descr;
-                            supportedPropLink['hydra:required'] = 'null';
+                            //supportedPropLink['hydra:required'] = 'null';
                             supportedPropLink['hydra:readonly'] = 'true';
 
                             supportedLinkPropsArr.push(supportedPropLink);
@@ -357,6 +351,9 @@ HydraDocs.prototype = {
                     operationForClass['hydra:method'] = this.getOperationMethod(operation);
                     operationForClass['expects'] = expects;
                     operationForClass['returns'] = returns;
+                    operationForClass['hydra:title'] = operation.value;
+                    operationForClass['hydra:description'] = operation.isCustom ? operation.customDescr : sugSource.getDescriptionFromVocab(operation.iri);
+                    // TODO get description for IANA rels
 
                     operationsForClassArr.push(operationForClass);
 
@@ -378,7 +375,7 @@ HydraDocs.prototype = {
                 'hydra:property' : {
                     '@id' : 'hydra:search',
                     '@type' : 'hydra:TemplatedLink',
-                    'rdfs:label': 'A IRI template that can be used to query a collection.' // TODO parse Hydra vocab
+                    //'rdfs:label': 'A IRI template that can be used to query a collection.'
                 },
                 'hydra:title': 'Search',
                 'hydra:description' : 'Filter items of the collection',

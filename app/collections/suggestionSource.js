@@ -56,29 +56,27 @@ var SuggestionSource = Backbone.Collection.extend({
             self.prefixes.iana = 'http://www.iana.org/assignments/relation/';
             ianaLinkRelsSource.reset();
         });
-
     },
-
 
     /**
      * Checks whether the given RDF class classIri or any of its super-classes
-     * is the domain of the RDF property propIri
+     * is in the domain of the RDF property propIri
      * @param classIri
      * @param propIri
      */
     checkIfClassInDomainOfProp: function (classIri, propIri) {
-
         var typesAsIri = this.getRDFSuperClasses(classIri);
-
         return typesAsIri.some(_.bind(function (typeIri) {
             var tripleCount = this.rdfStore.countTriplesByIRI(propIri, this.rdfsDomain, typeIri);
             return (tripleCount > 0);
         }, this));
     },
 
-     // returns an array with the class itself and all super classes of an RDF class
-    // example: calling the mothod with 'http://schema.org/School'
-    //          returns ['http://schema.org/School', 'http://schema.org/EducationalOrganization', 'http://schema.org/Organization', 'http://schema.org/Thing']
+    /**
+     * returns an array with the class itself and all super classes of an RDF class
+     * example: calling the method with 'http://schema.org/School'
+     *          returns ['http://schema.org/School', 'http://schema.org/EducationalOrganization', 'http://schema.org/Organization', 'http://schema.org/Thing']
+     */
     getRDFSuperClasses: function(classIri) {
         var localClass = classIri;
         var superClasses = [localClass];
@@ -88,7 +86,6 @@ var SuggestionSource = Backbone.Collection.extend({
             if(superType && superType[0] != null) { superClasses.push(superType[0]); }
             localClass = superType[0];
         }
-
         return superClasses;
     },
 
