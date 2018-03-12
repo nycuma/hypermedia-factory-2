@@ -345,11 +345,11 @@ var EditLinkView = Backbone.View.extend({
     toggleDisableEditView: function () {
 
         if(this.$el.find('input[name=embedItemsCheckBox]').prop('checked')) {
-            this.$el.find('#operationFieldSetsWrapper input, select, .addFieldBtn').each(function () {
+            this.$el.find('#operationFieldSetsWrapper input, select, textarea, .addFieldBtn').each(function () {
                 $(this).attr('disabled', true);
             });
         } else {
-            this.$el.find('#operationFieldSetsWrapper input, select, .addFieldBtn').each(function () {
+            this.$el.find('#operationFieldSetsWrapper input, select, .relationInputWrapper textarea, .addFieldBtn').each(function () {
                 $(this).attr('disabled', false);
             });
         }
@@ -363,7 +363,7 @@ var EditLinkView = Backbone.View.extend({
         // update exisiting RETRIEVE operation or set values in new field set
         $('#relation'+count).val('member').attr({'term-prefix': 'hydra', 'isCustom': false});
         $('#relation'+count+'Iri').val(sugSource.prefixes.hydra + 'member');
-        $('#relation'+count+'TermDescr').val('A member of the collection');
+        $('#relation'+count+'TermDescr').val('A member of the collection'); // TODO parse Hydra vocab
 
         $('#action'+count).val('ReadAction').attr({'term-prefix': 'schema', 'isCustom': false});
         $('#action'+count+'Iri').val(sugSource.prefixes.schema + 'ReadAction');
