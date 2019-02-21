@@ -2,7 +2,7 @@
 
 This is the practical part of my bachelor's thesis, submitted to the research group for [Service-centric Networking](https://www.snet.tu-berlin.de/) at [Technische Universität Berlin](http://www.tu-berlin.de/).
 
-The running app can be found here: [https://nycuma.github.io/hypermedia/](https://nycuma.github.io/hypermedia/) (Has a few bugs... ;)
+The running app can be found here: [https://nycuma.github.io/hypermedia-factory-2/](https://nycuma.github.io/hypermedia-factory-2/) (Has a few bugs... ;)
 
 ### Idea
 
