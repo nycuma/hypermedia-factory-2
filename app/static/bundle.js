@@ -90333,7 +90333,7 @@ var SchemaOrgSource = Backbone.Collection.extend({
     model: Term,
     // PRODUCTION: url: '../static/vocabs/schema.ttl',
     // DEV:
-    url: '../app/static/vocabs/schema.ttl',
+    url: '../hypermedia-factory-2/app/static/vocabs/schema.ttl',
 
     schemaDomain: 'http://schema.org/domainIncludes',
     schemaRange: 'http://schema.org/rangeIncludes',
@@ -90431,7 +90431,7 @@ var IanaLinkRelsSource = Backbone.Collection.extend({
     model: Term,
     // PRODUCTION: url: '../static/vocabs/link-relations.xml',
     // DEV:
-    url: '../app/static/vocabs/link-relations.xml',
+    url: '../hypermedia-factory-2/app/static/vocabs/link-relations.xml',
 
     sync: function (method, model, options) {
         if(method == 'read') {

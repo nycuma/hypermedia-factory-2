@@ -16,7 +16,7 @@ var SchemaOrgSource = Backbone.Collection.extend({
     model: Term,
     // PRODUCTION: url: '../static/vocabs/schema.ttl',
     // DEV:
-    url: '../app/static/vocabs/schema.ttl',
+    url: '../hypermedia-factory-2/app/static/vocabs/schema.ttl',
 
     schemaDomain: 'http://schema.org/domainIncludes',
     schemaRange: 'http://schema.org/rangeIncludes',
