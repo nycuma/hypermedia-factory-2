@@ -2,9 +2,300 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
   <title>Hypermedia Factory</title>
+  <link rel="stylesheet" type="text/css" href="app/static/style.css" />
+  <link rel="stylesheet" type="text/css" href="app/static/joint.css" />
+  <link rel="stylesheet" type="text/css" href="app/static/jquery-ui-theme-humanity.css" />
+  <link rel="icon" href="app/static/img/favicon.png" type="image/x-icon">
 </head>
 <body>
-    Hello World!
+
+  <!-- Navigation Bar -->
+  <div id="navigationBar"></div>
+
+
+  <!-- Graph -->
+  <div id="paper"></div>
+
+  <!-- Side Panel -->
+  <div id="sidePanel"></div>
+
+  <!-- Term Description -->
+  <div id="termDesc"></div>
+
+
+  <!-- Forms to edit resources / links -->
+  <div id="editResource" class="editGraphElement"></div>
+  <div id="editLink" class="editGraphElement"></div>
+
+  <!-- Navigation Bar Template -->
+  <script type="text/template" id="navigationBar-template">
+    <img alt="Hypermedia Factory" title="Hypermedia Factory Logo" src="app/static/img/hm-logo-small.png" width="100" height="35"/>
+    <nav>
+      <button class="navItem opensSidePanel" id="aboutBtn">About</button>
+      <button class="navItem" id="openBtn">Open</button>
+      <button class="navItem" id="saveBtn">Save</button>
+      <button class="navItem opensSidePanel" id="downloadBtn">Download Profile</button>
+      <!-- <button class="navItem opensSidePanel" id="optionsBtn">Options</button> -->
+      <button class="navItem opensSidePanel" id="helpBtn">Help</button>
+    </nav>
+    <input type="file" id="uploadInput">
+  </script>
+
+
+  <!-- Side Panel Template -->
+  <script type="text/template" id="sidePanel-template">
+    <div id="sidePanelCloseBtn">X</div>
+    <div id="sidePanelContent"></div>
+  </script>
+
+  <!-- Welcome Template -->
+  <script type="text/template" id="welcome-template">
+    <h1>Welcome</h1>
+    <br>This web site is a work in progress!
+    <!--Some welcome text. This is a
+    <a href="#" title="go somewhere">link</a>. Some more welcome text.
+    <a href="#" title="go somewhere">Another</a> link. -->
+  </script>
+
+  <!-- About Template -->
+  <script type="text/template" id="about-template">
+    <h1>About</h1>
+    <p>
+      This project is part of my bachelor's thesis at the
+      <a href="http://www.snet.tu-berlin.de/" target="_blank" title="Service-centric Networking">SNET</a>
+      research group at
+      <a href="http://www.tu-berlin.de/" target="_blank" title="Technische Universität Berlin">TU Berlin</a>.
+    </p>
+    <p>
+      [Some words about REST and hypermedia....]
+    </p>
+    <p>
+      --> <a href="https://github.com/nycuma/hypermedia-factory" target="_blank">GitHub repository</a>
+    </p>
+    <p>
+      <strong>Credits:</strong>
+      <br>Logo designed by: <a href="http://franziskanebel.de/" target="_blank">Franziska Nebel</a>
+      <br>Font 'Greyscale' from: <a href="https://www.fontsquirrel.com/fonts/Greyscale-Basic?filter[license][0]=web" target="_blank">FontSquirrel</a>
+      <br>Framework: <a href="http://backbonejs.org/" target="_blank">Backbone.js</a>
+      <br>Graph library: <a href="https://www.jointjs.com/opensource" target="_blank">Joint.js</a>
+      <br>RDF library: <a href="https://github.com/RubenVerborgh/N3.js" target="_blank">N3.js</a>
+      <br>Autocomplete widget: <a href="http://jqueryui.com/autocomplete/" target="_blank">jQuery UI</a>
+    </p>
+  </script>
+
+
+  <!-- Download Profiles Template -->
+  <script type="text/template" id="download-template">
+    <h1>Download profiles</h1>
+    <form>
+      <table>
+         <tr>
+          <td>Output format:</td>
+        </tr>
+        <!--
+        <tr>
+          <td><input type="radio" name="profileFormat" value="jsonld"></td>
+          <td>JSON-LD contexts</td>
+        </tr>
+        <tr>
+          <td><input type="radio" name="exportFormat" value="alps"> ALPS</td>
+        </tr>
+        -->
+        <tr>
+          <td><input type="radio" name="exportFormat" value="hydra" checked> Hydra ApiDocs</td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Base URL of API:</td>
+        </tr>
+        <tr>
+          <td><input type="text" id="exportBaseUrl" placeholder="http://mysite.com/api" required></td>
+        </tr>
+        <tr>
+          <td>Namespace for customized vocabulary:</td>
+        </tr>
+        <tr>
+          <td><input type="text" id="exportNamespace" placeholder="http://mysite.com/api#vocab" required></td>
+        </tr>
+        <tr>
+          <td>API title:</td>
+        </tr>
+        <tr>
+          <td><input type="text" id="exportApiTitle" placeholder="Demo API"></td>
+        </tr>
+        <tr>
+          <td><textarea id="exportApiDescr" rows="6" placeholder="What is your API about?"></textarea></td>
+        </tr>
+      </table>
+      <button class="btn submitBtn" type="submit">Download</button>
+    </form>
+  </script>
+
+  <!-- Help Template -->
+  <script type="text/template" id="help-template">
+    <h1>Help</h1>
+    <div id="instructions"></div>
+  </script>
+
+
+  <!-- Autocomplete Input Field Template -->
+  <script type="text/template" id="autocomplete-input-template">
+
+    <tr>
+      <td><%= label %></td>
+      <td class="autocompleteInputField" id="<%= idAC %>InputField"></td>
+      <td rowspan="2"><textarea name="termDescr" id="<%= idAC %>TermDescr" rows="3" placeholder="Please add a short description of the term..."></textarea> </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td><input id="<%= idAC %>Iri" type="text" name="inputFieldIri" placeholder="URI for term" readonly></td>
+    </tr>
+  </script>
+
+  <!-- Edit Resource Template -->
+  <script type="text/template" id="edit-resource-template">
+    <form>
+      <table id="resourceNameInputWrapper">
+        <!-- resource name autcomplete field -->
+      </table>
+
+      <hr>
+      <strong>Attributes</strong>
+      <div id="resourceAttrsWrapper">
+        <!-- resource attribute template -->
+      </div>
+      <button class="btn cancelBtn">Cancel</button>
+      <button class="btn submitBtn">Save</button>
+      <button class="btn addFieldBtn" title="Add attribute">+</button>
+    </form>
+  </script>
+
+
+
+  <!-- Resource attribute Template -->
+  <script type="text/template" id="resource-attribute-template">
+    <hr>
+    <div id="resourceAttrSet<%= idSet %>">
+      <table  class="resourceAttrSet">
+        <tbody class="resourceAttrInputWrapper"> <!-- id="resourceAttrInputWrapper<%= idSet %>" -->
+            <!-- attribute autocomplete input field -->
+        </tbody>
+        <tbody>
+          <!-- attribute options -->
+          <tr>
+            <td></td>
+            <td><label for="datatypeDropdown<%= idSet %>">Data type:</label>
+              <select name="datatypeDropdown" id="datatypeDropdown<%= idSet %>">
+                <option value="string">String</option>
+                <option value="boolean">Boolean</option>
+                <option value="integer">Integer</option>
+                <option value="decimal">Decimal</option>
+                <option value="date">Date</option>
+                <option value="time">Time</option>
+                <option value="dateTime">DateTime</option>
+                <option value="anyURI">URL</option>
+              </select>
+            </td>
+            <td>Read-only: <input type="checkbox" name="readonlyCheckBox" id="readonlyCheckBox<%= idSet %>"/></td>
+          </tr>
+          <!--
+          <tr>
+            <td>Nested collection</td>
+            <td><input type="checkbox" /></td>
+          </tr>
+          -->
+        </tbody>
+      </table>
+    </div>
+
+  </script>
+
+  <!-- Edit Link Template -->
+  <script type="text/template" id="edit-link-template">
+      <form>
+      <table id="linkOptions">
+        <tr>
+          <td><input type="checkbox" name="collItemLinkCheckBox"/></td>
+          <td>This link connects a collection to an item.</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><input type="checkbox" name="allowFilterCheckBox"/> <span class="collItemLinkOptionText">Allow filter queries: <input type="text" name="allowFilterParams" placeholder="param1, param2, ..." /></span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><input type="checkbox" name="embedItemsCheckBox"/> <span class="collItemLinkOptionText">Embed item data in collection.</span></td>
+        </tr>
+      </table>
+        <br>
+
+      <hr>
+        <strong>Operations</strong>
+        <div id="operationFieldSetsWrapper">
+          <!-- operation template -->
+        </div>
+      <button class="btn cancelBtn">Cancel</button>
+      <button class="btn submitBtn">Save</button>
+      <button class="btn addFieldBtn" title="Add state transition">+</button>
+    </form>
+  </script>
+
+<!-- Operation Template -->
+  <script type="text/template" id="operation-template">
+    <hr>
+    <div id="operationFieldSet<%= idSet %>">
+      <table>
+
+        <tbody class="relationInputWrapper">
+        <!-- autocomplete input field for link relation-->
+        </tbody>
+
+        <tbody class="actionInputWrapper" id="actionInputWrapper<%= idSet %>">
+        <!-- autocomplete input field for action type -->
+        </tbody>
+
+        <tbody>
+        <tr>
+          <td><label for="methodDropdown<%= idSet %>">Method:</label></td>
+          <td>
+            <select name="methodDropdown" id="methodDropdown<%= idSet %>" count="<%= idSet %>">
+              <option value="RETRIEVE">retrieve (safe)</option>
+              <option value="CREATE">create (not idemportent)</option>
+              <option value="REPLACE">replace (idempotent)</option>
+              <option value="DELETE">delete (idempotent)</option>
+            </select>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </script>
+
+  <!-- Node Template -->
+  <script type="text/template" id="node-template">
+    <div class="html-element">
+      <button class="newLink">
+      </button>
+      <button class="delete">x</button>
+      <div class="collectionLabel">&#8729; Collection &#8729;</div>
+      <label></label>
+    </div>
+  </script>
+
+  <!-- Start Node Template -->
+  <script type="text/template" id="start-node-template">
+    <div class="html-element">
+      <button class="newLink"></button>
+      <label>START</label>
+    </div>
+  </script>
+
+
+  <!-- Webpack Bundle -->
+  <script type="text/javascript" src="app/static/bundle.js"></script>
 </body>
 </html>

@@ -46,7 +46,7 @@ joint.shapes.html.NodeView = joint.dia.ElementView.extend({
 
         // Display link symbol on mouse-over and add link on double-click
         this.$box.find('.newLink').mouseover(function () {
-           $(this).css('background', 'url("./static/img/arrow.png") no-repeat');
+           $(this).css('background', 'url("./app/static/img/arrow.png") no-repeat');
         });
         this.$box.find('.newLink').mouseleave(function () {
             $(this).css('background', '');
@@ -143,7 +143,7 @@ joint.shapes.html.StartNodeView = joint.dia.ElementView.extend({
         // Display link symbol on mouse-over and add link on double-click
         this.$box.find('.newLink').mouseover(function () {
             console.log('calling mouse-over StartNodeView');
-            $(this).css('background', 'url("./static/img/arrow.png") no-repeat');
+            $(this).css('background', 'url("./app/static/img/arrow.png") no-repeat');
         });
         this.$box.find('.newLink').mouseleave(function () {
             $(this).css('background', '');
