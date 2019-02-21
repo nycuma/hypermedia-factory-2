@@ -11,7 +11,7 @@ var InstructionsList = Backbone.Collection.extend({
     model: Instruction,
     // PRODUCTION: url: '../static/modelData/instructionsData.json',
     // DEV:
-    url: '../app/static/modelData/instructionsData.json',
+    url: '../hypermedia-factory-2/app/static/modelData/instructionsData.json',
     parse: function (data) {
         return data.items;
     }

@@ -11,7 +11,7 @@ var MethodSuggestions = Backbone.Collection.extend({
     model: MethodSuggestionVocab,
     // PRODUCTION: url: '../static/modelData/methodSuggestions.json',
     // DEV:
-    url: '../app/static/modelData/methodSuggestions.json',
+    url: '../hypermedia-factory-2/app/static/modelData/methodSuggestions.json',
 
     initialize: function () {
         this.fetch({parse: true});

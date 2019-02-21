@@ -27971,7 +27971,7 @@ var MethodSuggestions = Backbone.Collection.extend({
     model: MethodSuggestionVocab,
     // PRODUCTION: url: '../static/modelData/methodSuggestions.json',
     // DEV:
-    url: '../app/static/modelData/methodSuggestions.json',
+    url: '../hypermedia-factory-2/app/static/modelData/methodSuggestions.json',
 
     initialize: function () {
         this.fetch({parse: true});
@@ -90553,7 +90553,7 @@ var InstructionsList = Backbone.Collection.extend({
     model: Instruction,
     // PRODUCTION: url: '../static/modelData/instructionsData.json',
     // DEV:
-    url: '../app/static/modelData/instructionsData.json',
+    url: '../hypermedia-factory-2/app/static/modelData/instructionsData.json',
     parse: function (data) {
         return data.items;
     }
